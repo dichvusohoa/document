@@ -1,0 +1,104 @@
+*[err]{
+    background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><text x="0" y="15" fill="red">err</text></svg>'); 
+    background-repeat: no-repeat;
+    background-position: 0 center;
+}
+input[err]{
+    /*các err có prefix là err--*/
+    background-color: #FFCCCC;
+}
+/*Begin các loại lỗi cơ bản không cần tham số bổ sung*/
+*[err = "match"]{
+    background-image: url('/images/err--match.svg');
+    background-size: auto 80%;
+    background-position: center left 0.2rem;
+}
+*[err = "required"]{
+    background-image: url('/images/err--required.svg');
+    background-size: auto 60%;
+    background-position: center left 0.2rem;
+}
+*[err = "int"]{
+    background-image: url('/images/err--int.svg');
+    background-size: auto 80%;
+    background-position: center left 0.2rem;
+}
+*[err = "number"]{
+    background-image: url('/images/err--number.svg');
+    background-size: auto 80%;
+    background-position: center left 0.2rem;
+}
+*[err = "email"]{
+    background-image: url('/images/err--email.svg');
+    background-size: auto 80%;
+    background-position: center left 0.2rem;
+}
+*[err = "url"]{
+    background-image: url('/images/err--url.svg');
+    background-size: auto 75%;
+    background-position: center left 0.2rem;
+}
+*[err = "date"]{
+    background-image: url('/images/err--date.svg');
+    background-size: auto 65%;
+    background-position: center left 0.2rem;
+}
+*[err = "must-be-in-list"]{
+    background-image: url('/images/err--must-be-in-list.svg');
+    background-size: auto 80%;
+    background-position: center left 0.2rem;
+}
+*[err = "delete-not-allowed"]{
+    background-image: url('/images/err--delete-not-allowed.svg');
+    background-size: auto 65%;
+    background-position: center left 0.2rem;
+}
+*[err = "update-not-allowed"]{
+    background-image: url('/images/err--update-not-allowed.svg');
+    background-size: auto 70%;
+    background-position: center left 0.2rem;
+}
+*[err = "add-not-allowed"]{
+    background-image: url('/images/err--add-not-allowed.svg');
+    background-size: auto 65%;
+    background-position: center left 0.2rem;
+}
+*[err = "run-sql"]{
+    background-image: url('/images/err--run-sql.svg');
+    background-size: auto 70%;
+    background-position: center left 0.2rem;
+}
+/*End các loại lỗi cơ bản không cần tham số bổ sung*/
+
+/*Begin loại so sánh value, nhưng mà giá trị value là bất kỳ nên chỉ hiện ra ảnh là các dấu so sánh >,< chung chung */
+*[err ^= "g"]{
+    background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><text x="0" y="15" fill="red">></text></svg>');  
+}
+*[err ^= "ge"]{
+    background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><text x="0" y="15" fill="red">≥</text></svg>');  
+}
+*[err ^= "l"]{
+    background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><text x="0" y="15" fill="red"><</text></svg>');  
+}
+*[err ^= "le"]{
+    background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><text x="0" y="15" fill="red">≤</text></svg>');  
+}
+/*Begin loại so sánh value, nhưng mà giá trị value là bất kỳ nên chỉ hiện ra ảnh là các dấu so sánh >,< chung chung */
+
+/*Begin loại so sánh value với số 0. Đây là trường hợp giá trị cá biệt hay gặp nên làm riêng */
+*[err = "g--0"]{
+    background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><text x="0" y="15" fill="red">>0</text></svg>');  
+}
+*[err = "ge--0"]{
+    background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><text x="0" y="15" fill="red">≥0</text></svg>');  
+}
+*[err = "l--0"]{
+    background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><text x="0" y="15" fill="red"><0</text></svg>');  
+}
+*[err = "le--0"]{
+    background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><text x="0" y="15" fill="red">≤0</text></svg>');  
+}
+/*End loại so sánh value với số 0. Đây là trường hợp giá trị cá biệt hay gặp nên làm riêng */
+*[err = "le--100"]{
+    background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><text x="0" y="15" fill="red">≤100</text></svg>');  
+}

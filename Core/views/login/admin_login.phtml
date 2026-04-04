@@ -1,0 +1,17 @@
+<fieldset class="login">
+    <legend class="login__legend">QUẢN TRỊ HỆ THỐNG ĐĂNG NHẬP</legend>
+    <form class="login__form" name="frm_login_admin" method="post">
+        <label class="login__label" for="user_name">Tên đăng nhập</label>
+        <input class="login__input" type="text" name="user_name" id="user_name" maxlength="96">
+
+        <label class="login__label" for="user_password">Mật khẩu</label>
+        <input class="login__input" type="password" id="user_password" name="user_password" maxlength="96">
+        <!-- Turnstile widget -->
+        <div class="cf-turnstile" data-sitekey="YOUR_SITE_KEY" data-theme="light" ></div>
+       
+        <button class="btn-light3d">Đăng nhập</button>
+        <div class="message message--error"></div>
+    </form>
+</fieldset>
+    
+

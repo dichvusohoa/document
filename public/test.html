@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this template
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            .date-picker {
+              display: flex;
+              border: 1px solid #ccc;
+              padding: 0.5rem;
+              border-radius: 4px;
+              background-color: #fff;
+            }
+
+            .date-picker__input {
+              flex: 1;
+              border: none;
+              outline: none;
+              font-size: 1rem;
+            }
+
+            .date-picker__toggle-button {
+              background-color: #eee;
+              border: none;
+              padding: 0.5rem;
+              cursor: pointer;
+            }
+
+            /* ====== Modifier: Dark theme ====== */
+            .date-picker--dark {
+              background-color: #333;
+              border-color: #666;
+            }
+
+            .date-picker--dark .date-picker__input {
+              background-color: #444;
+              color: #eee;
+            }
+
+            .date-picker--dark .date-picker__toggle-button {
+              background-color: #555;
+              color: #fff;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Giao diện mặc định -->
+        <div class="date-picker">
+          <input class="date-picker__input" type="text" placeholder="Chọn ngày">
+          <button class="date-picker__toggle-button">📅</button>
+        </div>
+
+        <!-- Giao diện dark -->
+        <div class="date-picker date-picker--dark">
+          <input class="date-picker__input" type="text" placeholder="Chọn ngày">
+          <button class="date-picker__toggle-button">📅</button>
+        </div>
+    </body>
+</html>

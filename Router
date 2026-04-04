@@ -1,0 +1,38 @@
+$router->get('/', 'HomeController@index');
+$router->get('/login', 'AuthController@showLogin');
+$router->post('/login', 'AuthController@login');
+$router->get('/logout', 'AuthController@logout');
+
+$router->get('/pupils', 'PupilController@index');
+$router->get('/pupils/create', 'PupilController@create');
+$router->post('/pupils', 'PupilController@store');
+$router->get('/pupils/{id}/edit', 'PupilController@edit');
+$router->put('/pupils/{id}', 'PupilController@update');
+
+Router
+
+
+Cấu trúc nội tại chứa  một array kiểu như
+
+routes["method"]["pattern"] => $action (hoặc là một function)
+method = GET, POST, PUT, DELETE
+"pattern" = 'pupils/([^/]+)/edit'
+action = PupilController@edit
+
+hàm dispatch bản chất là duyệt cấu trúc nội tại này để móc nối vào controller cho chính xác
+
+==================================
+$middlewareMap. Cấu trúc kiểu pattern => mảng các tên class
+
+    '/admin/*' => [
+        AuthMiddleware::class,
+        LogMiddleware::class,
+    ],
+    '/settings' => [
+        CsrfMiddleware::class,
+    ],
+]
+
+
+
+

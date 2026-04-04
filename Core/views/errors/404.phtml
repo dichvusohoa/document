@@ -1,0 +1,28 @@
+<?php use Core\Models\ErrorInfo; ?>   
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>404 - Not Found</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 1.25rem; /* 20px */
+            color: #333;
+        }
+        
+    </style>
+</head>
+<body>
+    <?php 
+        if (isset($errInfo)) {
+            echo ErrorInfo::renderHtml($errInfo);
+        } else {
+            echo 'Không có thông tin lỗi chi tiết.';
+        }
+    ?>
+  
+</body>
+</html>

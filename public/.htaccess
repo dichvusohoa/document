@@ -1,0 +1,22 @@
+RewriteEngine On
+
+# -----------------------------
+# 1. Nếu file hoặc folder thật tồn tại (PHP, HTML, CSS, JS, images, fonts…) → phục vụ trực tiếp
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# -----------------------------
+# 2. Tới đây là không tồn tại file hoặc folder
+# Nếu là file tài nguyên (CSS, JS, SVG, PNG, ICO, WOFF, TTF...) mà không tồn tại
+#    → KHÔNG rewrite sang index.php, Apache sẽ trả 404 trực tiếp
+# [NC] mean no case: không phân biệt hoa thường
+# Mục đích của rule này là để cho nếu lỡ không may các file tài nguyên không tồn tại thì sẽ
+# không chạy index.php gây lãng phí tài nguyên vô ích
+RewriteCond %{REQUEST_URI} \.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf)$ [NC]
+RewriteRule ^ - [L]
+
+# -----------------------------
+# 3. Tất cả request còn lại → rewrite sang index.php
+# QSA: giữ nguyên query string
+RewriteRule ^ index.php [QSA,L]

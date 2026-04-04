@@ -1,0 +1,24 @@
+về tham số của lệnh fetch
+lệnh fetch có tham số body. Khi dùng để submit form thì body: formData là hợp nhất
+
+Dùng như sau
+
+let response = await fetch(this.sUrlPost,{
+    method : "POST",
+    headers: {
+        "Accept": "application/json"   // expected data sent back
+    },
+    body: new FormData(this.frmControl)
+});
+
+
+Còn nếu gửi chuỗi string đã mã hóa thành json thì viết như sau
+            let response = await fetch(this.sUrlPost,{
+                method : "POST",
+                headers: {
+                    "Content-Type": "application/json",  // sent request
+                    "Accept": "application/json"   // expected data sent back
+                },
+                body : JSON.stringify(data) //data là dang Json string
+                
+            });

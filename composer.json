@@ -1,0 +1,20 @@
+{
+    "name": "tuanpt/document",
+    "description": "quản lý tài liệu",
+    "type": "project",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "tuanpt"
+        }
+    ],
+    "require": {
+        "mobiledetect/mobiledetectlib": "^4.8"
+    },
+    "autoload": {
+        "psr-4": {
+            "Core\\": "Core/",
+            "App\\": "Application"
+        }
+    }
+}

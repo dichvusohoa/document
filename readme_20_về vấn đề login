@@ -1,0 +1,11 @@
+Có 2 loại Login
+- Login cho các user chức năng thông thường
+- Login cho admin cao cấp ===> chỉ đăng nhập đươc qua URL đặc biệt
+
+Nó liên quan gì tới router
+ 
+Khi dùng URL định tuyến tới một chức năng ( của user chức năng thông thường) nếu
+phát hiện không đủ quyền = > redirect tới trang login
+
+Khi dùng URL định tuyến tới một chức năng (của admin cao cấp) nếu phát hiên không đủ quyền
+redirect ra 404 để tránh lộ URL đặc biệt

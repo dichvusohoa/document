@@ -1,0 +1,17 @@
+Gợi ý từ CHATGPT
+
+Tổng hợp khả năng phân loại middleware:
+Tiêu chí	Ví dụ cụ thể
+
+Controller / Action	UserController@login
+Module	nutrition, accountant
+HTTP Method	POST, DELETE
+Request Type	JSON, AJAX, HTML
+Route Name / Alias	nutrition.food_price.edit
+URL pattern	admin/*, account/*
+User role / Permission	admin, staff, guest
+
+Nếu bạn đang thiết kế hệ thống Router có middlewareMap, bạn có thể gộp các tiêu chí này lại như một quy tắc kiểm tra phân lớp, ví dụ:
+
+
+// Check theo thứ tự: route → controller@action → module → method → type

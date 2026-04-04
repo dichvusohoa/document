@@ -1,0 +1,42 @@
+/*field set ngoài cùng*/
+.login {
+    width: 35rem;
+    margin: 10.0rem auto; /*login cách Top 10 rem, căn lề trục LR vào center*/
+    border: solid 0.1rem #999999; /*viền xám nhạt của field set*/
+    padding: 1.0rem 2.0rem 0 2.0rem; /*top right bottom left*/
+}
+/*legend của field set*/
+.login__legend {
+    font-weight: bold;
+    font-size: 1.6rem;
+    margin-left: 1.0rem;
+}
+
+.login__form {
+    display: flex;
+    flex-direction: column; /* đổi hướng mặc định, xếp dọc từ trên xuống */
+    align-items: stretch; /*input,label, button đều choán 100% chiều rộng*/
+    margin-bottom: 3.0rem; /*khoảng cách mép dưới nút Đăng nhập và viền bottom của field set*/
+    position: relative;
+    border:  1px solid green;
+    
+}
+
+.login__label {
+  
+}
+.login__input {
+    min-width: 0; /* để khi form có chiều ngang quá nhỏ thì input vẫn co lại được*/
+    padding-left: 2.0rem; /*khoảng padding left này để đặt các icon báo lỗi*/
+}
+.login button{
+    height: 3.0rem;
+    margin-top: 2rem ; /*mép trên cách input password 2 rem*/
+}
+
+.login__message {
+    /* Tùy chỉnh thông báo lỗi nếu có */
+    color: red;
+    font-size: 1.4rem;
+    margin-top: 1.0rem;
+}

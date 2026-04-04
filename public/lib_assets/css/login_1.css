@@ -1,0 +1,56 @@
+.login {
+    width: 40rem;
+    margin: 10.0rem auto;
+    border: solid 0.1rem #999999;
+    padding: 1.0rem 2.0rem 0 2.0rem;
+}
+
+.login__legend {
+    font-weight: bold;
+    font-size: 1.6rem;
+    margin-left: 1.0rem;
+}
+
+.login__form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 0.0rem;
+    align-items: center;
+    margin-bottom: 3.0rem;
+    position: relative;
+}
+
+.login__label {
+    flex: 0 0 16rem;
+}
+.login__label--checkbox {
+    flex: 0 0 20rem;
+    margin-left: 1.0rem;
+}
+
+.login__input {
+    flex: 1 1 calc(100% - 16rem);
+    min-width: 0; /* để khi form có chiều ngang quá nhỏ thì input vẫn co lại được*/
+    padding-left: 2.0rem;
+}
+
+.login__image {
+    flex: 1 1 calc(100% - 22rem);
+    min-width: 0; /* để khi form có chiều ngang quá nhỏ thì input vẫn co lại được*/
+    height: 3.0rem;
+    border: 0.1rem solid #999999;
+}
+
+.login button{
+    height: 3.0rem;
+    width: 10.9rem;
+    margin-left: auto;
+    margin-right: 0;
+}
+
+.login__message {
+    /* Tùy chỉnh thông báo lỗi nếu có */
+    color: red;
+    font-size: 1.4rem;
+    margin-top: 1.0rem;
+}

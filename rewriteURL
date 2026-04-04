@@ -1,0 +1,31 @@
+Hệ thống one entry point (index.php) cần file /public/.htaccess như sau
+
+RewriteEngine On
+
+# Bỏ qua file hoặc thư mục vật lý
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Mọi request đều qua index.php
+RewriteRule ^ index.php [QSA,L]  
+
+
+Giải thích về ảnh hưởng đến client server
+ví dụ  URL truy cập như sau
+
+https://mamnon.dichvuquanly.com//users/123/edit?response_html=json
+
+thì về phía client không thay đổi gì
+console.log(window.location.pathname); // "/users/123/edit"
+console.log(window.location.search);   // "?response_html=json"
+
+về server thì do cơ chế rewrite Webserver sẽ hướng việc xử lý tới   file index.php
+- tuy nhiên $_SERVER['REQUEST_URI'] thì vẫn là /users/123/edit?response_html=json ← vẫn giữ URL gốc từ trình duyệt
+- $_SERVER['SCRIPT_NAME'] hoặc $_SERVER['PHP_SELF'] /index.php ← vì PHP đang xử lý file index.php sau rewrite
+ 
+
+Cốt lõi của việc lấy chuỗi để phân tích  Controller, action, module là ở lệnh này
+
+$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+

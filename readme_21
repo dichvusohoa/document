@@ -1,0 +1,142 @@
+Sau khi làm CSS về loading, có vài điều rút ra như sau
+1. Về gradient màu
+
+Có 3 loại lệnh gradient: 
+linear-gradient (màu tuyến tính), 
+radial-gradient ( màu theo tâm)
+conic-gradient (màu theo góc hình tròn)
+
+Vài điều chú ý
+Trong cách viết màu
+
+color startColor, endColor
+
+Nếu viết tắt: color  positionColor  thì positionColor là endColor
+
+2. Tạo màu phân cách sắc nét và phân cách kiểu tuyến tính
+- Phân cách sắc nét. 
+
+color1 start1 end1,
+color2 start2=end1 end2,
+color3 start3=end2 end3
+
+đây là cách tạo ra 3 vạch màu phân cách sắc nét
+
+- Tạo màu chuyển tiếp tuyến tính
+
+color1 pos_start1 pos_end1,
+color2 pos_end2,
+color3 pos_end3
+
+dải màu color1 từ pos_start1 =>pos_end1
+màu tuyến tính từ color1 (post_end1) ==> color2 (post_end2)
+màu tuyến tính từ color2 (post_end2) ==> color3 (post_end3)
+3. Chống răng cưa cho conic-gradient
+
+linear-gradient và radial-gradient thì không cần chống răng cưa nhưng conic-gradient
+
+conic-gradient(
+    currentColor 0deg 7.5deg,
+    rgb(from currentColor r g b / 0.25) 8deg,
+    transparent 8deg 360deg
+);
+ Có 2 dải màu tách biệt currentColor, dùng 1 chuyển tiếp tuyến tính 0.5deg( từ 7.5deg => 8deg)
+
+4. Dùng mask để cắt hình
+mask: radial-gradient(
+    circle closest-side,
+    transparent 0 60%,
+    black 60%
+);
+chỗ nào muốn giữ nguyên hình thì dùng màu black, còn muốn đục lỗ thì dùng transparent.
+như ví dụ trên thì từ 0->60% được đục 1 lỗ, còn từ 60% trở ra thì giữ nguyên
+
+5. pseudo element: sử dụng làm gì. Thường dùng để tạo hình, có lợi thế so với việc dùng
+trực tiếp element là có thể tạo ra view kích khác so với element gốc, background-color khác
+
+6. Kỹ thuật kéo hình chạy (loading-bar) bằng CSS. Kỹ thuật thực hiện bằng background-image + CSS
+animation: loading-bar 0.5s infinite linear;
+@keyframes loading-bar { /*mỗi lần kéo 1 độ rộng = khung view*/
+    to { background-position: right; }
+}
+
+Giải thích: sau 0.5s thì toàn bộ background sẽ bị kéo từ góc trái sang góc phải của khung view
+
+Ấn tượng thị giác được hình dung là các khung hình xuất hiện liên tiếp nhau sau 0.5s
+Đặc biệt chú ý rằng các quá trình trung gian 0...=>0.5s không có ý nghĩa. Chỉ có tại
+các thời điểm 0, 0.5, 1.0, 1.5, ... mới có ý nghĩa
+
+Có thể hình dung là các khung hình frame xếp liền nhau vô hạn và được trượt với tốc độ
+1 độ rộng view / 0.5s như sau
+
+-----------|-----------|-----------|-----------| các khung frame chứa hình ảnh
+           |-------|  view   
+
+Với việc làm cho các khung frame rộng hơn khung view sẽ tạo ra ấn tượng về chuyển động
+hình theo chiều ngược lại ( phải ===> qua trái)
+
+chú ý là ở đây background-repeat: repeat thì nó mới tạo ra các khung frame xếp liền vô hạn được
+
+Ví dụ
+
+Hình ảnh là 1 image chia làm 4 theo chiều ngang; tùng-cúc-trúc-mai. độ rộng của ảnh = 400% của view
+
+Kết quả của amimation là các ảnh sau xuất hiện  tùng-mai-trúc-cúc-tùng ..... tức là xuất hiện theo thứ tự ngược
+
+
+Hình ảnh là 1 con rồng đầu quay sang trái, dài = 10 lần view. 
+
+Kết quả hoạt ảnh là con rồng kéo từ phải qua trái. mỗi lần là 1/10 độ dài con rồng
+
+7. Kỹ thuật kéo hình chạy dạng bar (dash-gap) bằng SVG
+
+Đây là 1 trường hợp riêng, nó không phải tổng quát như mục 6. Chỉ áp dụng
+cho kéo hình chạy dạng bar (dash-gap)
+
+- SVG vẽ hình (dash-gap) thường là line, tạo (dash-gap) bằng  stroke-dasharray
+-  Vì SVG chỉ có 1 hình và không có cơ chế background-repeat: repeatX như trên
+nên ta phải kéo hình chạy bằng đặc tính khác đó là stroke-dashoffset
+
+phương pháp chung là
+
+animation: moveX var(--period) linear infinite;
+@keyframes moveX {
+    from {
+        stroke-dashoffset: 0;
+    }
+    to {
+        stroke-dashoffset: XXX;
+    }
+}
+trong đó XXX = pathLength (độ dài của thanh bar). Ý nghĩa là thanh bar được kéo
+từ RIGHT => LEFT với tốc độ  là  pathLength / period
+ Nếu muốn kéo LEFT=> RIGHT thì viết stroke-dashoffset: -XXX;
+
+
+stroke-dasharray khi mà stroke-dashoffset bị dịch quá lớn thì nó tự động vẽ thêm
+dash + gap bù vào chỗ offset trống tạo cảm giác liên tục
+
+
+8. Thường pseudo element đảm nhận việc vẽ, còn animation đặt ở element. Tuy nhiên cần
+lưu ý việc quan hệ giữa các transform. Ví dụ animation có transform và trong element cũng
+có transform thì không thể để animation trong element được vì 2 lệnh transform sẽ có 1 lệnh bị hủy
+Lúc đó cần chuyển animation từ element ==> pseudo element
+
+11. về SVG và CSS
+ngày nay đã có SVG thì các hình khối phức tạp do SVG đảm nhận, CSS sẽ đảm nhận format trang trí
+màu sắc + định vị. CSS không còn phải vẽ các  hình phức tạp kiểu sppiner, bar như xưa nữa
+
+10. CSS variables. Xem ví dụ trong loading.css
+
+Cơ chế
+- file CSS load, những đoạn náo có CSS variable thì chỉ parse chưa tính cụ thể
+- khi javaScript tạo phần tử động và apply variable value kiểu như
+
+loading.style.setProperty("--motion-size", `${this.options.size}rem`);
+        loading.style.setProperty("--segments", `${this.options.segments}`);
+        loading.style.setProperty("--dash-units", `${this.options.dashUnits}`);
+        loading.style.setProperty("--gap-units", `${this.options.gapUnits}`);
+        loading.style.setProperty("--period", `${this.options.period}s`);
+
+khi create phần tử trong DOM thì CSS variables sẽ được tính lại
+

@@ -1,0 +1,4 @@
+Vấn đề sau khi cấp chứng chỉ thất bại
+-Trước mắt. sửa lại cron tự động gia hạn thêm cái restart mềm
+-lâu dài cần nâng cấp certbot 1.11 =  2.x
+- Không dùng Python để làm chalenge  nữa dùng 1 số API của google hoặc cloudfare

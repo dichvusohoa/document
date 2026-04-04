@@ -1,0 +1,20 @@
+<?php
+    use Core\Models\HtmlFragment;
+    use Core\Models\Utility\HtmlUtility;
+    $keys = array_keys($desc_fragment) //dãy tên các khu vực cần render
+?> 
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <?php $strName = $keys[0]; HtmlFragment::render($strName, $desc_fragment[$strName], $data_fragment[$strName]); //title ?>
+    <?php echo HtmlUtility::favicon('/lib_assets/images/logos/');//favicon ?>
+    <?php $strName = $keys[1]; HtmlFragment::render($strName, $desc_fragment[$strName], $data_fragment[$strName]); //css ?>
+    <?php $strName = $keys[2]; HtmlFragment::render($strName, $desc_fragment[$strName], $data_fragment[$strName]); //script ?>
+</head>
+<body>
+    <?php echo HtmlUtility::toScriptLinks(PUBLIC_PATH, "/lib_assets/js/jcheck_cross_browser.js"); ?>
+    <?php $strName = $keys[3]; HtmlFragment::render($strName, $desc_fragment[$strName], $data_fragment[$strName]); //script ?>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<?php use Core\Models\ErrorInfo; ?>   
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>503 - service unavailable</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 1.25rem; /* 20px */
+            
+        }
+        div{
+            display: flex;
+            align-items: center;
+            flex-wrap:wrap; /*cho xuá»‘ng dÃ²ng*/
+            justify-content:center;
+            padding: 3.0rem;
+        }   
+        div p{
+            padding-top: 1.0rem;
+            flex: 1 1 100%; 
+            text-align: center; 
+        }
+        
+    </style>
+</head>
+<body>
+    <?php 
+        if (isset($errInfo)) {
+            echo ErrorInfo::renderHtml($errInfo);
+        } else {
+            echo 'Không có thông tin lỗi chi tiết.';
+        }
+    ?>
+  
+</body>
+</html>

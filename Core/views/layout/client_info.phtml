@@ -1,0 +1,21 @@
+<?php use Core\Models\Utility\HtmlUtility; ?>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <!--Đặt têb client_info để tổng quát hóa, hiện nay mới chỉ cần thông tin về screen resolution -->  
+    <meta charset="UTF-8">
+    <title>Đang khởi tạo...</title>
+    <?php echo HtmlUtility::toScriptLinks(PUBLIC_PATH, "/lib_assets/js/jinit_client_info.js")?>; 
+    <script defer>
+        const initialUri = <?= json_encode($initialUri) ?>;
+        const postEndpoint = <?= json_encode($postEndpoint) ?>;
+        initClientInfo(initialUri, postEndpoint);
+    </script>
+</head>
+<body>
+    <?php echo HtmlUtility::toScriptLinks(PUBLIC_PATH, "/lib_assets/js/jcheck_cross_browser.js"); ?>
+    <div id="app" style="font-family:sans-serif;text-align:center;margin-top:20%">
+        Đang khởi tạo... Vui lòng chờ trong giây lát.
+    </div>
+</body>
+</html>

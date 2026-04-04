@@ -1,0 +1,167 @@
+/* với kiểu loading circle
+<div class="loading loading--circle loading--text-center">
+    <svg class="loading__motion" viewBox="0 0 100 100">
+        <circle
+            class="spinner-track"
+            cx="50"
+            cy="50"
+            r="40"
+        />
+        <circle
+            class="spinner-head"
+            cx="50"
+            cy="50"
+            r="40"
+        />
+    </svg>
+    <div class="loading__text">waiting...</div>
+</div>
+với kiểu loading bar
+
+<div class="loading loading--bar loading--text-bottom">
+    <svg class="loading__motion" viewBox="0 0 100 100">
+        <line class="bar" x1="0" y1="50" x2="100" y2="50"
+        stroke="currentColor" stroke-width="16"
+        stroke-dasharray="1 1"
+        stroke-dashoffset="0" />
+        
+    </svg>
+    <div class="loading__text">waiting...</div>
+</div>
+
+*/
+/* =========================================================
+   BASE div.loading có kích thước và vị trí trùng với container chứa nó
+   để thuận lợi cho việc dựng các phần tử con-cháu của nó sau này 
+========================================================= */
+.loading {
+    position: absolute;
+    inset: 0;
+    color: #333;
+}
+
+/* ===============================
+   POSITION VARIABLES
+phần tử div.loading thường được căn center theo trục X, Y. Kỹ thuật căn thường
+sử dụng tọa độ --x, --y, sau đó dùng transform để  dịch chuyển lại 1 lần nữa
+--x, --y là tọa độ left, top của phần tử div.loading
+--tx, --ty là giá trị để transform 
+================================ */
+.loading--text-center,
+.loading--text-bottom {
+    --x: 50%;
+    --y: 50%;
+    --tx: -50%;
+    --ty: -50%;
+}
+
+.loading--text-right {
+    --x: 1rem;
+    --y: 50%;
+    --tx: 0;
+    --ty: -50%;
+}
+
+/* ===============================
+SVG   
+    SVG thiết lập kích thước SVG hình vuông, căn vị trí SVG cho phù hợp với vị trí của
+    div.loading. SVG cũng thiết lập 1 tọa độ tương đối x = 100, y = 100 thuận lợi cho lệnh
+    vẽ các phần tử như circle, line, ... sau này không phụ thuộc vào màn hình
+================================ */
+.loading__motion {
+    position: absolute;
+    width: var(--motion-size);
+    height: var(--motion-size);
+    top: var(--y);
+    left: var(--x);
+    transform: translate(var(--tx), var(--ty));
+}
+/* ===============================
+   SPINNER 
+================================ */
+.spinner-track {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 20;
+    stroke-opacity: 0.25;
+    stroke-dasharray: var(--dash-units) var(--gap-units);
+}
+
+.spinner-head {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 20;
+ 
+    /* 1 vạch sẫm màu + phần trống */
+    stroke-dasharray: var(--dash-units) calc(var(--path-length) - var(--dash-units));
+    /*khác với DIV, SVG cần xác định tường minh tâm quay*/
+    transform-origin: 50% 50%; 
+    animation: spinner-rotate var(--period) steps(var(--segments)) infinite;
+}
+/* ===============================
+   BAR 
+================================ */
+.bar{
+    stroke: currentColor;
+    stroke-width:16; /* thanh bar sẽ có tỷ lệ width:height: 100:16*/
+    stroke-dasharray: var(--dash-units) var(--gap-units);
+    animation: moveX var(--period) linear infinite;
+   
+}
+/* ===============================
+   TEXT POSITION
+================================ */
+
+.loading__text {
+    position: absolute;
+    white-space: nowrap;
+}
+.loading--circle.loading--text-center .loading__text {
+    top: var(--y);
+    left: var(--x);
+    transform: translate(var(--tx), var(--ty));
+}
+.loading--bar.loading--text-center .loading__text {
+    display: none; /*ẩn text*/
+}
+.loading--circle.loading--text-bottom .loading__text {
+    /*var(--motion-size) * 0.5 vì spinner có đường kính bằng var(--motion-size)*/
+    top: calc(var(--y) + var(--motion-size) * 0.5 + 0.6rem);
+    left: var(--x);
+    transform: translateX(var(--tx));
+}
+.loading--bar.loading--text-bottom .loading__text {
+     /*var(--motion-size) * 0.08 vì bar có height bằng var(--motion-size) * 0.16 */
+    top: calc(var(--y) + var(--motion-size) * 0.08 + 0.6rem);
+    left: var(--x);
+    transform: translateX(var(--tx));
+}
+.loading--circle.loading--text-right .loading__text  {
+    top: var(--y);
+    left: calc(var(--motion-size) + 2rem);
+    transform: translateY(var(--ty));
+}
+.loading--bar.loading--text-right .loading__text {
+    top: var(--y);
+    left: calc(var(--motion-size) + 2rem);
+    transform: translateY(var(--ty));
+}
+/* ===============================
+   AMINATION
+================================ */
+@keyframes spinner-rotate {
+    to { transform: rotate(1turn); }
+}
+/*hiện nay stroke-dashoffset không sử dụng chính xác được với calc, do đó giải pháp là
+đưa phần tính toán phức tạp vào javaScipt, cụ thể là thêm biến trung gian 
+--path-length. 
+--path-length = (--dash-units + --gap-units) * segments
+*/
+@keyframes moveX {
+    from {
+        stroke-dashoffset: var(--path-length);
+    }
+    to {
+        stroke-dashoffset: 0;
+    }
+}

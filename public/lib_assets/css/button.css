@@ -1,0 +1,81 @@
+/*Tạm thời và chỉnh sửa lại sau*/
+/*btn-light3d loại nút màu sáng nhẹ hơi nổi một chút*/
+.btn-light3d{
+    text-align:center;
+    cursor: pointer;
+    background-image:linear-gradient(#f9f9f9,#dedede);
+    border:solid 0.1rem #999999;
+}
+.btn-light3d:hover{
+    background-image:linear-gradient(#fbfbfb,#eaeaea);
+}
+/*btn-ghost loại trong suốt, không viền chứa chữ và icon. Khi hover thì hiện viền rất nhạt và mảnh*/
+.btn-ghost{
+   text-align: left;
+   padding-right: 1.0rem;
+   border: 0.1rem solid transparent; 
+   background-color: transparent;
+   cursor: pointer;
+   transition: background-color 0.3s, border-color 0.3s; /* thêm mượt khi hover */
+   outline: none; /* tránh viền mặc định khi focus (nếu muốn) */
+}
+/*.btn-save, .btn-ok, .btn-help là loại nút có icon bên trái, có text hoặc không
+ở bên phải*/
+.btn-save{
+    padding-left: 3.5rem;
+    background-image:url('/images/btn-save.svg');
+    background-size: auto 90%;
+    background-position: left 0.3rem center;
+    background-repeat: no-repeat;
+}
+.btn-ok{
+    padding-left: 3.0rem;
+    background-image:url('/images/tick.svg');
+    background-repeat: no-repeat;
+}
+.btn-help{
+    padding-left: 3.5rem;
+    background-image:url('/images/help.svg');
+    background-size: auto 90%;
+    background-position: left 0.3rem center;
+    background-repeat: no-repeat;
+}
+/*.icon-delete, .icon-add là loại nút kích thước nhỏ có icon ở chính giữa, không có text*/
+.icon-delete{
+    width:80%;
+    height:80%;
+    border:none;
+    cursor: pointer;
+    background-image:url('/images/btn-delete.svg');
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-color: transparent;
+}
+.icon-add{
+    width:80%;
+    height:80%;
+    border:none;
+    cursor: pointer;
+    background-image:url('/images/btn-add.svg');
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-color: transparent;
+}
+.btn-ghost:hover, .icon-delete:hover, .icon-add:hover, .btn-help:hover{
+    background-color: #f5f5f5;
+    border: #cccccc solid 0.1rem;
+    border-radius: 0.3rem;
+}
+/*.icon-close-form là loại nút nhỏ close form ở góc top-right*/
+.icon-close-form{
+    border:none;
+    cursor: pointer;
+    background-image:url('/images/btn-black-close.svg');
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-color: transparent;
+}
+.icon-close-form:hover{
+    background-image:url('/images/btn-white-close.svg');
+    background-color:red;
+}

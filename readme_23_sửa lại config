@@ -1,0 +1,17 @@
+config.rp2fc
+
+module/controller =>
+    'api_controller'
+    'html_controller'
+    'html_schema'
+
+config.rpr2a
+    'login' => ['guest'=>'login'],
+
+Sửa lại thành 
+'api' =>[
+    'login' =>['guest'=>'login']'
+],
+'html' =>[
+    'login' =>['guest'=>'renderPage']'
+]

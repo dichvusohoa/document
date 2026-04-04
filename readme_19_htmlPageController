@@ -1,0 +1,110 @@
+1. Câu hỏi 1. Là Router định tuyến đến Json class name , có thể định tuyến đến Html class name không
+
+Hiện nay router là dạng cây phục vụ cho json. Logic của nó là chỉ cần
+
+module/controller => json class name ( xem trong config.rp2fc)
+
+Lý do chọn thiết kế này là vì khi xử lý dữ liệu API/JSON thì nó đơn giản hơn giao diện
+vì tính đơn nhất. còn các action/function cụ thể sẽ có thể custom thêm dựa vào $request (
+các tham số bổ sung ví dụ show_pupil = area, show_pupil = class...) 
+
+Tức là với xử lý json data thì cứ  module/controller => json class name (xem trong config.rp2fc)
+json class name + action ===> function name
+Trong function sẽ tinh chỉnh theo $request ($_GET)
+
+
+
+
+Nhưng với giao diện thì tại sao không đưa luôn vào html_class_name_controller vào ( trong config.rp2fc)
+
+Ta cũng có thể thiết kế như với json 
+module/controller => html class name controller ( trong config.rp2fc)
+html class name controller thì chỉ có hàm renderPage thôi, nó không nhiều action như json
+
+Còn nếu ví dụ như view pupil by area, by class thì điều chỉnh qua layout_file + desc_fragment
+
+nếu theo cách này thì không cần mapToHtmlPageControllerFQCN nữa
+
+Nhưng cách làm này thì nó cứng. Sẽ không cho phép thiết kế 
+module/controller ===> nhiếu html class name controller (thí dụ html_area_pupil, html_class_pupil)
+
+24/11/2025
+Chốt router sẽ phục vụ cả html_page và html_schema
+
+a) BaseController cho json: INPUT $request + $arrAuthInfo. Nó không cần $arrMCA nữa
+vì $arrMCA đã hoàn thành nhiệm vụ định tuyến tới 1 controller xác định rồi
+
+$request được khai thác ở các query param hoặc post param 
+
+b) BaseLayout
+INPUT 
+3 yếu tố request + user
+  Request $request;
+    array $arrAuthInfo;
+array $arrRouteMCA;//dư thừa ( có thể suy ra từ request nhưng mất công)
+
+
+  
+2 yếu tố thiết bị  ( có thể có hay không). Hai yếu tố này suy ra từ requiresDeviceDetection
+và requiresScreenDetection
+array $arrDeviceScreen;
+    MobileDetect $mobileDetect;
+
+===> output ra mapToLayoutFile() và mapToUiContext ( thường là arrUserInfo)
+
+c) HtmlPageSchema
+    Không cần arrRouteMCA  vì nó đã hoàn thành vai trò định tuyến đến 1 HtmlPageSchema
+    thích hợp rồi
+    
+    Request $request;
+    array $arrAuthInfo;  User
+    string pathToLayoutFile: hàm chứa ảnh hưởng của thiết bị
+
+OUTPUT: 1 array schema
+
+trung tâm là viết hàm buildSchema
+
+d)HtmlPageController
+    Request $request;
+    array $arrAuthInfo;  
+    
+    2 cái đẩu ra của Layout
+    string pathToLayoutFile
+    array arrUIContext 
+    
+   BỎ array schema ( đầu ra của HtmlPageSchema) ==> thay $strHtmlPageSchemaFQCN
+
+
+
+Trung tâm là viết dataAtFragment
+
+dữ liệu trả về tại fragment
+
+Lúc đó có thể gọi các class khác ví dụ $x1->index(), $x2->index() để tạo ra dữ liệu
+
+E)Dự kiến về giải quyết các frament liên quan khi cập nhật 1 frament trung tâm như sau
+
+- trên server
+
+Sẽ có 1 hàm gọi là 
+
+hàm_vướng_víu(){
+    nếu thực hiện action này thì cập nhật lại các phần khác theo các hướng như sau
+        - refresh lại toàn bộ trang theo 1 url nào đó
+        - cập nhật lại các trang theo dữ liệu trả về ["part1"=> ..., "part2" => ...]
+}
+- hàm javaScript
+
+function (){
+ 
+   functAction(sAction){
+        trên server sẽ chạy hàm thay đổi dữ liệu chính update(), delete(),....
+   } 
+   chạy hàm_vướng_víu() trên sever và cập nhật lại dữ liệu ở client 
+}
+
+    
+
+
+
+

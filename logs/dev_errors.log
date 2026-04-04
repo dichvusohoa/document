@@ -1,0 +1,95 @@
+[28-Jan-2026 21:33:32 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[28-Jan-2026 21:33:32 Asia/Saigon] Xdebug: [Step Debug] Time-out connecting to debugging client, waited: 200 ms. Tried: localhost:9003 (through xdebug.client_host/xdebug.client_port) :-(
+[28-Jan-2026 21:33:45 Asia/Saigon] [RouterFactory] Router cache HIT - reuse cached router
+[28-Jan-2026 21:33:45 Asia/Saigon] Xdebug: [Step Debug] Time-out connecting to debugging client, waited: 200 ms. Tried: localhost:9003 (through xdebug.client_host/xdebug.client_port) :-(
+[28-Jan-2026 21:33:54 Asia/Saigon] [RouterFactory] Router cache HIT - reuse cached router
+[28-Jan-2026 21:33:55 Asia/Saigon] Xdebug: [Step Debug] Time-out connecting to debugging client, waited: 200 ms. Tried: localhost:9003 (through xdebug.client_host/xdebug.client_port) :-(
+[28-Jan-2026 22:14:13 Asia/Saigon] [RouterFactory] Router cache INVALIDATED - roles/modules changed, rebuilding
+[28-Jan-2026 22:14:13 Asia/Saigon] [RouterFactory] Router cache HIT - reuse cached router
+[28-Jan-2026 22:14:13 Asia/Saigon] Xdebug: [Step Debug] Time-out connecting to debugging client, waited: 200 ms. Tried: localhost:9003 (through xdebug.client_host/xdebug.client_port) :-(
+[28-Jan-2026 22:34:54 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[28-Jan-2026 22:34:55 Asia/Saigon] Xdebug: [Step Debug] Time-out connecting to debugging client, waited: 200 ms. Tried: localhost:9003 (through xdebug.client_host/xdebug.client_port) :-(
+[28-Jan-2026 22:34:55 Asia/Saigon] Xdebug: [Step Debug] Time-out connecting to debugging client, waited: 200 ms. Tried: localhost:9003 (through xdebug.client_host/xdebug.client_port) :-(
+[29-Jan-2026 08:13:59 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[29-Jan-2026 09:52:45 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[29-Jan-2026 16:08:08 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[30-Jan-2026 11:19:00 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[01-Feb-2026 08:23:46 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[01-Feb-2026 08:23:49 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[01-Feb-2026 08:25:25 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[01-Feb-2026 09:27:38 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 16:03:53 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 16:06:31 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 16:09:45 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 16:12:23 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 16:16:42 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 16:18:22 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 16:19:19 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 16:25:16 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 16:26:39 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 16:28:28 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 20:24:16 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 20:29:58 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 20:30:06 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 20:30:42 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 20:32:57 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 20:33:08 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 20:34:02 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 20:34:17 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 20:34:40 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 20:35:43 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 20:36:17 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 21:00:50 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 21:02:09 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 21:02:25 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 21:02:34 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 21:03:39 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 21:06:08 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 21:06:12 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 21:07:09 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 21:07:12 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 21:43:25 Asia/Saigon] PHP Fatal error:  Multiple access type modifiers are not allowed in D:\Projects\PHP\document\Core\Models\Route\Router.php on line 17
+[04-Feb-2026 21:43:25 Asia/Saigon] PHP Fatal error:  Could not check compatibility between Core\Models\Cache\RouterCache::loadSessionCache(): ?Core\Models\Route\Router and Core\Models\Cache\Cache::loadSessionCache(): ?object, because class Core\Models\Route\Router is not available in D:\Projects\PHP\document\Core\Models\Cache\RouterCache.php on line 26
+[04-Feb-2026 21:45:24 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 21:45:40 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 21:46:21 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 21:47:34 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 21:56:51 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 22:12:50 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 22:13:10 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 22:18:16 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 22:30:19 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[04-Feb-2026 22:30:21 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[05-Feb-2026 08:18:33 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[05-Feb-2026 12:18:37 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[05-Feb-2026 12:19:09 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[05-Feb-2026 12:19:11 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[05-Feb-2026 19:46:18 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[05-Feb-2026 19:48:10 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[05-Feb-2026 19:51:06 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[05-Feb-2026 19:51:22 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[05-Feb-2026 19:51:24 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[05-Feb-2026 19:52:17 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[05-Feb-2026 19:52:26 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[05-Feb-2026 19:53:39 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[05-Feb-2026 19:53:56 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[05-Feb-2026 19:55:46 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[05-Feb-2026 19:56:48 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[05-Feb-2026 19:58:21 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[05-Feb-2026 19:59:05 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[05-Feb-2026 20:01:25 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[05-Feb-2026 20:01:26 Asia/Saigon] Xdebug: [Step Debug] Time-out connecting to debugging client, waited: 200 ms. Tried: localhost:9003 (through xdebug.client_host/xdebug.client_port) :-(
+[05-Feb-2026 20:01:29 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[05-Feb-2026 20:01:29 Asia/Saigon] Xdebug: [Step Debug] Time-out connecting to debugging client, waited: 200 ms. Tried: localhost:9003 (through xdebug.client_host/xdebug.client_port) :-(
+[05-Feb-2026 21:39:22 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[05-Feb-2026 21:39:23 Asia/Saigon] Xdebug: [Step Debug] Time-out connecting to debugging client, waited: 200 ms. Tried: localhost:9003 (through xdebug.client_host/xdebug.client_port) :-(
+[05-Feb-2026 21:39:33 Asia/Saigon] [RouterFactory] Router cache MISS - build new router
+[05-Feb-2026 21:39:33 Asia/Saigon] Xdebug: [Step Debug] Time-out connecting to debugging client, waited: 200 ms. Tried: localhost:9003 (through xdebug.client_host/xdebug.client_port) :-(
+[08-Mar-2026 21:17:26 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[08-Mar-2026 21:20:49 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[08-Mar-2026 21:21:49 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[08-Mar-2026 21:22:31 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[08-Mar-2026 21:23:55 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[08-Mar-2026 21:23:57 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[19-Mar-2026 21:33:47 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[19-Mar-2026 22:27:58 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router

@@ -1,0 +1,68 @@
+/*Styles cho layout. Tag, Attribute cơ bản nhất*/
+*{
+    margin:0rem;
+    padding: 0rem;
+    box-sizing: border-box;
+   -moz-box-sizing: border-box;
+   -webkit-box-sizing: border-box;
+}
+html{
+    /*phối hợp 02 phương pháp: fluid typography và font-size 62.5%
+    0.625rem = 62.5% * 1rem, 0.390625vw = 500/1280vw. 0.3125rem = 5/16 rem
+    3.75rem = 62.5% * 6rem. Thiết kế cho màn hình 1280
+    */
+    font-size: clamp(0.625rem, 0.390625vw + 0.3125rem, 3.75rem);
+   
+}
+body{
+    font-family: "Arial",sans-serif ; 
+    font-size: 1.6rem; 
+    font-weight: normal;
+    position: relative;
+}
+form{
+    -moz-border-radius: 0.5rem;/*firefox*/
+    -webkit-border-radius: 0.5rem; /*chrome & safari*/
+    -khtml-border-radius: 0.5rem;/*Konquerer browsers*/
+    border-radius: 0.5rem;
+}
+label{
+    line-height:3.0rem;
+    height: 3.0rem;
+    /*font-weight: bold;*/
+}
+input, button{
+    font-size: 1.6rem; /*input không tự lấy font-size từ body mà lấy từ html*/
+}
+input:not([type=button]){ 
+    height:3.0rem;
+    border:solid 0.1rem #999999;
+}
+input:disabled{
+    background: #CCCCCC;	
+}
+form>img{
+    border: 0.1rem solid #999999;
+}
+
+.message{
+   flex: 0 0 100%;/*gây xuống dòng toàn bộ khối message*/
+   width: 100%;
+}
+.message p{
+    display: flex;
+    align-items: center; /*căn lề ảnh lỗi IMG và text vào middle theo chiều thẳng đứng*/
+    line-height: 3.0rem;
+}
+.message--error p{
+    color: red;
+}
+.message p img{
+    width:3.0rem;
+    height:2.2rem;
+    margin-right: 1.0rem;
+}
+
+
+
+

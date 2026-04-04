@@ -1,0 +1,39 @@
+<?php
+    use Core\Models\HtmlFragment;
+    use Core\Models\Utility\HtmlUtility;
+    $keys = array_keys($desc_fragment) //dãy tên các khu vực cần render
+?> 
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <?php $strName = $keys[0]; HtmlFragment::render($strName, $desc_fragment[$strName], $data_fragment[$strName]); //title ?>
+    <?php echo HtmlUtility::favicon('/lib_assets/images/logos/');//favicon ?>
+    <?php $strName = $keys[1]; HtmlFragment::render($strName, $desc_fragment[$strName], $data_fragment[$strName]); //css ?>
+    <?php $strName = $keys[2]; HtmlFragment::render($strName, $desc_fragment[$strName], $data_fragment[$strName]); //script ?>
+    <script>
+        app.fragments = <?php 
+            echo json_encode(
+                HtmlUtility::filterFragmentsForClient($fragments),
+                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+            ); 
+        ?>;
+        document.addEventListener('DOMContentLoaded', () => app.renderData());
+    </script>
+</head>
+<body>
+    <?php echo HtmlUtility::toScriptLinks(PUBLIC_PATH, "/lib_assets/js/jcheck_cross_browser.js"); ?>
+    <header>
+        <h1>Document</h1>
+        <div id='search_bar'></div>
+        <button>Sign in</button>
+    </header>
+    <nav id='hmenu'></nav>
+    <?php $name = $keys[5]; BaseLayout::renderSubLayout($name, $fragments[$name]); //slide bar  ?>
+    <?php $name = $keys[6]; BaseLayout::renderSubLayout($name, $fragments[$name]); //nội dung ?>
+    <footer>
+        <p>Footer content here</p>
+    </footer>
+</body>
+</html>

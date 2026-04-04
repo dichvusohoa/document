@@ -1,0 +1,187 @@
+/*Cấu trúc chung
+<div class="loading loading--circle loading--text-center">
+    <div class="loading__spinner"></div>
+    <div class="loading__text">waiting...</div>
+</div>
+Trong đó <div class="loading loading--circle loading--text-center"> vẽ vòng tròn
+và vạch cố định
+<div class="loading__spinner"> vẽ kim quay
+*/
+/* =========================================================
+   BASE
+========================================================= */
+.loading {
+    position: absolute;
+    inset: 0;
+    color: #333;
+}
+
+/* =========================================================
+   POSITION VARIABLES
+========================================================= */
+.loading--text-center,
+.loading--text-bottom {
+    --x: 50%;
+    --y: 50%;
+    --tx: -50%;
+    --ty: -50%;
+}
+
+.loading--text-right {
+    --x: 1rem;
+    --y: 50%;
+    --tx: 0;
+    --ty: -50%;
+}
+
+/* =========================================================
+   COMMON ABSOLUTE ANCHOR
+========================================================= */
+.loading--circle::before,
+.loading--circle .loading__spinner,
+.loading--circle .loading__text {
+    position: absolute;
+}
+
+/* =========================================================
+   CIRCLE BACKGROUND RING (STATIC)
+========================================================= */
+.loading--circle::before {
+    content: "";
+    width: var(--spinner-size);
+    height: var(--spinner-size);
+    top: var(--y);
+    left: var(--x);
+    transform: translate(var(--tx), var(--ty));
+    border-radius: 50%;
+    background:
+        repeating-conic-gradient(
+            rgb(from currentColor r g b / 0.5) 0deg 7.5deg,
+            rgb(from currentColor r g b / 0.1) 8deg,
+            transparent 8deg 22deg,
+            rgb(from currentColor r g b / 0.1) 22.5deg
+        );
+    mask: radial-gradient(
+        circle closest-side,
+        transparent 0 60%,
+        black 60%
+    );
+}
+
+/* =========================================================
+   SPINNER (ROTATING)
+========================================================= */
+
+.loading--circle .loading__spinner {
+    width: var(--spinner-size);
+    height: var(--spinner-size);
+    top: var(--y);
+    left: var(--x);
+    transform: translate(var(--tx), var(--ty));
+    /*animation: loading-spin 1s infinite steps(16);*/
+}
+/*bình thường thì nên để animation ở element không nên để ở element:before 
+tuy nhiên .loading__spinner có lệnh transform ở trong .loading__spinner
+nó sẽ bị lệnh transform của animation phủ định làm tâm quay không ổn định.
+Nên trường hợp này chuyển animation sang .loading__spinner::before
+*/
+.loading--circle .loading__spinner::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background:
+        conic-gradient(
+            currentColor 0deg 7.5deg,
+            rgb(from currentColor r g b / 0.25) 8deg,
+            transparent 8deg 360deg
+        );
+    mask: radial-gradient(
+        circle closest-side,
+        transparent 0 60%,
+        black 60%
+    );
+    animation: loading-spin 1s infinite steps(16);
+}
+
+/* =========================================================
+   TEXT
+========================================================= */
+.loading__text {
+    white-space: nowrap;
+}
+
+.loading--circle.loading--text-center .loading__text {
+    top: var(--y);
+    left: var(--x);
+    transform: translate(var(--tx), var(--ty));
+}
+
+.loading--circle.loading--text-bottom .loading__text {
+    top: calc(var(--y) + var(--spinner-size) / 2 + 0.6rem);
+    left: var(--x);
+    transform: translateX(var(--tx));
+}
+
+.loading--circle.loading--text-right .loading__text {
+    top: var(--y);
+    left: calc(var(--spinner-size) + 2rem);
+    transform: translateY(var(--ty));
+}
+
+/* =========================================================
+   BAR SPINNER
+========================================================= */
+.loading--bar .loading__spinner::before {
+    content: "";
+    position: absolute;
+    width: var(--spinner-size);
+    height: calc(var(--spinner-size) / 6);
+    min-height: 0.6rem;
+    background:
+        repeating-linear-gradient(
+            90deg,
+            currentColor 0 16%,
+            transparent 0 21%
+        ) left / calc(5 * 100% / 4) 100%;
+    animation: loading-bar 0.5s infinite linear;
+}
+
+.loading--bar:not(.loading--text-right) .loading__spinner::before {
+    top: var(--y);
+    left: var(--x);
+    transform: translate(var(--tx), var(--ty));
+}
+
+.loading--bar.loading--text-right .loading__spinner::before {
+    top: var(--y);
+    left: 1rem;
+    transform: translateY(var(--ty));
+}
+.loading--bar.loading--text-center .loading__text {
+    display: none;
+}
+.loading--bar.loading--text-bottom .loading__text {
+    position: absolute;
+    top: calc(var(--y) + var(--spinner-size) / 12 + 0.6rem);
+    left: var(--x);
+    transform: translateX(var(--tx));
+}
+
+.loading--bar.loading--text-right .loading__text {
+    position: absolute;
+    top: var(--y);
+    left: calc(var(--spinner-size) + 2rem);
+    transform: translateY(var(--ty));
+}
+
+/* =========================================================
+   ANIMATIONS
+========================================================= */
+@keyframes loading-spin {
+    to { transform: rotate(1turn); }
+}
+
+@keyframes loading-bar {
+    to { background-position: right; }
+}
