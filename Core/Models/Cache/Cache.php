@@ -1,6 +1,6 @@
 <?php
 namespace Core\Models\Cache;
-use \InvalidArgumentException;
+use InvalidArgumentException;
 use Core\Models\Session;
 class Cache {
     protected bool      $isSessionCache;              // true: cache lưu vào session, false: lưu cache vào file

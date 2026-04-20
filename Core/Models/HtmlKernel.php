@@ -1,12 +1,20 @@
 <?php
 namespace Core\Models;
 use Core\Models\Utility\ValidUtility;
+use Core\Models\Route\ContextRouter;
 use Core\Controllers\ControllerFactory;
 class HtmlKernel  {
     protected RequestAuthContext $requestAuthContext;
-    public function __construct(RequestAuthContext $requestAuthContext) {
+    protected ContextRouter $router;
+    protected ControllerFactory $controllerFactory;
+    public function __construct(
+        RequestAuthContext $requestAuthContext,
+        ContextRouter $router,
+        ControllerFactory $controllerFactory
+    ) {
         $this->requestAuthContext = $requestAuthContext;
-        
+        $this->router = $router;
+        $this->controllerFactory = $controllerFactory;
     }
     public function dispatch(){
         $arrGlobalMiddleware =  self::buildGlobalMiddlewares();
@@ -38,10 +46,13 @@ class HtmlKernel  {
         $match = $this->route();
         $arrRouteInfo =    $match['route_info'];
         //tính ra controller để chạy tại nút của router
-        $controller = ControllerFactory::create($this->requestAuthContext, $arrRouteMatch);
+        $controller = $this->controllerFactory->create(
+            $this->requestAuthContext, $arrRouteInfo
+        );
         $strFunction = $arrRouteInfo['function'];
         $handler = function() use ($controller, $strFunction){
-            call_user_func([$controller, 'doAction'], $strFunction);
+            //call_user_func([$controller, 'doAction'], $strFunction);
+            $controller->doAction($action);
         };
         
         $arrMiddleware = self::buildRouteMiddlewares($arrRouteInfo);
@@ -54,16 +65,16 @@ class HtmlKernel  {
             //redirect ra file báo lỗi 404
             throw new HttpException(404, 'Not Found');
         }
-        else if($match['route_info'] === null){
+        if($match['route_info'] === null){
             if($match['prohibited_module'] === true || $match['prohibited_role'] === true){
-                throw new HttpException(403, 'Bị cấm rồi');
+                throw new HttpException(403, 'Forbidden');
             }
-            else{
-                throw new HttpException(404, 'Not Found');
-            }
+            
+            throw new HttpException(404, 'Not Found');
+            
         }
-   
-        App::set('route_match', $match);
+        $this->requestAuthContext->setRoutePath($match['path']);
+        //App::set('route_match', $match);
         return $match;
     }
     

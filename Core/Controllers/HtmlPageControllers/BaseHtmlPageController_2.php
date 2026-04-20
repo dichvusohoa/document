@@ -8,6 +8,7 @@ use Core\Controllers\BaseController;
 /*BaseHtmlPageController vẫn là abstract nên chưa cần implement resolveParam*/
 abstract class BaseHtmlPageController extends BaseController{
     protected RequestAuthContext $requestAuthContext;
+    protected array $arrRouteTMCA;
     protected string $strLayoutFilePath; //tên file layout
     protected array $arrUiContext; // thường thì là role
 
@@ -15,6 +16,7 @@ abstract class BaseHtmlPageController extends BaseController{
     protected array $arrDataFrag; // dữ liệu cụ thể tại các fragment
     function __construct(BaseHtmlPageSchema $htmlSchema){
         $this->requestAuthContext = $htmlSchema->getRequestAuthContext();
+        $this->arrRouteTMCA = $htmlSchema->getRouteTMCA();
         $this->strLayoutFilePath = $htmlSchema->getLayoutFilePath();
         $this->arrUiContext = $htmlSchema->getUiContext();
         $this->arrDescFrag = $htmlSchema->getSchema();

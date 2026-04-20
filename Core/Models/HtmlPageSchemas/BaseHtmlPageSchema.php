@@ -52,14 +52,12 @@ thì hoàn toàn có thể để 1 class kiểu như CommonPageSchema.php phục
 
 abstract class BaseHtmlPageSchema {
     protected RequestAuthContext $requestAuthContext;
-    protected array     $arrRouteTMCA;
     protected string    $strLayoutFilePath;
     protected array     $arrUiContext;
     protected array     $arrSchema;  
     /*---------------------------------------------------------------------------------------------------------------*/
     public function __construct(BaseLayout $layout){
         $this->requestAuthContext   = $layout->getRequestAuthContext();
-        $this->arrRouteTMCA         = $layout->getRouteTMCA();
         $this->strLayoutFilePath    = $layout->mapToLayoutFile();
         $this->arrUiContext         = $layout->mapToUiContext();
         $this->arrSchema  =  $this->schema();
@@ -70,10 +68,6 @@ abstract class BaseHtmlPageSchema {
         return $this->requestAuthContext;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    public function getRouteTMCA() {
-        return $this->arrRouteTMCA;
-    }
-    /*---------------------------------------------------------------------------------------------------------------*/        
     public function getLayoutFilePath() {
         return $this->strLayoutFilePath;
     }

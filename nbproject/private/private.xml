@@ -3,45 +3,27 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/Projects/PHP/document/config/config.html.mcr2a.php</file>
+            <file>file:/D:/Projects/PHP/document/public/index_1.php</file>
+            <file>file:/D:/Projects/PHP/document/Core/Models/Route/RouterFactory.php</file>
+            <file>file:/D:/Projects/PHP/document/Application/Models/Layout/Layout.php</file>
             <file>file:/D:/Projects/PHP/document/Core/Models/HtmlKernel.php</file>
-            <file>file:/D:/Projects/PHP/document/config/config.fca2f.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/views/layout/client_info.phtml</file>
-            <file>file:/D:/Projects/PHP/document/Core/Models/HtmlPageSchemas/LoginPageSchema.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/views/layout/simple_layout.phtml</file>
-            <file>file:/D:/Projects/PHP/document/Core/Models/Auth/AuthInfo.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/Models/Route/Router.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/Controllers/LoginController.php</file>
+            <file>file:/D:/Projects/PHP/document/Core/Models/Layout/BaseLayout.php</file>
+            <file>file:/D:/Projects/PHP/document/Core/Models/Layout/BaseLayout_1.php</file>
+            <file>file:/D:/Projects/PHP/document/public/index.php</file>
+            <file>file:/D:/Projects/PHP/document/Application/Models/Layout/MobileDetectFactory.php</file>
+            <file>file:/D:/Projects/PHP/document/Core/Controllers/HtmlPageControllers/BaseHtmlPageController.php</file>
+            <file>file:/D:/Projects/PHP/document/Core/Controllers/ControllerFactory.php</file>
             <file>file:/D:/Projects/PHP/document/Core/Models/App.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/Controllers/ControllerFactory_1.php</file>
-            <file>file:/D:/Projects/PHP/document/Application/views/layout/layout_0a.phtml</file>
-            <file>file:/D:/Projects/PHP/document/Core/Models/HtmlFragment.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/Middlewares/ClientInfoMiddleware.php</file>
-            <file>file:/D:/Projects/PHP/document/public/lib_assets/js/control/jauto_form.js</file>
+            <file>file:/D:/Projects/PHP/document/Core/Models/Cache/Cache.php</file>
+            <file>file:/D:/Projects/PHP/document/Core/Models/Layout/BaseDeviceScreenFactory.php</file>
+            <file>file:/D:/Projects/PHP/document/Core/Models/Session.php</file>
+            <file>file:/D:/Projects/PHP/document/Core/Models/HtmlPageSchemas/SchemaFactory.php</file>
+            <file>file:/D:/Projects/PHP/document/Core/Models/App_2.php</file>
             <file>file:/D:/Projects/PHP/document/Core/Models/HtmlPageSchemas/BaseHtmlPageSchema.php</file>
             <file>file:/D:/Projects/PHP/document/Core/Controllers/BaseController.php</file>
             <file>file:/D:/Projects/PHP/document/Application/Models/HtmlPageSchemas/DescFrags.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/Models/Route/RouterFactory.php</file>
-            <file>file:/D:/Projects/PHP/document/config/config.api.mcr2a.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/Controllers/HtmlPageControllers/LoginPageController.php</file>
-            <file>file:/D:/Projects/PHP/document/cache/static_router.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/Controllers/ClientInfoController.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/Models/Request.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/Models/Layout/BaseLayout.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/Models/Route/RouteInfo.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/Models/RequestAuthContext.php</file>
-            <file>file:/D:/Projects/PHP/document/Application/Controllers/HtmlPageControllers/FragController.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/Models/Auth/AuthService.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/Models/Route/ContextRouter.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/Models/Response.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/Controllers/HtmlPageControllers/BaseHtmlPageController.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/Controllers/ControllerFactory.php</file>
-            <file>file:/D:/Projects/PHP/document/config/config.mc2fc.php</file>
-            <file>file:/D:/Projects/PHP/document/Application/Models/Layout.php</file>
-            <file>file:/D:/Projects/PHP/document/public/lib_assets/js/jinit_client_info.js</file>
-            <file>file:/D:/Projects/PHP/document/Core/Models/Auth/AuthContext.php</file>
-            <file>file:/D:/Projects/PHP/document/Application/Models/HtmlPageSchemas/LoginPageSchema.php</file>
-            <file>file:/D:/Projects/PHP/document/Application/views/layout/layout_0ab.phtml</file>
+            <file>file:/D:/Projects/PHP/document/Application/Models/Layout/DeviceScreenFactory.php</file>
+            <file>file:/D:/Projects/PHP/document/Core/Models/Layout/BaseMobileDetectFactory.php</file>
         </group>
     </open-files>
 </project-private>

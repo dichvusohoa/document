@@ -1,8 +1,6 @@
 <?php
 namespace Core\Models\Layout;
-use InvalidArgumentException;
-use Core\Models\Layout\BaseMobileDetectFactory;
-use Core\Models\Layout\BaseDeviceScreenFactory;
+//use Psr\Container\ContainerInterface;
 use Detection\MobileDetect;
 use Core\Models\RequestAuthContext;
 
@@ -59,17 +57,25 @@ abstract class BaseLayout {
     protected ?MobileDetect $mobileDetect = null;
     /*---------------------------------------------------------------------------------------------------------------*/
     public function __construct(RequestAuthContext $requestAuthContext, 
-            BaseMobileDetectFactory $mobileDetectFactory, BaseDeviceScreenFactory $deviceScreenFactory) {
+            callable $mobileDetectProvider, callable $deviceScreenProvider ) {
         if(!$requestAuthContext->isSetRoutePath()){
             throw new InvalidArgumentException('requestAuthContext chưa có route path');
         }
         $this->requestAuthContext   = $requestAuthContext;
-        $this->mobileDetect = $mobileDetectFactory->create();
-        $this->arrDeviceScreen  = $deviceScreenFactory->create();
         
-        
+        //tính toán các properties phụ thuộc
+        if(static::requiresDeviceDetection($requestAuthContext)){
+            $this->mobileDetect = $mobileDetectProvider();
+        }
+        if(static::requiresScreenDetection($requestAuthContext, $arrRouteTMCA)){
+            $this->arrDeviceScreen = $deviceScreenProvider();
+        }
     }
     /*---------------------------------------------------------------------------------------------------------------*/
+    /*requiresDeviceDetection quyết định trong ngữ cảnh nào (theo $requestAuthContext và $arrRouteTMCA) thì phải tính ra loại thiết bị là gì*/
+    abstract protected static function requiresDeviceDetection(RequestAuthContext $requestAuthContext, array $arrRouteTMCA): bool;
+    /*requiresScreenDetection quyết định trong ngữ cảnh nào (theo $requestAuthContext và $arrRouteTMCA) thì phải tính ra screen info là gì*/
+    abstract protected static function requiresScreenDetection(RequestAuthContext $requestAuthContext, array $arrRouteTMCA): bool;
     /*mapToLayoutFile đã có đầy đủ các yếu tố để tính ra layout file name */
     abstract public function mapToLayoutFile():string;  
     //xác định các nhân tố gây tùy biến giao diện, thường là userInfo nó chứa trong self::requestAuthContext->authInfo()['data']

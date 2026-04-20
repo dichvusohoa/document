@@ -1,5 +1,5 @@
 <?php
-namespace App\Models;
+namespace App\Models\Layout;
 use Core\Models\Layout\BaseLayout;
 use Core\Models\RequestAuthContext;
 class Layout extends BaseLayout{
