@@ -18,7 +18,6 @@ class Layout extends BaseLayout{
         $authInfo = $this->requestAuthContext->authInfo();
         return $authInfo['data'];
     }
-   
+
     
-        
 }

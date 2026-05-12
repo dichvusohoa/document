@@ -5,6 +5,9 @@
    // require '../config/main.php';
     use Core\Models\App;
     use Core\Models\RequestAuthContext;
+    use Core\Models\Route\StaticRouter;
+    use Core\Models\Route\ContextRouter;
+    use Core\Models\Cache\StaticRouterCache;
     use Core\Models\ErrorHandler;
     use Core\Models\HtmlKernel;
     use Detection\MobileDetect;
@@ -14,20 +17,18 @@
     //1. set các class bị overriden 
     
     //2. chỉ set các class có contructor đặc biệt không tạo tự động được 
-    $fn1 = function($c){
-        return new MobileDetect(
-            $c->get(MobileDetect)
-        );
-    };
-    $fn2 = function($c){
-        return Session::get('device_screen');
-    };
-    $container->set(Layout::class, function($c){
-        return new Layout(
-            $c->get(RequestAuthContext),
-            $fn1,
-            $fn2    
-        );
-    });
+    /*$requestAuthContext = $container::get(RequestAuthContext::class);
+    $routerFactory = new RouterFactory(
+        StaticRouter::class, 
+        ContextRouter::class, 
+        $requestAuthContext,
+        $container::get(StaticRouterCache::class)
+    );
+    $kernel = new HtmlKernel(
+        $requestAuth,
+        $routerFactory,
+        $controllerFactory
+    );
+    $kernel->dispatch();*/
     
  

@@ -8,22 +8,24 @@ use Core\Models\RequestAuthContext;
 
 /*1. Layout có các yếu tố đầu vào là
 - $requestAuthContext = $request + authInfo
-- $arrRouteTMCA. $arrRouteTMCA thì không phải là nhân tố độc lập, nó được tính toán từ $request của 
+trong $requestAuthContext có chứa $request và $arrRouteTMCA. $arrRouteTMCA thì không phải là nhân tố độc lập, nó được tính toán từ $request của 
 contextRouter->matchUri. Do việc tính toán đó có "phí" lớn, $arrRouteTMCA lại chứa thông tin giá trị
 nên tuy $arrRouteTMCA có depend on $request (chứa trong $requestAuthContext) nhưng ta vẫn dùng. Nguyên
  tắc dư thừa thông tin để nâng hiệu suất.
-- Nhân tố màn hình và thiết bị truy cập. Các nhân tố này phải qua 2 hàm lọc xét xem có cần dùng
-đến nhân tố không là requiresDeviceDetection và requiresScreenDetection
+- Nhân tố màn hình và thiết bị truy cập. 
+ $mobileDetectFactory
+ $deviceScreenFactory
+
 Ví dụ chương trình đại đa số trên các url request là chỉ dùng 1 layout A cho cả mobile và desktop
 Tuy nhiên tại riêng một vài uri request nếu là desktop thì sẽ dùng 1 layout B có nhiều column hơn.
-Như vậy khi requiresDeviceDetection bật = true thì mới cần xét đến nhân tố loại thiết bị.
+Như vậy khi $mobileDetectFactory trả về khác null thì mới cần xét đến nhân tố loại thiết bị.
 
 Tình huống phụ thuộc screenInfo ( chủ yếu là screen resolution) thì hiếm hơn. Kịch bản gần nhất và khả dĩ
-là trong một ứng dụng web đồ họa rất chuyên nghiệp nào đó, tại 1 nhánh uri request rất nào đó, cần thông tin
+là trong một ứng dụng web đồ họa rất chuyên nghiệp nào đó, tại 1 nhánh uri request  nào đó, cần thông tin
 screen resolution để phân nhánh tiếp ra nhiều layout: dưới 1368px là layout A, từ 1368px đến 1920 px là layout B,...
 
-Khi cần lấy thông tin về thiết bị hoặc screen info thì sẽ gọi callable $mobileDetectProvider và 
-callable $deviceScreenProvider để đảm bảo tính tổng quát
+Khi cần lấy thông tin về thiết bị hoặc screen info thì $deviceScreenFactory khác null và sẽ trả về thông tin chi tiết về màn hình 
+còn không cần thiết thì $deviceScreenFactory thường trả về null
   
  2. Layout có 2 nhiệm vụ (hàm đầu ra) đó là
 - Nhiệm vụ quan trọng nhất của Layout là tính ra fullname layout file. Thực hiện bằng hàm mapToLayoutFile

@@ -1,20 +1,20 @@
 <?php
 namespace Core\Models;
 use Core\Models\Utility\ValidUtility;
-use Core\Models\Route\ContextRouter;
+use Core\Models\Route\RouterFactory;
 use Core\Controllers\ControllerFactory;
 class HtmlKernel  {
     protected RequestAuthContext $requestAuthContext;
-    protected ContextRouter $router;
+    protected RouterFactory $routerFactory;
     protected ControllerFactory $controllerFactory;
     public function __construct(
         RequestAuthContext $requestAuthContext,
-        ContextRouter $router,
+        RouterFactory $routerFactory,
         ControllerFactory $controllerFactory
     ) {
-        $this->requestAuthContext = $requestAuthContext;
-        $this->router = $router;
-        $this->controllerFactory = $controllerFactory;
+        $this->requestAuthContext   = $requestAuthContext;
+        $this->routerFatory         = $routerFactory;
+        $this->controllerFactory    = $controllerFactory;
     }
     public function dispatch(){
         $arrGlobalMiddleware =  self::buildGlobalMiddlewares();
@@ -52,7 +52,7 @@ class HtmlKernel  {
         $strFunction = $arrRouteInfo['function'];
         $handler = function() use ($controller, $strFunction){
             //call_user_func([$controller, 'doAction'], $strFunction);
-            $controller->doAction($action);
+            $controller->doAction($strFunction);
         };
         
         $arrMiddleware = self::buildRouteMiddlewares($arrRouteInfo);
@@ -60,7 +60,8 @@ class HtmlKernel  {
         $middlewareChain->handleChain($this->requestAuthContext);     
     }
     protected function route(): array{
-        $match= $this->ctxRouter->matchUri($this->requestAuthContext->resquest()); 
+        $contextRouter = $this->routerFactory->create();
+        $match= $contextRouter->matchUri($this->requestAuthContext->resquest()); 
         if($match['path'] === null){
             //redirect ra file báo lỗi 404
             throw new HttpException(404, 'Not Found');
