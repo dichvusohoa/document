@@ -11,9 +11,14 @@ use Core\Models\Auth\AuthInfo;
 use Core\Models\Session;
 class AuthMiddleware {
     public function handle(RequestAuthContext $requestAuthContext, Closure $next){
-        if(AuthInfo::isUnauthenticated($requestAuthContext->authInfo())){
-            Session::set('intended_url', $request->fullUrl()); 
-            Response::redirect('/login');
+        if( $requestAuthContext->prohibitedModule() || $requestAuthContext->prohibitedRole() ){
+            if(AuthInfo::isUnauthenticated($requestAuthContext->authInfo())){
+                Session::set('intended_url', $requestAuthContext->resquest()->fullUrl()); 
+                Response::redirect('/login');
+            }
+            else{
+                throw new HttpException(403, 'không đủ quyền truy cập chức năng này');
+            }
         }
         return $next($requestAuthContext); // ✅ trả về request để tiếp tục chu trình
     }

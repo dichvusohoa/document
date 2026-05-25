@@ -19,6 +19,11 @@ class App implements ContainerInterface {
     }
 
     public function get(string $id) {
+        // 🔥 đặc biệt: inject chính container
+        /*if ($id === \Psr\Container\ContainerInterface::class
+            || $id === self::class) {
+            return $this;
+        }*/
         // đã có instance → return luôn
         if (isset($this->instances[$id])) {
             return $this->instances[$id];
@@ -65,6 +70,10 @@ class App implements ContainerInterface {
         $deps = [];
 
         foreach ($ctor->getParameters() as $param) {
+            //nếu có default → bỏ qua
+            if ($param->isDefaultValueAvailable()) { 
+                continue;
+            }
             $type = $param->getType();
             if (!$type) {
                 throw new RuntimeException("Cannot resolve param \${$param->getName()}");

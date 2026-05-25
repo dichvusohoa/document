@@ -25,14 +25,14 @@ return array (
       'category' => 
       array (
         'api_class' => 'App\\Controllers\\_Shared\\CategoryController',
-        'html_class' => NULL,
-        'html_schema' => NULL,
+        'html_class' => 'Core\\Controllers\\HtmlPageControllers\\LoginPageController',
+        'html_schema' => 'Core\\Models\\HtmlPageSchemas\\LoginPageSchema',
       ),
       'document' => 
       array (
         'api_class' => 'App\\Controllers\\_Shared\\DocumentController',
-        'html_class' => NULL,
-        'html_schema' => NULL,
+        'html_class' => 'Core\\Controllers\\HtmlPageControllers\\LoginPageController',
+        'html_schema' => 'Core\\Models\\HtmlPageSchemas\\LoginPageSchema',
       ),
     ),
     'it-documents' => 
@@ -40,14 +40,14 @@ return array (
       'category' => 
       array (
         'api_class' => 'App\\Controllers\\_Shared\\CategoryController',
-        'html_class' => NULL,
-        'html_schema' => NULL,
+        'html_class' => 'Core\\Controllers\\HtmlPageControllers\\LoginPageController',
+        'html_schema' => 'Core\\Models\\HtmlPageSchemas\\LoginPageSchema',
       ),
       'document' => 
       array (
         'api_class' => 'App\\Controllers\\_Shared\\DocumentController',
-        'html_class' => NULL,
-        'html_schema' => NULL,
+        'html_class' => 'Core\\Controllers\\HtmlPageControllers\\LoginPageController',
+        'html_schema' => 'Core\\Models\\HtmlPageSchemas\\LoginPageSchema',
       ),
     ),
     'pbt-framework' => 
@@ -55,14 +55,14 @@ return array (
       'category' => 
       array (
         'api_class' => 'App\\Controllers\\_Shared\\CategoryController',
-        'html_class' => NULL,
-        'html_schema' => NULL,
+        'html_class' => 'Core\\Controllers\\HtmlPageControllers\\LoginPageController',
+        'html_schema' => 'Core\\Models\\HtmlPageSchemas\\LoginPageSchema',
       ),
       'document' => 
       array (
         'api_class' => 'App\\Controllers\\_Shared\\DocumentController',
-        'html_class' => NULL,
-        'html_schema' => NULL,
+        'html_class' => 'Core\\Controllers\\HtmlPageControllers\\LoginPageController',
+        'html_schema' => 'Core\\Models\\HtmlPageSchemas\\LoginPageSchema',
       ),
     ),
     'bud-project' => 
@@ -70,14 +70,14 @@ return array (
       'category' => 
       array (
         'api_class' => 'App\\Controllers\\_Shared\\CategoryController',
-        'html_class' => NULL,
-        'html_schema' => NULL,
+        'html_class' => 'Core\\Controllers\\HtmlPageControllers\\LoginPageController',
+        'html_schema' => 'Core\\Models\\HtmlPageSchemas\\LoginPageSchema',
       ),
       'document' => 
       array (
         'api_class' => 'App\\Controllers\\_Shared\\DocumentController',
-        'html_class' => NULL,
-        'html_schema' => NULL,
+        'html_class' => 'Core\\Controllers\\HtmlPageControllers\\LoginPageController',
+        'html_schema' => 'Core\\Models\\HtmlPageSchemas\\LoginPageSchema',
       ),
     ),
     'login' => 
@@ -147,6 +147,11 @@ return array (
         'function' => 'renderPage',
         'method' => 'get',
       ),
+      'index' => 
+      array (
+        'function' => 'renderPage',
+        'method' => 'get',
+      ),
     ),
     'Core\\Controllers\\AdminLoginController' => 
     array (
@@ -188,7 +193,7 @@ return array (
         'method' => NULL,
         'role' => NULL,
       ),
-      'fqcn' => 'Core\\Middlewares\\ClientInfoMiddleware',
+      'fqcn' => 'Core\\Middlewares\\PathMiddleware',
     ),
     1 => 
     array (
@@ -496,6 +501,65 @@ return array (
     ),
     'html_class' => 
     array (
+      'bud-project' => 
+      array (
+        'category' => 
+        array (
+          'index' => 
+          array (
+            'roles' => 
+            array (
+              0 => 'bud_prj_user',
+              1 => 'bud_prj_admin',
+              2 => 'admin',
+            ),
+            'fqcn' => 'Core\\Controllers\\HtmlPageControllers\\LoginPageController',
+            'html_schema' => 'Core\\Models\\HtmlPageSchemas\\LoginPageSchema',
+            'function' => 'renderPage',
+            'method' => 'GET',
+          ),
+          'renderPage' => 
+          array (
+            'roles' => 
+            array (
+              0 => 'bud_prj_admin',
+              1 => 'admin',
+            ),
+            'fqcn' => 'Core\\Controllers\\HtmlPageControllers\\LoginPageController',
+            'html_schema' => 'Core\\Models\\HtmlPageSchemas\\LoginPageSchema',
+            'function' => 'renderPage',
+            'method' => 'GET',
+          ),
+        ),
+        'document' => 
+        array (
+          'index' => 
+          array (
+            'roles' => 
+            array (
+              0 => 'bud_prj_user',
+              1 => 'bud_prj_admin',
+              2 => 'admin',
+            ),
+            'fqcn' => 'Core\\Controllers\\HtmlPageControllers\\LoginPageController',
+            'html_schema' => 'Core\\Models\\HtmlPageSchemas\\LoginPageSchema',
+            'function' => 'renderPage',
+            'method' => 'GET',
+          ),
+          'renderPage' => 
+          array (
+            'roles' => 
+            array (
+              0 => 'bud_prj_admin',
+              1 => 'admin',
+            ),
+            'fqcn' => 'Core\\Controllers\\HtmlPageControllers\\LoginPageController',
+            'html_schema' => 'Core\\Models\\HtmlPageSchemas\\LoginPageSchema',
+            'function' => 'renderPage',
+            'method' => 'GET',
+          ),
+        ),
+      ),
       'login' => 
       array (
         'renderPage' => 

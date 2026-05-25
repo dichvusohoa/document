@@ -9,9 +9,9 @@ abstract class BaseMobileDetectFactory {
     protected  RequestAuthContext $requestAuthContext;
     protected  ContainerInterface $container;
     public function __construct(RequestAuthContext $requestAuthContext, ContainerInterface $container){
-        if(!$requestAuthContext->isSetRoutePath()){
+        /*if(!$requestAuthContext->isSetRoutePath()){
             throw new InvalidArgumentException('requestAuthContext chưa có route path');
-        }
+        }*/
         $this->requestAuthContext = $requestAuthContext;
         $this->container = $container;
     }

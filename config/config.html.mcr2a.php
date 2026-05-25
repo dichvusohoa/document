@@ -31,6 +31,8 @@ rpr2a meaning route path + role  to action
 'admin-login' => ['guest'=>'renderPage'] 
 ];*/
 return [
+'bud-project/category' => ['bud_prj_user'=>'index','bud_prj_admin' => '[action:*]','admin' => '[action:*]'],
+'bud-project/document' => ['bud_prj_user'=>'index','bud_prj_admin' => '[action:*]','admin' => '[action:*]'],
 'login' => ['guest'=>'renderPage']
 
 ];

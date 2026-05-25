@@ -1,31 +1,32 @@
 <?php
 namespace Core\Models;
 use Core\Models\Utility\ValidUtility;
-
+use Core\Models\Route\RouterFactory;
+use Core\Controllers\ControllerFactory;
 class HtmlKernel  {
-    protected string  $strAppFQCN;
-    //từ $strAppFQCN tính ra request và arrAuthInfo
-    protected Request $request;
-    protected array   $arrAuthInfo;
-    
-    public function __construct(string $strAppFQCN) {
-        $this->strAppFQCN = $strAppFQCN;
-        $this->request    = $this->strAppFQCN::get('request');
-        $this->arrAuthInfo =  $this->strAppFQCN::get('auth')->getAuthInfo();    
+    protected RequestAuthContext $requestAuthContext;
+    protected RouterFactory $routerFactory;
+    protected ControllerFactory $controllerFactory;
+    public function __construct(
+        RequestAuthContext $requestAuthContext,
+        RouterFactory $routerFactory,
+        ControllerFactory $controllerFactory
+    ) {
+        $this->requestAuthContext   = $requestAuthContext;
+        $this->routerFactory         = $routerFactory;
+        $this->controllerFactory    = $controllerFactory;
     }
     public function dispatch(){
-        $arrMiddleware =  self::buildGlobalMiddlewares();
-        $middlewareChain = new MiddlewareChain($arrMiddleware,[$this, 'buildHandler']);
-        $middlewareChain->handleChain($this->request, $this->arrAuthInfo);        
+        $arrGlobalMiddleware =  self::buildGlobalMiddlewares();
+        $middlewareChain = new MiddlewareChain($arrGlobalMiddleware,[$this, 'buildHandler']);
+        $middlewareChain->handleChain($this->requestAuthContext);        
     }
     protected static function buildGlobalMiddlewares(): array{                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
         $arrFQCN = require_once CONFIG_PATH.'/middleware.glb.php';
         return self::mapToClosureMiddlewares($arrFQCN);
     }
-    protected static function buildRouteMiddlewares(array $arrRouteInfo): array{
-        $arrFQCN = $arrRouteInfo['middlewares']; // danh sách middleware cho route
-        
-        return self::mapToClosureMiddlewares($arrFQCN);
+    protected static function buildRouteMiddlewares(array $arrMiddleware): array{
+        return self::mapToClosureMiddlewares($arrMiddleware);
     }
     protected static function mapToClosureMiddlewares(array $arrFQCN){
         if(!ValidUtility::isStringList($arrFQCN)){
@@ -40,59 +41,45 @@ class HtmlKernel  {
         return array_map($fnMap, $arrFQCN);
     }
     public function buildHandler() {
-        $result = $this->route();
-        $arrRouteInfo =    $result['route_info'];
-        //tính ra controller để chạy tại nút của router
-        $controller   =    $this->buildController($arrRouteInfo);
-        if(Request::getResponseType() === Response::RESPONSE_HTML_TYPE){
-            $strFunction = 'renderPage';
+        $match = $this->route();
+        $arrRouteInfo =    $match['route_info'];
+        if($arrRouteInfo){
+            $controller = $this->controllerFactory->create(
+            $this->requestAuthContext, $arrRouteInfo);
+            $strFunction = $arrRouteInfo['function'];
+            $handler = function() use ($controller, $strFunction){
+                //call_user_func([$controller, 'doAction'], $strFunction);
+                $controller->doAction($strFunction);
+            };
         }
         else{
-            $strFunction = $arrRouteInfo['function'];
+            $handler = null;
         }
-        $handler = function() use ($controller, $strFunction){
-            call_user_func([$controller, 'doAction'], $strFunction);
-        };
         
-        $arrMiddleware = self::buildRouteMiddlewares($arrRouteInfo);
+        $arrMiddleware = self::buildRouteMiddlewares($match['middlewares']);
         $middlewareChain = new MiddlewareChain($arrMiddleware,$handler);
-        $middlewareChain->handleChain($this->request, $this->arrAuthInfo);     
+        $middlewareChain->handleChain($this->requestAuthContext);     
     }
     protected function route(): array{
-        $router = $this->strAppFQCN::get('router');
-        $match  = $router->matchUri($this->request); 
-        if($match['path'] ===null || $match['route_info'] === null){
-                //redirect ra file báo lỗi 404
+        $contextRouter = $this->routerFactory->create();
+        $match= $contextRouter->matchUri($this->requestAuthContext->resquest()); 
+        if($match['path'] === null){
+            //redirect ra file báo lỗi 404
             throw new HttpException(404, 'Not Found');
         }
-        Session::set('route_mca', $match['path']);
-        $routerCache = $this->strAppFQCN::get('router_cache');
-        if(!$routerCache->exists()){//chưa tồn tại cache trong session
-            $routerCache->saveCache($router);
+        if($match['route_info'] === null){
+            if($match['prohibited_module'] === true || $match['prohibited_role'] === true){
+                throw new HttpException(403, 'Forbidden');
+            }
+            
+           // throw new HttpException(404, 'Not Found');
+            
         }
-        elseif($match['attach_middlewares_after_match']){//cập nhật lại cache nếu có
-            $routerCache->updateMiddlewareAtLeaf($match['path'],$match['route_info']['middlewares']);
-        }
+        $this->requestAuthContext->setRoutePath($match['path']);
+        //App::set('route_match', $match);
         return $match;
     }
     
     
-    protected function buildController(array $arrRouteInfo){
-        if(Request::getResponseType() == Response::RESPONSE_HTML_TYPE){
-            $strControllerFQCN = $arrRouteInfo['fqcn']['html_page'];
-            //$oLayout = new (App::$classMap['layout'])($request, $arrAuthInfo, Session::get('device_screen'), App::get('mobile_detect'), $match['path']);
-            $oLayout = $this->strAppFQCN::get('layout');
-            $strLayoutFilePath = $oLayout->mapToLayoutFile();
-            $arrUIContext = $oLayout->mapToUiContext();
-            $strHtmlPageSchemaFQCN = $arrRouteInfo['fqcn']['html_schema'];
-        }
-        else{
-            $strControllerFQCN = $arrRouteInfo['fqcn']['json'];
-            $strLayoutFilePath = null;
-            $arrUIContext = null;
-            $strHtmlPageSchemaFQCN =  null;
-        }    
-        $controller = $this->strAppFQCN::getClass('controller_factory')::createController($strControllerFQCN, $this->request, $this->arrAuthInfo, $strLayoutFilePath, $arrUIContext, $strHtmlPageSchemaFQCN);
-        return $controller;
-    } 
+    
 }

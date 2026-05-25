@@ -1,13 +1,17 @@
 <?php
 namespace Core\Controllers;
 use Psr\Container\ContainerInterface;
+use Core\Models\HtmlPageSchemas\SchemaFactory;
 use Core\Models\RequestAuthContext;
 use Core\Controllers\HtmlPageControllers\BaseHtmlPageController;
-use Core\Models\HtmlPageSchemas\BaseHtmlPageSchema;
+
 class ControllerFactory {
     protected ContainerInterface $container;
-    public function __construct(ContainerInterface $container) {
+    protected SchemaFactory $schemaFactory;
+
+    public function __construct(ContainerInterface $container, SchemaFactory $schemaFactory) {
         $this->container = $container;
+        $this->schemaFactory = $schemaFactory;
     }
 
     public function create(
@@ -20,21 +24,18 @@ class ControllerFactory {
         // HTML controller
         if (is_subclass_of($controllerFQCN, BaseHtmlPageController::class)) {
 
-            $schemaFQCN = $routeInfo['html_schema'];
+            $schemaFQCN = $routeInfo['schema'];
 
-            $this->container->set(BaseHtmlPageSchema::class, function($c) use ($schemaFQCN) {
-                return $c->get($schemaFQCN);
-            });
+            $schema = $this->schemaFactory->create($schemaFQCN);
 
-           // return new $controllerFQCN($schema);
+            return new $controllerFQCN($schema);
             
         }
 
         // API controller
-        /*if (is_subclass_of($controllerFQCN, BaseController::class)) {
+        if (is_subclass_of($controllerFQCN, BaseController::class)) {
             return new $controllerFQCN($ctx);
-        }&*/
-        return $this->container->get($controllerFQCN);
+        }
 
         throw new \RuntimeException("Invalid controller: $controllerFQCN");
     }

@@ -20,7 +20,8 @@ return[
         'logout' => ['function'=>'logout','method'=>'post']
     ],
     \Core\Controllers\HtmlPageControllers\LoginPageController::class =>[   
-        'renderPage' =>  ['function'=>'renderPage', 'method'=>'get']
+        'renderPage' =>  ['function'=>'renderPage', 'method'=>'get'],
+        'index' =>  ['function'=>'renderPage', 'method'=>'get'] /*Tạm thời*/
     ],
     \Core\Controllers\AdminLoginController::class =>[   
         'index' =>  ['function'=>'index', 'method'=>'get'],//show login form

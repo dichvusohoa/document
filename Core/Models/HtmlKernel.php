@@ -13,7 +13,7 @@ class HtmlKernel  {
         ControllerFactory $controllerFactory
     ) {
         $this->requestAuthContext   = $requestAuthContext;
-        $this->routerFatory         = $routerFactory;
+        $this->routerFactory         = $routerFactory;
         $this->controllerFactory    = $controllerFactory;
     }
     public function dispatch(){
@@ -25,10 +25,8 @@ class HtmlKernel  {
         $arrFQCN = require_once CONFIG_PATH.'/middleware.glb.php';
         return self::mapToClosureMiddlewares($arrFQCN);
     }
-    protected static function buildRouteMiddlewares(array $arrRouteInfo): array{
-        $arrFQCN = $arrRouteInfo['middlewares']; // danh sách middleware cho route
-        
-        return self::mapToClosureMiddlewares($arrFQCN);
+    protected static function buildRouteMiddlewares(array $arrMiddleware): array{
+        return self::mapToClosureMiddlewares($arrMiddleware);
     }
     protected static function mapToClosureMiddlewares(array $arrFQCN){
         if(!ValidUtility::isStringList($arrFQCN)){
@@ -44,38 +42,35 @@ class HtmlKernel  {
     }
     public function buildHandler() {
         $match = $this->route();
+        if($match['path'] === null || $match['route_info'] === null){
+            //redirect ra file báo lỗi 404
+            throw new HttpException(404, 'Not Found');
+        }
         $arrRouteInfo =    $match['route_info'];
-        //tính ra controller để chạy tại nút của router
         $controller = $this->controllerFactory->create(
-            $this->requestAuthContext, $arrRouteInfo
-        );
+        $this->requestAuthContext, $arrRouteInfo);
         $strFunction = $arrRouteInfo['function'];
         $handler = function() use ($controller, $strFunction){
             //call_user_func([$controller, 'doAction'], $strFunction);
             $controller->doAction($strFunction);
         };
-        
-        $arrMiddleware = self::buildRouteMiddlewares($arrRouteInfo);
+        $arrMiddleware = self::buildRouteMiddlewares($match['middlewares']);
         $middlewareChain = new MiddlewareChain($arrMiddleware,$handler);
         $middlewareChain->handleChain($this->requestAuthContext);     
     }
     protected function route(): array{
         $contextRouter = $this->routerFactory->create();
         $match= $contextRouter->matchUri($this->requestAuthContext->resquest()); 
-        if($match['path'] === null){
+        $this->requestAuthContext->setRoutePath($match['path']);
+        $this->requestAuthContext->setProhibitedModule($match['prohibited_module']);
+        $this->requestAuthContext->setProhibitedRole($match['prohibited_role']);
+        /*if($match['path'] === null){
             //redirect ra file báo lỗi 404
             throw new HttpException(404, 'Not Found');
         }
-        if($match['route_info'] === null){
-            if($match['prohibited_module'] === true || $match['prohibited_role'] === true){
-                throw new HttpException(403, 'Forbidden');
-            }
-            
-            throw new HttpException(404, 'Not Found');
-            
-        }
-        $this->requestAuthContext->setRoutePath($match['path']);
-        //App::set('route_match', $match);
+        if($match['prohibited_module'] === true || $match['prohibited_role'] === true){
+            throw new HttpException(403, 'Forbidden');
+        }*/
         return $match;
     }
     

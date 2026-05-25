@@ -7,8 +7,10 @@ use \InvalidArgumentException;
 class RequestAuthContext{
     protected Request $request;
     protected array $arrAuthInfo;
-    //đến bước router->matchUri thì mới tính ra được thành phần này
+    //đến bước contextRouter->matchUri thì mới tính ra được 3 thành phần dưới này
     protected ?array $arrRouteTMCA;
+    protected ?bool $isProhibitedModule;
+    protected ?bool $isProhibitedRole;
     public function __construct(Request $request, array $arrAuthInfo) {
         $this->request    = $request;
         if(!AuthInfo::isValid($arrAuthInfo)){
@@ -16,6 +18,8 @@ class RequestAuthContext{
         }
         $this->arrAuthInfo  = $arrAuthInfo;
         $this->arrRouteTMCA =  null;
+        $this->isProhibitedModule =  null;
+        $this->isProhibitedRole =  null;
     }
     // ----------------------------------------------------------------
     public function resquest() {
@@ -25,13 +29,30 @@ class RequestAuthContext{
     public function authInfo() {
         return $this->arrAuthInfo;
     }
-    public function routePath(): array {
+    // ----------------------------------------------------------------
+    public function routePath(): ?array {
         return $this->arrRouteTMCA;
     }
     // ----------------------------------------------------------------
-    //khi chạy outer->matchUri thì lưu thông tin kết của của match['path'] vào $this->arrRouteTMCA
-    public function setRoutePath(array $routePath) {
+    public function prohibitedModule(): ?bool {
+        return $this->isProhibitedModule;
+    }
+    // ----------------------------------------------------------------
+    public function prohibitedRole(): ?bool {
+        return $this->isProhibitedRole;
+    }
+    // ----------------------------------------------------------------
+    //khi chạy contextRouter->matchUri thì lưu thông tin kết của của match['path'] vào $this->arrRouteTMCA
+    public function setRoutePath(?array $routePath) {
         $this->arrRouteTMCA = $routePath;
+    }
+    // ----------------------------------------------------------------
+    public function setProhibitedModule(?bool $isProhibitedModule) {
+        $this->isProhibitedModule = $isProhibitedModule;
+    }
+    // ----------------------------------------------------------------
+    public function setProhibitedRole(?bool $isProhibitedRole) {
+        $this->isProhibitedRole = $isProhibitedRole;
     }
     // ----------------------------------------------------------------
     public function isSetRoutePath() {

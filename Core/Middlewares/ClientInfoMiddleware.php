@@ -5,11 +5,10 @@ use Core\Models\App;
 use Core\Models\Request;
 use Core\Models\RequestAuthContext;
 use Core\Models\Response;
-use Core\Models\Session;
 class ClientInfoMiddleware {
     public function handle(RequestAuthContext $requestAuthContext, Closure $next){
         if(Request::isHtmlResponse()){
-            $arrRouteTMCA   = Session::get('route_tmca');
+            $arrRouteTMCA   = $requestAuthContext->routePath();
             $strLayoutFQCN  = App::getClass('layout');
             if( $strLayoutFQCN::requiresScreenDetection($requestAuthContext, $arrRouteTMCA)&&
                 Session::get('device_screen') === null){

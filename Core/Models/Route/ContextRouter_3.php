@@ -65,6 +65,7 @@ class ContextRouter{
         } else {
             $routes = DEFAULT_API_ROUTE;
         }
+
         // Xác định segment đầu tiên
         $strTmp = $numSeg === 0 ? DEFAULT_ENTRY : $arrSegment[0];
 
@@ -76,9 +77,8 @@ class ContextRouter{
             $path = $this->toTMCAWithoutModule($strTmp, $arrSegment);
             $strModule = null;
         }
-        /*hệ thống không phân tích được url, tình huống thường xảy ra khi gõ sai 
-        đường dẫn*/
-        if ($path === null) {
+
+        if ($path === null) {//hệ thống không phân tích được url
             return [
                 'path' => null,
                 'route_info' => null,
@@ -87,12 +87,9 @@ class ContextRouter{
                 'prohibited_role' => null
             ];
         }
-        $leaf = self::getValueAt($this->staticRouter->getTMCAR(), $path);
-        /*Tình huống này là để đề phòng tăng cường, nhưng có lẽ khó xảy ra vì nếu các url
-        sai thì có lẽ hầu như rơi vào tình huống trên tức là path trả về null rồi. 
-        Vẫn giữ đoạn code dưới đây để đề phòng
-         */
-        if ($leaf === null) { 
+
+        /*$leaf = self::getValueAt($this->staticRouter->getTMCAR(), $path);
+        if ($leaf === null) { //không có chức năng tại url này
             return [
                 'path' => $path,
                 'route_info' => null,
@@ -100,15 +97,14 @@ class ContextRouter{
                 'prohibited_module' => null,
                 'prohibited_role' => null
             ];
-        }
-        // Tính middleware khi $path và $leaf khác null
-        $middlewares = $this->attachMiddlewares($path, $leaf);
+        }*/
+
         // Kiểm tra module có bị cấm hay không
         if ($strModule && !in_array($strModule, $this->arrEnableModule, true)) {
             return [ // không có quyền truy cập module này
                 'path' => $path,
-                'route_info' => $leaf,
-                'middlewares' => $middlewares,
+                'route_info' => null,
+                'middlewares' => null,
                 'prohibited_module' => true,
                 'prohibited_role' => null
             ];
@@ -119,12 +115,16 @@ class ContextRouter{
         if (empty($commonRoles)) {
             return [ //không có role để truy cập action này
                 'path' => $path,
-                'route_info' => $leaf,
-                'middlewares' => $middlewares,
+                'route_info' => null,
+                'middlewares' => null,
                 'prohibited_module' => false,
                 'prohibited_role' => true
             ];
         }
+        $leaf = self::getValueAt($this->staticRouter->getTMCAR(), $path);
+        // Tính middleware trực tiếp
+        $middlewares = $this->attachMiddlewares($path, $leaf);
+
         return [
             'path' => $path,
             'route_info' => $leaf,
@@ -134,11 +134,19 @@ class ContextRouter{
         ];
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function attachMiddlewares(array $arrTMCA, array $leaf): array {
-        $arrSegment = [
-            'method'     => $leaf['method'],
-            'role'       => array_intersect($this->arrUserRole, $leaf['roles'])//có thể là nhiều role
-        ];
+    protected function attachMiddlewares(array $arrTMCA, ?array $leaf): array {
+        if($leaf){
+            $arrSegment = [
+                'method'     => $leaf['method'],
+                'role'       => array_intersect($this->arrUserRole, $leaf['roles'])//có thể là nhiều role
+            ];
+        }
+        else{
+            $arrSegment = [
+                'method'     => null,
+                'role'       => null
+            ];
+        }
         if (count($arrTMCA) === 4) { // module-controller-action
             $arrSegment['fctype']     = $arrTMCA[0];
             $arrSegment['module']     = $arrTMCA[1];

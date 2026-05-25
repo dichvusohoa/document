@@ -18,22 +18,6 @@ Ví dụ viết 'connection' => \Core\Models\Connection::class chứ không vi�
  'connection' => 'Core\Models\Connection'
 */
 
-$CLASS_NAME_MAP = ['connection' => \Core\Models\Connection\Connection::class, 
-    'db_service' => \Core\Models\DbService::class,
-    'request' => \Core\Models\Request::class,
-    'user_service' => \Core\Models\User\UserService::class,
-    'auth_context' => \Core\Models\Auth\AuthContext::class,
-    'request_auth_context' => \Core\Models\RequestAuthContext::class,
-    'static_router' => \Core\Models\Route\StaticRouter::class,
-    'context_router' => \Core\Models\Route\ContextRouter::class,
-    'static_router_cache' => \Core\Models\Cache\StaticRouterCache::class,
-    'router_factory' => \Core\Models\Route\RouterFactory::class,
-    'mobile_detect' => \Detection\MobileDetect::class,
-    'layout' => \App\Models\Layout::class,
-    'layout_factory' => \Core\Models\Layout\LayoutFactory::class,
-    'controller_factory' => \Core\Models\ControllerFactory::class,
-    'app' => \Core\Models\App::class
-    ];
 /*--------------------------------------------------------------------*/
 $lifetime = 2 * SESSION_TIMEOUT;
 ini_set('session.gc_maxlifetime', $lifetime);

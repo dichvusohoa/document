@@ -2,6 +2,7 @@
 namespace Core\Models\HtmlPageSchemas;
 use Core\Models\Response;
 use Core\Models\Layout\BaseLayout;
+use Core\Models\RequestAuthContext;
 /*1. BaseHtmlPageSchema có nhiệm vụ chính là tính ra một cấu trúc mô tả đặc tính các thành phần 
  (như header, footer, menu, main ...)  của 1 trang web hoàn chỉnh. Trung tâm của class này là
  function schema 
@@ -60,7 +61,7 @@ abstract class BaseHtmlPageSchema {
         $this->requestAuthContext   = $layout->getRequestAuthContext();
         $this->strLayoutFilePath    = $layout->mapToLayoutFile();
         $this->arrUiContext         = $layout->mapToUiContext();
-        $this->arrSchema  =  $this->schema();
+        $this->arrSchema  =  $this->buildSchema();
         $this->processLinkViewFragment();
     }
     /*---------------------------------------------------------------------------------------------------------------*/        
@@ -80,7 +81,7 @@ abstract class BaseHtmlPageSchema {
         return $this->arrSchema;
     }
     /*---------------------------------------------------------------------------------------------------------------*/        
-    abstract public function schema(): array;
+    abstract public function buildSchema(): array;
     /*trả về array của các element có cấu trúc như sau
     type: css, script,embed_fragment_layout, link_fragment_layout
     path_fragment( chỉ có giá trị khi type = link_fragment_layout)

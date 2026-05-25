@@ -26,8 +26,8 @@
 không sửa ra [response_type:xx][module:yy][controller:zz] vì lý do có html_schema, dùng thế này tiện hơn
   */
 return [
-    '[module:*]/category' =>  ['api_class' => \App\Controllers\_Shared\CategoryController::class, 'html_class' => null, 'html_schema' => null],
-    '[module:*]/document' =>  ['api_class' => \App\Controllers\_Shared\DocumentController::class, 'html_class' => null, 'html_schema' => null],
+    '[module:*]/category' =>  ['api_class' => \App\Controllers\_Shared\CategoryController::class, 'html_class' => \Core\Controllers\HtmlPageControllers\LoginPageController::class, 'html_schema' => \Core\Models\HtmlPageSchemas\LoginPageSchema::class],
+    '[module:*]/document' =>  ['api_class' => \App\Controllers\_Shared\DocumentController::class, 'html_class' => \Core\Controllers\HtmlPageControllers\LoginPageController::class, 'html_schema' => \Core\Models\HtmlPageSchemas\LoginPageSchema::class],
     'login' => ['api_class' => \Core\Controllers\LoginController::class, 
         'html_class' => \Core\Controllers\HtmlPageControllers\LoginPageController::class, 
         'html_schema' => \Core\Models\HtmlPageSchemas\LoginPageSchema::class], 
