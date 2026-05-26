@@ -193,7 +193,7 @@ return array (
         'method' => NULL,
         'role' => NULL,
       ),
-      'fqcn' => 'Core\\Middlewares\\PathMiddleware',
+      'fqcn' => 'Core\\Middlewares\\ClientInfoMiddleware',
     ),
     1 => 
     array (

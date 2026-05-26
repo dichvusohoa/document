@@ -4,6 +4,7 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/D:/Projects/PHP/document/Core/Models/User/UserService.php</file>
+            <file>file:/D:/Projects/PHP/document/Core/Middlewares/CleanUrlMiddleware.php</file>
             <file>file:/D:/Projects/PHP/document/config/config.html.mcr2a.php</file>
             <file>file:/D:/Projects/PHP/document/public/index.php</file>
             <file>file:/D:/Projects/PHP/document/config/middleware.route.php</file>
@@ -11,6 +12,7 @@
             <file>file:/D:/Projects/PHP/document/Core/Models/HtmlPageSchemas/LoginPageSchema.php</file>
             <file>file:/D:/Projects/PHP/document/Core/Models/HtmlKernel_1.php</file>
             <file>file:/D:/Projects/PHP/document/config/config.php</file>
+            <file>file:/D:/Projects/PHP/document/Core/Models/HttpException.php</file>
             <file>file:/D:/Projects/PHP/document/Core/Models/App.php</file>
             <file>file:/D:/Projects/PHP/document/Core/Models/Cache/Cache.php</file>
             <file>file:/D:/Projects/PHP/document/Core/Models/Layout/BaseDeviceScreenFactory.php</file>
@@ -36,9 +38,9 @@
             <file>file:/D:/Projects/PHP/document/Core/Models/HtmlKernel.php</file>
             <file>file:/D:/Projects/PHP/document/Core/Models/DbService.php</file>
             <file>file:/D:/Projects/PHP/document/config/config.fca2f.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/Middlewares/PathMiddleware.php</file>
             <file>file:/D:/Projects/PHP/document/Core/Models/Auth/AuthInfo.php</file>
             <file>file:/D:/Projects/PHP/document/Core/Models/User/UserInfo.php</file>
+            <file>file:/D:/Projects/PHP/document/Core/Controllers/ControllerFactory_1.php</file>
             <file>file:/D:/Projects/PHP/document/Core/Models/Session.php</file>
             <file>file:/D:/Projects/PHP/document/vendor/composer/ClassLoader.php</file>
             <file>file:/D:/Projects/PHP/document/Application/Models/HtmlPageSchemas/DescFrags.php</file>
@@ -59,6 +61,7 @@
             <file>file:/D:/Projects/PHP/document/config/config.mc2fc.php</file>
             <file>file:/D:/Projects/PHP/document/Application/Controllers/HtmlPageControllers/LoginPageController.php</file>
             <file>file:/D:/Projects/PHP/document/Core/Middlewares/MaintenanceMiddleware.php</file>
+            <file>file:/D:/Projects/PHP/document/config/list.module.php</file>
             <file>file:/D:/Projects/PHP/document/Core/Models/Auth/AuthContext.php</file>
             <file>file:/D:/Projects/PHP/document/Core/Models/Layout/BaseMobileDetectFactory.php</file>
         </group>

@@ -42,41 +42,35 @@ class HtmlKernel  {
     }
     public function buildHandler() {
         $match = $this->route();
+        if($match['path'] === null || $match['route_info'] === null){
+            //redirect ra file báo lỗi 404
+            throw new HttpException(404, 'Not Found');
+        }
         $arrRouteInfo =    $match['route_info'];
-        if($arrRouteInfo){
-            $controller = $this->controllerFactory->create(
-            $this->requestAuthContext, $arrRouteInfo);
-            $strFunction = $arrRouteInfo['function'];
-            $handler = function() use ($controller, $strFunction){
-                //call_user_func([$controller, 'doAction'], $strFunction);
-                $controller->doAction($strFunction);
-            };
-        }
-        else{
-            $handler = null;
-        }
-        
+        $controller = $this->controllerFactory->create(
+        $this->requestAuthContext, $arrRouteInfo);
+        $strFunction = $arrRouteInfo['function'];
+        $handler = function() use ($controller, $strFunction){
+            //call_user_func([$controller, 'doAction'], $strFunction);
+            $controller->doAction($strFunction);
+        };
         $arrMiddleware = self::buildRouteMiddlewares($match['middlewares']);
         $middlewareChain = new MiddlewareChain($arrMiddleware,$handler);
         $middlewareChain->handleChain($this->requestAuthContext);     
     }
     protected function route(): array{
         $contextRouter = $this->routerFactory->create();
-        $match= $contextRouter->matchUri($this->requestAuthContext->resquest()); 
-        if($match['path'] === null){
+        $match= $contextRouter->matchUri($this->requestAuthContext->request()); 
+        $this->requestAuthContext->setRoutePath($match['path']);
+        $this->requestAuthContext->setProhibitedModule($match['prohibited_module']);
+        $this->requestAuthContext->setProhibitedRole($match['prohibited_role']);
+        /*if($match['path'] === null){
             //redirect ra file báo lỗi 404
             throw new HttpException(404, 'Not Found');
         }
-        if($match['route_info'] === null){
-            if($match['prohibited_module'] === true || $match['prohibited_role'] === true){
-                throw new HttpException(403, 'Forbidden');
-            }
-            
-           // throw new HttpException(404, 'Not Found');
-            
-        }
-        $this->requestAuthContext->setRoutePath($match['path']);
-        //App::set('route_match', $match);
+        if($match['prohibited_module'] === true || $match['prohibited_role'] === true){
+            throw new HttpException(403, 'Forbidden');
+        }*/
         return $match;
     }
     

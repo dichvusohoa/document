@@ -22,7 +22,7 @@ class RequestAuthContext{
         $this->isProhibitedRole =  null;
     }
     // ----------------------------------------------------------------
-    public function resquest() {
+    public function request() {
         return $this->request;
     }
     // ----------------------------------------------------------------

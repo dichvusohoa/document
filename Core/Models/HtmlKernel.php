@@ -2,29 +2,34 @@
 namespace Core\Models;
 use Core\Models\Utility\ValidUtility;
 use Core\Models\Route\RouterFactory;
+use Core\Middlewares\MiddlewareFactory;
 use Core\Controllers\ControllerFactory;
 class HtmlKernel  {
     protected RequestAuthContext $requestAuthContext;
     protected RouterFactory $routerFactory;
+    protected MiddlewareFactory $middlewareFactory;
     protected ControllerFactory $controllerFactory;
     public function __construct(
         RequestAuthContext $requestAuthContext,
         RouterFactory $routerFactory,
+        MiddlewareFactory $middlewareFactory,
         ControllerFactory $controllerFactory
     ) {
         $this->requestAuthContext   = $requestAuthContext;
-        $this->routerFactory         = $routerFactory;
+        $this->routerFactory        = $routerFactory;
+        $this->middlewareFactory    = $middlewareFactory;
         $this->controllerFactory    = $controllerFactory;
     }
     public function dispatch(){
-        $arrGlobalMiddleware =  self::buildGlobalMiddlewares();
+        $arrFQCN = require_once CONFIG_PATH.'/middleware.glb.php';
+        $arrGlobalMiddleware = $this->middlewareFactory->createList($arrFQCN);
         $middlewareChain = new MiddlewareChain($arrGlobalMiddleware,[$this, 'buildHandler']);
         $middlewareChain->handleChain($this->requestAuthContext);        
     }
-    protected static function buildGlobalMiddlewares(): array{                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+    /*protected static function buildGlobalMiddlewares(): array{                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
         $arrFQCN = require_once CONFIG_PATH.'/middleware.glb.php';
         return self::mapToClosureMiddlewares($arrFQCN);
-    }
+    }*/
     protected static function buildRouteMiddlewares(array $arrMiddleware): array{
         return self::mapToClosureMiddlewares($arrMiddleware);
     }
@@ -54,13 +59,14 @@ class HtmlKernel  {
             //call_user_func([$controller, 'doAction'], $strFunction);
             $controller->doAction($strFunction);
         };
-        $arrMiddleware = self::buildRouteMiddlewares($match['middlewares']);
+        //$arrMiddleware = self::buildRouteMiddlewares($match['middlewares']);
+        $arrMiddleware = $this->middlewareFactory->createList($match['middlewares']);
         $middlewareChain = new MiddlewareChain($arrMiddleware,$handler);
         $middlewareChain->handleChain($this->requestAuthContext);     
     }
     protected function route(): array{
         $contextRouter = $this->routerFactory->create();
-        $match= $contextRouter->matchUri($this->requestAuthContext->resquest()); 
+        $match= $contextRouter->matchUri($this->requestAuthContext->request()); 
         $this->requestAuthContext->setRoutePath($match['path']);
         $this->requestAuthContext->setProhibitedModule($match['prohibited_module']);
         $this->requestAuthContext->setProhibitedRole($match['prohibited_role']);

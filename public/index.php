@@ -19,6 +19,7 @@
     use Core\Models\Route\StaticRouter;
     use Core\Models\Route\ContextRouter;
     use Core\Models\Route\RouterFactory;
+    use Core\Middlewares\MiddlewareFactory;
     
     use Core\Models\Cache\StaticRouterCache;
     use Core\Models\ErrorHandler;
@@ -70,6 +71,9 @@
             $c->get(StaticRouterCache::class)    
         );
     });
+    $container->set(MiddlewareFactory::class, function($c){
+        return new (MiddlewareFactory::class)($c); 
+    });
     $container->set(ControllerFactory::class, function($c){
         return new (ControllerFactory::class)(
             $c    
@@ -80,6 +84,7 @@
     $kernel = new HtmlKernel(
         $container->get(RequestAuthContext::class),
         $container->get(RouterFactory::class),
+        $container->get(MiddlewareFactory::class),    
         $container->get(ControllerFactory::class)
     );
     $kernel->dispatch();

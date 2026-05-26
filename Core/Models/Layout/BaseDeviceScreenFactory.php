@@ -16,7 +16,7 @@ abstract class BaseDeviceScreenFactory {
         //$this->container = $container;
     }
     /*requiresScreenDetection quyết định trong ngữ cảnh nào thì phải tính ra thông tin chi tiết về screen*/
-    abstract protected function requiresScreenDetection(): bool;
+    abstract public function requiresScreenDetection(): bool;
     public function create(): ?array{
         if($this->requiresScreenDetection()){
             return Session::get('device_screen');
