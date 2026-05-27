@@ -1,6 +1,5 @@
 <?php
 namespace Core\Models;
-use Core\Models\Utility\ValidUtility;
 use Core\Models\Route\RouterFactory;
 use Core\Middlewares\MiddlewareFactory;
 use Core\Controllers\ControllerFactory;
@@ -25,25 +24,6 @@ class HtmlKernel  {
         $arrGlobalMiddleware = $this->middlewareFactory->createList($arrFQCN);
         $middlewareChain = new MiddlewareChain($arrGlobalMiddleware,[$this, 'buildHandler']);
         $middlewareChain->handleChain($this->requestAuthContext);        
-    }
-    /*protected static function buildGlobalMiddlewares(): array{                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
-        $arrFQCN = require_once CONFIG_PATH.'/middleware.glb.php';
-        return self::mapToClosureMiddlewares($arrFQCN);
-    }*/
-    protected static function buildRouteMiddlewares(array $arrMiddleware): array{
-        return self::mapToClosureMiddlewares($arrMiddleware);
-    }
-    protected static function mapToClosureMiddlewares(array $arrFQCN){
-        if(!ValidUtility::isStringList($arrFQCN)){
-            throw new UnexpectedValueException('Phải là một mảng string'); 
-        }
-        if(count($arrFQCN) === 0){
-            return [];
-        }
-        $fnMap = function(string $strFQCN){
-            return [new $strFQCN(), 'handle'];
-        };
-        return array_map($fnMap, $arrFQCN);
     }
     public function buildHandler() {
         $match = $this->route();
