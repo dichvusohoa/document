@@ -17,7 +17,7 @@ class ClientInfoController extends BaseController {
         $screen = $this->requestAuthContext->request()->json('screen');
         if($initial_uri !==null && $screen !==null ){
             Session::set('device_screen', $screen);
-            $resp = ['status' => Response::SERVER_OK_STATUS, 'info' => ['initial_uri' => $this->request->post('initial_uri'), 'screen' => $this->request->post('screen')], 'extra' => null ];
+            $resp = ['status' => Response::SERVER_OK_STATUS, 'info' => ['initial_uri' => $this->requestAuthContext->request()->post('initial_uri'), 'screen' => $this->requestAuthContext->request()->post('screen')], 'extra' => null ];
         }
         else{
             $resp = ['status' => Response::SERVER_ERR_STATUS, 'info' => 'Missing information about initial_uri and screen', 'extra' => null ];
