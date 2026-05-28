@@ -50,13 +50,7 @@ class HtmlKernel  {
         $this->requestAuthContext->setRoutePath($match['path']);
         $this->requestAuthContext->setProhibitedModule($match['prohibited_module']);
         $this->requestAuthContext->setProhibitedRole($match['prohibited_role']);
-        /*if($match['path'] === null){
-            //redirect ra file báo lỗi 404
-            throw new HttpException(404, 'Not Found');
-        }
-        if($match['prohibited_module'] === true || $match['prohibited_role'] === true){
-            throw new HttpException(403, 'Forbidden');
-        }*/
+        
         return $match;
     }
     

@@ -425,3 +425,17 @@
 [27-May-2026 09:52:45 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
 [27-May-2026 09:52:45 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
 [27-May-2026 09:52:45 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[27-May-2026 11:10:46 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[27-May-2026 11:14:07 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[27-May-2026 11:15:27 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[27-May-2026 11:16:08 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[27-May-2026 21:24:44 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[27-May-2026 21:24:44 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[27-May-2026 21:24:44 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[27-May-2026 21:24:44 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[27-May-2026 21:24:49 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[27-May-2026 21:27:35 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[28-May-2026 08:14:49 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[28-May-2026 08:14:49 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[28-May-2026 08:14:49 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[28-May-2026 08:14:50 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router

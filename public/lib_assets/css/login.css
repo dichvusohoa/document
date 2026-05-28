@@ -18,7 +18,7 @@
     align-items: stretch; /*input,label, button đều choán 100% chiều rộng*/
     margin-bottom: 3.0rem; /*khoảng cách mép dưới nút Đăng nhập và viền bottom của field set*/
     position: relative;
-    border:  1px solid green;
+   /* border:  1px solid green;*/
     
 }
 

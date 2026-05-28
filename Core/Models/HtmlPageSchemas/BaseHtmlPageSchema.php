@@ -81,7 +81,7 @@ abstract class BaseHtmlPageSchema {
         return $this->arrSchema;
     }
     /*---------------------------------------------------------------------------------------------------------------*/        
-    abstract public function buildSchema(): array;
+    abstract protected function buildSchema(): array;
     /*trả về array của các element có cấu trúc như sau
     type: css, script,embed_fragment_layout, link_fragment_layout
     path_fragment( chỉ có giá trị khi type = link_fragment_layout)

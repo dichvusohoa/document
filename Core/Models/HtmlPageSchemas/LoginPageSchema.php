@@ -3,7 +3,7 @@ namespace Core\Models\HtmlPageSchemas;
 class LoginPageSchema extends BaseHtmlPageSchema{
    
     /*---------------------------------------------------------------------------------------------------------------*/        
-    public function buildSchema(): array{
+    protected function buildSchema(): array{
          // $arrCss = ['/lib_assets/css/style.css', '/lib_assets/css/err.css',
        //     '/lib_assets/css/button.css', '/lib_assets/css/login.css'];
         return [ 'title' => ['type' => 'title'],
