@@ -1,7 +1,7 @@
 <?php
 return[
-    \Core\Middlewares\MaintenanceMiddleware::class, 
-    \Core\Middlewares\CleanUrlMiddleware::class
+    \Core\Middleware\MaintenanceMiddleware::class, 
+    \Core\Middleware\CleanUrlMiddleware::class
 ];
             
         

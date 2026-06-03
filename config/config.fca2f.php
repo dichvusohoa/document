@@ -7,28 +7,27 @@ fca2f meaning: fully qualified class name - FQCN + action To function
  
   */
 return[   
-    \App\Controllers\_Shared\CategoryController::class => [   
+    \App\Controller\CategoryController::class => [   
         'index' =>['function'=>'index', 'method'=>'get'],
         'update' =>['function'=>'update', 'method'=>'post']
     ],
-    \App\Controllers\_Shared\DocumentController::class =>[   
+    \App\Controller\DocumentController::class =>[   
         'index' =>['function'=>'index', 'method'=>'get'],
         'update' =>['function'=>'update', 'method'=>'post']
     ],
-    \Core\Controllers\LoginController::class =>[   
-        'login' =>  ['function'=>'login', 'method'=>'post'],
-        'logout' => ['function'=>'logout','method'=>'post']
+    //\Core\Controller\Login\LoginControllerFactory::class =>[   
+    //    'index' =>  ['function'=>'renderPage', 'method'=>'get'] /*Tạm thời*/
+    //],
+    \Core\Controller\Login\LoginControllerFactory::class =>[   
+        'index' =>  ['function'=>'renderPage', 'method'=>'get'], /*Tạm thời*/
+        'login' =>  ['function'=>'login', 'method'=>'post']
     ],
-    \Core\Controllers\HtmlPageControllers\LoginPageController::class =>[   
-        'renderPage' =>  ['function'=>'renderPage', 'method'=>'get'],
-        'index' =>  ['function'=>'renderPage', 'method'=>'get'] /*Tạm thời*/
-    ],
-    \Core\Controllers\AdminLoginController::class =>[   
+   /* \Core\Controllers\AdminLoginController::class =>[   
         'index' =>  ['function'=>'index', 'method'=>'get'],//show login form
         'login' =>  ['function'=>'login', 'method'=>'post'],
         'logout' => ['function'=>'logout','method'=>'post']
-    ],
-    \Core\Controllers\ClientInfoController::class =>[
+    ],*/
+    \Core\Controller\ClientInfoController::class =>[
         'index' =>  ['function'=>'index', 'method'=>'json']
     ]
 ];

@@ -3,30 +3,30 @@
     require '../config/deploy.php';
     require '../config/config.php';
    // require '../config/main.php';
-    use Core\Models\App;
-    use Core\Models\Connection\Connection;
-    use Core\Models\Request;
-    use Core\Models\Auth\AuthContext;
+    use Core\Foundation\App;
+    use Core\Database\Connection\Connection;
+    use Core\Http\Request;
+    use Core\Auth\AuthContext;
     
-    use Core\Models\Layout\BaseLayout;
-    use Core\Models\Layout\BaseMobileDetectFactory;
-    use Core\Models\Layout\BaseDeviceScreenFactory;
-    use App\Models\Layout\Layout;
-    use App\Models\Layout\MobileDetectFactory;
-    use App\Models\Layout\DeviceScreenFactory;
+    use Core\View\Layout\BaseLayout;
+    use Core\View\Layout\BaseMobileDetectFactory;
+    use Core\View\Layout\BaseDeviceScreenFactory;
+    use App\View\Layout\Layout;
+    use App\View\Layout\MobileDetectFactory;
+    use App\View\Layout\DeviceScreenFactory;
     
-    use Core\Models\RequestAuthContext;
-    use Core\Models\Route\StaticRouter;
-    use Core\Models\Route\ContextRouter;
-    use Core\Models\Route\RouterFactory;
-    use Core\Middlewares\MiddlewareFactory;
+    use Core\Http\RequestAuthContext;
+    use Core\Routing\StaticRouter;
+    use Core\Routing\ContextRouter;
+    use Core\Routing\RouterFactory;
+    use Core\Middleware\MiddlewareFactory;
     
-    use Core\Models\Cache\StaticRouterCache;
-    use Core\Models\ErrorHandler;
+    use Core\Cache\StaticRouterCache;
+    use Core\Foundation\ErrorHandler;
     
-   // use App\Controllers\HtmlPageControllers\LoginPageController;
-    use Core\Controllers\ControllerFactory;
-    use Core\Models\HtmlKernel;
+   // use App\Controller\HtmlPage\LoginPageController;
+    use Core\Controller\ControllerFactory;
+    use Core\Foundation\HttpKernel;
     //use Detection\MobileDetect;
     
     ErrorHandler::register(true);
@@ -74,18 +74,18 @@
     $container->set(MiddlewareFactory::class, function($c){
         return new (MiddlewareFactory::class)($c); 
     });
-    $container->set(ControllerFactory::class, function($c){
+    /*$container->set(ControllerFactory::class, function($c){
         return new (ControllerFactory::class)(
             $c    
         );
-    });
+    });*/
     //$container->get(LoginPageController::class);
     //3.End chỉ set các class có contructor đặc biệt không tạo tự động được 
-    $kernel = new HtmlKernel(
+    $kernel = new HttpKernel(
         $container->get(RequestAuthContext::class),
         $container->get(RouterFactory::class),
-        $container->get(MiddlewareFactory::class),    
-        $container->get(ControllerFactory::class)
+        $container->get(MiddlewareFactory::class)    
+        //$container->get(ControllerFactory::class)
     );
     $kernel->dispatch();
     

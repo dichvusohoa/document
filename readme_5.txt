@@ -1,4 +1,4 @@
-Vấn đề Model (nghiệp vụ) , DB , Entity (thực thể)
+Vấn đề Foundation (nghiệp vụ) , DB , Entity (thực thể)
 
 Entity hình dung như một record. Ví dụ UserEntity như là một Row
 UserDb hay UserRepository là để thao tác với DB. Nghiệp vụ xuất nhập
@@ -16,7 +16,7 @@ class UserRepository {
     }
 }
 
-UserService hay User không sẽ là User Model chứa các nghiệp vụ: login, register
+UserService hay User không sẽ là User Foundation chứa các nghiệp vụ: login, register
 
 class UserService {
     protected UserRepository $userRepo;

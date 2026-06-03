@@ -52,29 +52,21 @@ function loadCfgConnection() {
  * Trong đó something-word thường là 1 từ hơi khó đoán. Trong hàm matchUri khi phát hiện
  *chuỗi  something-word sẽ tự thay bằng admin-controller thật 
  */
-//const URI_PREFIX_MAP = ['cacquak' => ['login','index']];
 const ADMIN_CONTROLLER_RENAME = ['admin-login' => 'cacquak'];
 const ADMIN_ROLE_NAME = 'admin';
 //DEFAULT_ENTRY dùng trong tình huống khi url dạng khuyết cả module, controller, action
 define('DEFAULT_ENTRY',  'compiled-materials'); //có thể là module hoặc controller
-const DEFAULT_API_ROUTE = [// module => comtroller => action hoặc comtroller => action
+const DEFAULT_ROUTE = [// module => comtroller => action hoặc comtroller => action
     'compiled-materials' => ['category' => 'index'],    
     'it-documents' => ['category' => 'index'], 
     'pbt-framework' => ['category' => 'index'], 
     'bud-project' => ['category' => 'index'], 
-    'login' => 'login',
-    'admin-login' => 'login',
+    'login' => 'index',
+    'admin-login' => 'index',
     'client-info' => 'index'
 ];
-const DEFAULT_HTML_ROUTE = [// module => comtroller => action hoặc comtroller => action
-    'compiled-materials' => ['category' => 'renderPage'],    
-    'it-documents' => ['category' => 'renderPage'], 
-    'pbt-framework' => ['category' => 'renderPage'], 
-    'bud-project' => ['category' => 'renderPage'], 
-    'login' => 'renderPage',
-    'admin-login' => 'renderPage'
-];
-define ('URI_CLIENT_INFO', '/client-info?response_type=json'); 
+
+define ('URI_CLIENT_INFO', '/client-info'); 
 //define ('URI_DATA_LAYOUT', '/data-layout?response_type=json'); 
 //define('CSS_SCRIPT_VERSION','2024.12.21.00.20'); //viết theo đúng format yyyy.MM.dd.hh.mm  (năm tháng ngày giờ phút) hoặc yyyyMMddhhmmss năm tháng ngày giờ phút giây)
 

@@ -3,38 +3,52 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/Projects/PHP/document/Core/Middlewares/CleanUrlMiddleware.php</file>
-            <file>file:/D:/Projects/PHP/document/config/config.html.mcr2a.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/Models/HtmlKernel.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/views/layout/client_info.phtml</file>
+            <file>file:/D:/Projects/PHP/document/core/Middleware/MiddlewareFactory.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Middleware/MaintenanceMiddleware.php</file>
             <file>file:/D:/Projects/PHP/document/config/config.fca2f.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/Controllers/HtmlPageControllers/BaseHtmlPageController_1.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Cache/StaticRouterCache.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Routing/__ContextRouter.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Foundation/ErrorHandler.php</file>
+            <file>file:/D:/Projects/PHP/document/core/View/Layout/BaseMobileDetectFactory.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Controller/ClientInfoController.php</file>
             <file>file:/D:/Projects/PHP/document/public/index.php</file>
             <file>file:/D:/Projects/PHP/document/config/middleware.route.php</file>
-            <file>file:/D:/Projects/PHP/document/public/lib_assets/css/login.css</file>
+            <file>file:/D:/Projects/PHP/document/core/Middleware/AuthMiddleware.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Routing/StaticRouter.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Routing/RoutePattern.php</file>
             <file>file:/D:/Projects/PHP/document/config/config.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/views/layout/simple_layout.phtml</file>
-            <file>file:/D:/Projects/PHP/document/Core/Middlewares/MiddlewareFactory.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/Middlewares/ClientInfoMiddleware.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/views/errors/500.phtml</file>
-            <file>file:/D:/Projects/PHP/document/Core/Models/ErrorHandler.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/Models/HtmlPageSchemas/BaseHtmlPageSchema.php</file>
-            <file>file:/D:/Projects/PHP/document/Application/Models/Layout/DeviceScreenFactory.php</file>
-            <file>file:/D:/Projects/PHP/document/config/config.api.mcr2a.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/Controllers/ClientInfoController.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/Models/Layout/BaseLayout.php</file>
+            <file>file:/D:/Projects/PHP/document/app/Controller/CategoryController.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Http/RequestAuthContext.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Controller/Login/LoginControllerFactory.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Foundation/App.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Middleware/CleanUrlMiddleware.php</file>
+            <file>file:/D:/Projects/PHP/document/core/View/HtmlSchema/BaseHtmlPageSchema.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Database/Connection/Connection.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Controller/Login/LoginPageController.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Foundation/ErrorInfo.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Foundation/__HttpKernel.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Foundation/HttpKernel.php</file>
+            <file>file:/D:/Projects/PHP/document/readme_composer.txt</file>
+            <file>file:/D:/Projects/PHP/document/vendor/composer/ClassLoader.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Middleware/MiddlewareChain.php</file>
+            <file>file:/D:/Projects/PHP/document/config/config.mcr2a.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Http/HttpException.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Http/Response.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Controller/__ControllerFactory.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Routing/RouterFactory.php</file>
             <file>file:/D:/Projects/PHP/document/config/middleware.glb.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/Middlewares/AuthMiddleware.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/Models/Utility/ValidUtility.php</file>
-            <file>file:/D:/Projects/PHP/document/Application/Controllers/HtmlPageControllers/FragController.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/Models/Response.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/Controllers/HtmlPageControllers/BaseHtmlPageController.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/Controllers/ControllerFactory.php</file>
+            <file>file:/D:/Projects/PHP/document/config1/middleware.glb.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Controller/BaseControllerFactory.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Controller/BaseController.php</file>
+            <file>file:/D:/Projects/PHP/document/app/Controller/DocumentController.php</file>
+            <file>file:/D:/Projects/PHP/document/config1/config.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Auth/AuthContext.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Routing/ContextRouter.php</file>
             <file>file:/D:/Projects/PHP/document/config/config.mc2fc.php</file>
-            <file>file:/D:/Projects/PHP/document/public/lib_assets/js/jinit_client_info.js</file>
-            <file>file:/D:/Projects/PHP/document/Core/Middlewares/MaintenanceMiddleware.php</file>
-            <file>file:/D:/Projects/PHP/document/Application/Controllers/HtmlPageControllers/LoginPageController.php</file>
-            <file>file:/D:/Projects/PHP/document/Core/views/login/login.phtml</file>
+            <file>file:/D:/Projects/PHP/document/core/Auth/AuthInfo.php</file>
+            <file>file:/D:/Projects/PHP/document/core/View/HtmlSchema/LoginPageSchema.php</file>
+            <file>file:/D:/Projects/PHP/document/config/__config.mc2fc.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Middleware/ClientInfoMiddleware.php</file>
         </group>
     </open-files>
 </project-private>

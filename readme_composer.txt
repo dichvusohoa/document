@@ -64,7 +64,7 @@ Quan trọng nhất là phần này
 
 Là ánh xạ namespace class => folder
 
-Key là prefix của  namespace class ( ví dụ Core\Models\Request thì lấy Core\
+Key là prefix của  namespace class ( ví dụ Core\Foundation\Request thì lấy Core\
 Value là root của path to folder chứa class
 3.chạy composer install (lần đầu) hoặc composer dump-autoload (sau khi thay đổi rule autoload).
 Ở đây đã có file composer.json nên chạy composer dump-autoload. Sẽ sinh ra thư mục /vendor

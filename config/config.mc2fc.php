@@ -26,15 +26,12 @@
 không sửa ra [response_type:xx][module:yy][controller:zz] vì lý do có html_schema, dùng thế này tiện hơn
   */
 return [
-    '[module:*]/category' =>  ['api_class' => \App\Controllers\_Shared\CategoryController::class, 'html_class' => \Core\Controllers\HtmlPageControllers\LoginPageController::class, 'html_schema' => \Core\Models\HtmlPageSchemas\LoginPageSchema::class],
-    '[module:*]/document' =>  ['api_class' => \App\Controllers\_Shared\DocumentController::class, 'html_class' => \Core\Controllers\HtmlPageControllers\LoginPageController::class, 'html_schema' => \Core\Models\HtmlPageSchemas\LoginPageSchema::class],
-    'login' => ['api_class' => \Core\Controllers\LoginController::class, 
-        'html_class' => \Core\Controllers\HtmlPageControllers\LoginPageController::class, 
-        'html_schema' => \Core\Models\HtmlPageSchemas\LoginPageSchema::class], 
-    'admin-login' => ['api_class' => \Core\Controllers\AdminLoginController::class, 
-        'html_class' => \Core\Controllers\HtmlPageControllers\AdminLoginPageController::class, 
-        'html_schema' => \Core\Models\HtmlPageSchemas\AdminLoginPageSchema::class], 
-    'client-info' => ['api_class' =>\Core\Controllers\ClientInfoController::class, 'html_class' => null, 'html_schema' => null]
+    '[module:*]/category' =>  \App\Controller\CategoryController::class,
+    '[module:*]/document' =>  \App\Controller\DocumentController::class,
+    'login' => \Core\Controller\Login\LoginControllerFactory::class,
+    'admin-login' => \Core\Controller\Login\LoginControllerFactory::class,
+    /*'admin-login' => ... */
+    'client-info' => \Core\Controller\ClientInfoController::class
 ];
             
         

@@ -1,9 +1,9 @@
 0. Lưu ý
 Nói về controller ở đây là đang nói về 1 class controller trong namespace đầy đủ của nó
-ví dụ  'App\\Controllers\\Nutrition\FoodController' là định danh đầy đủ của 
+ví dụ  'App\\Controller\\Nutrition\FoodController' là định danh đầy đủ của 
 class FoodController.class.php chứ không phải chỉ là đang nói tới chuỗi 'FoodController'
 
-Như vậy 'App\\Controllers\\UserAdmin\\LoginController' và 'App\\Controllers\\User\\LoginController'
+Như vậy 'App\\Controller\\UserAdmin\\LoginController' và 'App\\Controller\\User\\LoginController'
 là 2 controller hoàn toàn khác nhau
 
 1. Module và controller có quan hệ 1 - nhiều hay nhiều nhiều

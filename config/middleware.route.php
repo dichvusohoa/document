@@ -1,7 +1,7 @@
 <?php
 return[
-    '[module:*]' => \Core\Middlewares\ClientInfoMiddleware::class,
-    '[module:pbt-framework|bud-project]' => \Core\Middlewares\AuthMiddleware::class
+    '[module:*]' => \Core\Middleware\ClientInfoMiddleware::class,
+    '[module:pbt-framework|bud-project]' => \Core\Middleware\AuthMiddleware::class
 ];
             
         

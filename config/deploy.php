@@ -22,7 +22,7 @@ switch(DEPLOY){
     date_default_timezone_set('Asia/Saigon');
     define('CONFIG_PATH',ROOT_PATH.'config/');
     define('CORE_PATH',ROOT_PATH.'core/');
-    define('APP_PATH',ROOT_PATH.'application/');
+    define('APP_PATH',ROOT_PATH.'app/');
     define('PUBLIC_PATH',ROOT_PATH.'public/');
     define('CACHE_PATH',ROOT_PATH.'cache/');
     define('TURNSTILE_SITE_KEY', '1x00000000000000000000AA');
@@ -38,7 +38,7 @@ switch(DEPLOY){
     date_default_timezone_set('Asia/Saigon');
     define('CONFIG_PATH',ROOT_PATH.'config/');
     define('CORE_PATH',ROOT_PATH.'core/');
-    define('APP_PATH',ROOT_PATH.'application/');
+    define('APP_PATH',ROOT_PATH.'app/');
     define('PUBLIC_PATH',ROOT_PATH.'public/');
     define('CACHE_PATH',ROOT_PATH.'cache/');
     define('APP_DEBUG', false);

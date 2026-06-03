@@ -10,6 +10,6 @@ return array(
     'Psr\\Container\\' => array($vendorDir . '/psr/container/src'),
     'Psr\\Cache\\' => array($vendorDir . '/psr/cache/src'),
     'Detection\\' => array($vendorDir . '/mobiledetect/mobiledetectlib/src'),
-    'Core\\' => array($baseDir . '/Core'),
-    'App\\' => array($baseDir . '/Application'),
+    'Core\\' => array($baseDir . '/core'),
+    'App\\' => array($baseDir . '/app'),
 );
