@@ -20,12 +20,14 @@
     use Core\Routing\ContextRouter;
     use Core\Routing\RouterFactory;
     use Core\Middleware\MiddlewareFactory;
+   
     
     use Core\Cache\StaticRouterCache;
     use Core\Foundation\ErrorHandler;
     
    // use App\Controller\HtmlPage\LoginPageController;
-    use Core\Controller\ControllerFactory;
+    //use Core\Controller\ControllerFactory;
+    use Core\Controller\ControllerResolver;
     use Core\Foundation\HttpKernel;
     //use Detection\MobileDetect;
     
@@ -84,8 +86,8 @@
     $kernel = new HttpKernel(
         $container->get(RequestAuthContext::class),
         $container->get(RouterFactory::class),
-        $container->get(MiddlewareFactory::class)    
-        //$container->get(ControllerFactory::class)
+        $container->get(MiddlewareFactory::class),    
+        $container->get(ControllerResolver::class)
     );
     $kernel->dispatch();
     

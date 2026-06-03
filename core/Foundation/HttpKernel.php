@@ -4,21 +4,23 @@ use Core\Routing\RouterFactory;
 use Core\Middleware\MiddlewareChain;
 use Core\Middleware\MiddlewareFactory;
 use Core\Controller\BaseController;
-use Core\Controller\BaseControllerFactory;
+use Core\Controller\ControllerResolver;
 use Core\Http\RequestAuthContext;
 class HttpKernel  {
     protected RequestAuthContext $requestAuthContext;
     protected RouterFactory $routerFactory;
     protected MiddlewareFactory $middlewareFactory;
-  
+    protected ControllerResolver $controllerResolver;
     public function __construct(
         RequestAuthContext $requestAuthContext,
         RouterFactory $routerFactory,
-        MiddlewareFactory $middlewareFactory
+        MiddlewareFactory $middlewareFactory,
+        ControllerResolver $controllerResolver
     ) {
         $this->requestAuthContext   = $requestAuthContext;
         $this->routerFactory        = $routerFactory;
         $this->middlewareFactory    = $middlewareFactory;
+        $this->controllerResolver    = $controllerResolver;
     }
     public function dispatch(){
         $arrFQCN = require_once CONFIG_PATH.'/middleware.glb.php';
@@ -42,14 +44,15 @@ class HttpKernel  {
         };*/
         $strFQCN    = $arrRouteInfo['fqcn'];
         $strFunction = $arrRouteInfo['function'];
-        $container = $this->middlewareFactory->getContainer();
+        /*$container = $this->middlewareFactory->getContainer();
         if (is_subclass_of($strFQCN, BaseController::class)){
             $controller = $container->get($strFQCN);
         }
         //BaseControllerFactory
         else if (is_subclass_of($strFQCN, BaseControllerFactory::class)){
             $controller = $container->get($strFQCN)->create($this->requestAuthContext);
-        } 
+        } */
+        $controller = $this->controllerResolver->create($strFQCN, $this->requestAuthContext);
         $handler = function() use ($controller, $strFunction){
             //call_user_func([$controller, 'doAction'], $strFunction);
             $controller->doAction($strFunction);

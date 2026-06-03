@@ -9,8 +9,7 @@ abstract class BaseControllerFactory {
     public function __construct(ContainerInterface $container) {
         $this->container = $container;
     }
-    //tùy theo action mà tạo controller
-    abstract public function create(
-        RequestAuthContext $requestAuthContext
-    ): BaseController; 
+    /*Thông thường thì tùy theo thông tin về các loại action trong $requestAuthContext thì
+    để quyết định chọn ra controller nào phù hợp */
+    abstract public function create(RequestAuthContext $requestAuthContext): BaseController; 
 }

@@ -713,3 +713,8 @@ Stack trace:
 [03-Jun-2026 10:44:19 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
 [03-Jun-2026 10:44:19 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
 [03-Jun-2026 10:44:19 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[03-Jun-2026 16:05:07 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[03-Jun-2026 16:06:02 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[03-Jun-2026 16:06:02 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[03-Jun-2026 16:06:02 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[03-Jun-2026 16:06:02 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
