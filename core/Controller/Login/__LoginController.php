@@ -1,10 +1,11 @@
 <?php
 namespace Core\Controller\Login;
-use Core\Http\Session;
 use Core\Auth\AuthService;
+use Core\Controller\BaseController;
 class LoginController extends BaseController{
     protected function resolveParams(string $strFunctionName): array{
-        $arrMCA = Session::get('route_tmca');
+        //$arrMCA = Session::get('route_tmca');
+        $arrMCA = $this->requestAuthContext->routePath();
         $strController = $arrMCA[0];
         $isAdmin = array_key_exists($strController, ADMIN_CONTROLLER_RENAME);
         $strRequiredRole = $isAdmin ? ADMIN_ROLE_NAME : null;

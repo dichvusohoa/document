@@ -607,10 +607,10 @@ class Router extends ExtArray{
         }
         
         if(in_array($strTmp, $this->arrM)){//có module
-            $path = $this->toTMCAWithModule($strTmp, $arrSegment);
+            $path = $this->toMCAWithModule($strTmp, $arrSegment);
         }
         else{//chỉ có controller
-            $path = $this->toTMCAWithoutModule($strTmp, $arrSegment);
+            $path = $this->toMCAWithoutModule($strTmp, $arrSegment);
         }
         if($path === null){
             return ['path' => null, 'route_info' => null, 'attach_middlewares_after_match' => false];
@@ -627,20 +627,20 @@ class Router extends ExtArray{
         return ['path' => $path, 'route_info' => $leaf, 'attach_middlewares_after_match' => false];;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function attachMiddlewares(array $arrTMCA, mixed &$leafInfo):void{
+    protected function attachMiddlewares(array $arrMCA, mixed &$leafInfo):void{
         $arrSegment['method'] = $leafInfo['method'];
         $arrSegment['role']  = $leafInfo['roles'];
-        if(count($arrTMCA) === 4){
-            $arrSegment['fctype']      = $arrTMCA[0];
-            $arrSegment['module']      = $arrTMCA[1];
-            $arrSegment['controller']  = $arrTMCA[2];
-            $arrSegment['action']      = $arrTMCA[3];
+        if(count($arrMCA) === 4){
+            $arrSegment['fctype']      = $arrMCA[0];
+            $arrSegment['module']      = $arrMCA[1];
+            $arrSegment['controller']  = $arrMCA[2];
+            $arrSegment['action']      = $arrMCA[3];
         }
-        else if(count($arrTMCA) === 3){
-            $arrSegment['fctype']      = $arrTMCA[0];
+        else if(count($arrMCA) === 3){
+            $arrSegment['fctype']      = $arrMCA[0];
             $arrSegment['module']      = null;
-            $arrSegment['controller']  = $arrTMCA[1];
-            $arrSegment['action']      = $arrTMCA[2];
+            $arrSegment['controller']  = $arrMCA[1];
+            $arrSegment['action']      = $arrMCA[2];
         }
         $leafInfo['middlewares'] = [];
         foreach($this->arrMiddleware as $strRoutePath => $strFCQN){
@@ -654,7 +654,7 @@ class Router extends ExtArray{
         }
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function toTMCAWithModule(string $strModule, array $arrSegment) {
+    protected function toMCAWithModule(string $strModule, array $arrSegment) {
         if(Request::isHtmlResponse()){
             $strType = 'html_class';
             $routes = DEFAULT_HTML_ROUTE; //PHP không cho viết trực tiếp DEFAULT_ROUTE[$str1]
@@ -693,7 +693,7 @@ class Router extends ExtArray{
         
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function toTMCAWithoutModule(string $strController, array $arrSegment) {
+    protected function toMCAWithoutModule(string $strController, array $arrSegment) {
         if(Request::isHtmlResponse()){
             $strType = 'html_class';
             $routes = DEFAULT_HTML_ROUTE; //PHP không cho viết trực tiếp DEFAULT_ROUTE[$str1]

@@ -3,6 +3,7 @@ namespace Core\Database;
 use \PDO;
 use \PDOException;
 use Core\Database\Connection\Connection;
+use Core\Http\Response;
 class DbService{
     //begin mã lỗi trả chạy sau thực hiện các lệnh sql
     //Begin: client sẽ post lên máy chủ dữ liệu dạng các row gồm nhiều field data. Khi có lỗi server sẽ trả về mô tả lỗi dạng

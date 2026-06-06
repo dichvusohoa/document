@@ -40,8 +40,8 @@ return array (
       'category' => 'App\\Controller\\CategoryController',
       'document' => 'App\\Controller\\DocumentController',
     ),
-    'login' => 'Core\\Controller\\Login\\LoginControllerFactory',
-    'admin-login' => 'Core\\Controller\\Login\\LoginControllerFactory',
+    'login' => 'Core\\Controller\\Login\\LoginController',
+    'admin-login' => 'Core\\Controller\\Login\\LoginController',
     'client-info' => 'Core\\Controller\\ClientInfoController',
   ),
   'arrFCQNA2F' => 
@@ -72,7 +72,7 @@ return array (
         'method' => 'post',
       ),
     ),
-    'Core\\Controller\\Login\\LoginControllerFactory' => 
+    'Core\\Controller\\Login\\LoginController' => 
     array (
       'index' => 
       array (
@@ -351,7 +351,7 @@ return array (
         array (
           0 => 'guest',
         ),
-        'fqcn' => 'Core\\Controller\\Login\\LoginControllerFactory',
+        'fqcn' => 'Core\\Controller\\Login\\LoginController',
         'function' => 'renderPage',
         'method' => 'GET',
       ),
@@ -361,7 +361,7 @@ return array (
         array (
           0 => 'guest',
         ),
-        'fqcn' => 'Core\\Controller\\Login\\LoginControllerFactory',
+        'fqcn' => 'Core\\Controller\\Login\\LoginController',
         'function' => 'login',
         'method' => 'POST',
       ),
@@ -374,7 +374,7 @@ return array (
         array (
           0 => 'guest',
         ),
-        'fqcn' => 'Core\\Controller\\Login\\LoginControllerFactory',
+        'fqcn' => 'Core\\Controller\\Login\\LoginController',
         'function' => 'renderPage',
         'method' => 'GET',
       ),
@@ -384,7 +384,7 @@ return array (
         array (
           0 => 'guest',
         ),
-        'fqcn' => 'Core\\Controller\\Login\\LoginControllerFactory',
+        'fqcn' => 'Core\\Controller\\Login\\LoginController',
         'function' => 'login',
         'method' => 'POST',
       ),

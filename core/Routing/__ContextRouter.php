@@ -70,10 +70,10 @@ class ContextRouter{
 
         // Kiểm tra có module hay không
         if (in_array($strTmp, $this->staticRouter->getModule(), true)) {
-            $path = $this->toTMCAWithModule($strTmp, $arrSegment);
+            $path = $this->toMCAWithModule($strTmp, $arrSegment);
             $strModule = $path[1] ?? null;
         } else {
-            $path = $this->toTMCAWithoutModule($strTmp, $arrSegment);
+            $path = $this->toMCAWithoutModule($strTmp, $arrSegment);
             $strModule = null;
         }
         /*hệ thống không phân tích được url, tình huống thường xảy ra khi gõ sai 
@@ -87,7 +87,7 @@ class ContextRouter{
                 'prohibited_role' => null
             ];
         }
-        $leaf = self::getValueAt($this->staticRouter->getTMCAR(), $path);
+        $leaf = self::getValueAt($this->staticRouter->getMCAR(), $path);
         /*Tình huống này là để đề phòng tăng cường, nhưng có lẽ khó xảy ra vì nếu các url
         sai thì có lẽ hầu như rơi vào tình huống trên tức là path trả về null rồi. 
         Vẫn giữ đoạn code dưới đây để đề phòng
@@ -134,21 +134,21 @@ class ContextRouter{
         ];
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function attachMiddlewares(array $arrTMCA, array $leaf): array {
+    protected function attachMiddlewares(array $arrMCA, array $leaf): array {
         $arrSegment = [
             'method'     => $leaf['method'],
             'role'       => array_intersect($this->arrUserRole, $leaf['roles'])//có thể là nhiều role
         ];
-        if (count($arrTMCA) === 4) { // module-controller-action
-            $arrSegment['fctype']     = $arrTMCA[0];
-            $arrSegment['module']     = $arrTMCA[1];
-            $arrSegment['controller'] = $arrTMCA[2];
-            $arrSegment['action']     = $arrTMCA[3];
-        } elseif (count($arrTMCA) === 3) { // controller-action only
-            $arrSegment['fctype']     = $arrTMCA[0];
+        if (count($arrMCA) === 4) { // module-controller-action
+            $arrSegment['fctype']     = $arrMCA[0];
+            $arrSegment['module']     = $arrMCA[1];
+            $arrSegment['controller'] = $arrMCA[2];
+            $arrSegment['action']     = $arrMCA[3];
+        } elseif (count($arrMCA) === 3) { // controller-action only
+            $arrSegment['fctype']     = $arrMCA[0];
             $arrSegment['module']     = null;
-            $arrSegment['controller'] = $arrTMCA[1];
-            $arrSegment['action']     = $arrTMCA[2];
+            $arrSegment['controller'] = $arrMCA[1];
+            $arrSegment['action']     = $arrMCA[2];
         }
 
         $result = [];
@@ -161,7 +161,7 @@ class ContextRouter{
         return $result;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function toTMCAWithModule(string $strModule, array $arrSegment) {
+    protected function toMCAWithModule(string $strModule, array $arrSegment) {
         if(Request::isHtmlResponse()){
             $strType = 'html_class';
             $routes = DEFAULT_HTML_ROUTE; //PHP không cho viết trực tiếp DEFAULT_ROUTE[$str1]
@@ -200,7 +200,7 @@ class ContextRouter{
         
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function toTMCAWithoutModule(string $strController, array $arrSegment) {
+    protected function toMCAWithoutModule(string $strController, array $arrSegment) {
         if(Request::isHtmlResponse()){
             $strType = 'html_class';
             $routes = DEFAULT_HTML_ROUTE; //PHP không cho viết trực tiếp DEFAULT_ROUTE[$str1]

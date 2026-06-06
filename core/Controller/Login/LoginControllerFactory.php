@@ -16,7 +16,13 @@ use Core\Controller\BaseController;
  */
 class LoginControllerFactory extends BaseControllerFactory{
     public function create(RequestAuthContext $requestAuthContext): BaseController{
-        //sau này sẽ tùy theo action mà return LoginPageController hoặc LoginController
-        return $this->container->get(LoginPageController::class);
+        //tùy theo action hoặc mà return LoginPageController hoặc LoginController
+        if($requestAuthContext->request()->isHtmlResponse()){
+            return $this->container->get(LoginPageController::class);
+        }
+        else{
+            return $this->container->get(LoginController::class);
+        }
+        
     } 
 }

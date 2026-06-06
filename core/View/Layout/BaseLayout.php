@@ -8,9 +8,9 @@ use Core\Http\RequestAuthContext;
 
 /*1. Layout có các yếu tố đầu vào là
 - $requestAuthContext = $request + authInfo
-trong $requestAuthContext có chứa $request và $arrRouteTMCA. $arrRouteTMCA thì không phải là nhân tố độc lập, nó được tính toán từ $request của 
-contextRouter->matchUri. Do việc tính toán đó có "phí" lớn, $arrRouteTMCA lại chứa thông tin giá trị
-nên tuy $arrRouteTMCA có depend on $request (chứa trong $requestAuthContext) nhưng ta vẫn dùng. Nguyên
+trong $requestAuthContext có chứa $request và $arrRouteMCA. $arrRouteMCA thì không phải là nhân tố độc lập, nó được tính toán từ $request của 
+contextRouter->matchUri. Do việc tính toán đó có "phí" lớn, $arrRouteMCA lại chứa thông tin giá trị
+nên tuy $arrRouteMCA có depend on $request (chứa trong $requestAuthContext) nhưng ta vẫn dùng. Nguyên
  tắc dư thừa thông tin để nâng hiệu suất.
 - Nhân tố màn hình và thiết bị truy cập. 
  $mobileDetectFactory

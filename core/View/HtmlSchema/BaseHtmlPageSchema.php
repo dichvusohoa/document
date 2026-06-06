@@ -25,9 +25,9 @@ hình là khi acc admin quản trị nhiều danh mục nhỏ dữ liệu kiểu
 thì hoàn toàn có thể để 1 class kiểu như CommonPageSchema.php phục vụ cho nhiều loại schema   
 
  2. Phân tích các loại thành phần dữ liệu BaseHtmlPageSchema chứa
- $requestAuthContext, $arrRouteTMCA, $strLayoutFilePath, $arrUiContext có ảnh hưởng gì tới buildSchema.
- - $arrRouteTMCA: Bình thường với loại HtmlPageSchema chỉ ứng với 1 request uri thì $arrRouteTMCA là không cần.
- Nhưng cũng có tình huống HtmlPageSchema ứng với nhiều loại request uri thì có thể cần $arrRouteTMCA để phân biệt các request
+ $requestAuthContext, $arrRouteMCA, $strLayoutFilePath, $arrUiContext có ảnh hưởng gì tới buildSchema.
+ - $arrRouteMCA: Bình thường với loại HtmlPageSchema chỉ ứng với 1 request uri thì $arrRouteMCA là không cần.
+ Nhưng cũng có tình huống HtmlPageSchema ứng với nhiều loại request uri thì có thể cần $arrRouteMCA để phân biệt các request
  - $strLayoutFilePath (đại diện cho nhân tố thiết bị và màn hình): vì 01 HtmlPageSchema ứng với 1 uri request, nhưng uri request này có thể xuất phát từ nhiều device type 
  khác nhau có thể cần các layout khác nhau => cần các schema khác nhau. Thí dụ uri school/list từ mobile và desktop có thể cần các
  layout => schema khác nhau. Vậy trong hàm schema có thể phân loại kiểu như

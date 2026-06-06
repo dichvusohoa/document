@@ -11,10 +11,12 @@ class ControllerResolver {
     }
     
     public function create(string $strFQCN, RequestAuthContext $requestAuthContext): BaseController{
+        /*module/controller trỏ trực tiếp controller*/
         if (is_subclass_of($strFQCN, BaseController::class)){
             return $this->container->get($strFQCN);
         }
-        //BaseControllerFactory
+        /*module/controller trỏ BaseControllerFactory, rồi thông qua ControllerFactory
+        mà tạo ra controller cuối. Trường hợp này áp dụng cho các  */
         else if (is_subclass_of($strFQCN, BaseControllerFactory::class)){
             return $this->container->get($strFQCN)->create($requestAuthContext);
         } 

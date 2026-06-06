@@ -103,7 +103,8 @@ export class AutoForm{
                     "Accept": "application/json"   // expected data sent back
                 },
                 //body : JSON.stringify(data)
-                body: new FormData(this.frmControl)
+                //body: new FormData(this.frmControl)
+                body:data
             });
             if(response.status !==200){
                 throw Error (response.status + ". " + response.statusText);

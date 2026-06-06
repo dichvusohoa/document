@@ -18,7 +18,7 @@ return[
     //\Core\Controller\Login\LoginControllerFactory::class =>[   
     //    'index' =>  ['function'=>'renderPage', 'method'=>'get'] /*Tạm thời*/
     //],
-    \Core\Controller\Login\LoginControllerFactory::class =>[   
+    \Core\Controller\Login\LoginController::class =>[   
         'index' =>  ['function'=>'renderPage', 'method'=>'get'], /*Tạm thời*/
         'login' =>  ['function'=>'login', 'method'=>'post']
     ],

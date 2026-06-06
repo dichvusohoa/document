@@ -22,7 +22,7 @@ class StaticRouter {
     // $arrMCAR: cấu trúc gốm các phần từ [strType][strModule(có thể thiếu)][strController][strAction]=>
     // ['roles' => ..., 'fqcn' =>..., 'html_schema' => ...,'function' => ..., 'method' => ...]
     // đây là cấu trúc cho tất cả mọi user
-    protected array $arrMCAR; //build từ config.api.mcr2a.php và config.html.mcr2a.php. Đây là khối dữ liệu lớn nhất
+    protected array $arrMCAR; //build từ config.mcr2a.php.  Đây là khối dữ liệu lớn nhất
    
     
     /*---------------------------------------------------------------------------------------------------------------*/

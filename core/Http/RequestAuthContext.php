@@ -7,7 +7,7 @@ class RequestAuthContext{
     protected Request $request;
     protected array $arrAuthInfo;
     //đến bước contextRouter->matchUri thì mới tính ra được 3 thành phần dưới này
-    protected ?array $arrRouteTMCA;
+    protected ?array $arrRouteMCA;
     protected ?bool $isProhibitedModule;
     protected ?bool $isProhibitedRole;
     public function __construct(Request $request, array $arrAuthInfo) {
@@ -16,7 +16,7 @@ class RequestAuthContext{
             throw new InvalidArgumentException('arrAuthInfo có format không chính xác');
         }
         $this->arrAuthInfo  = $arrAuthInfo;
-        $this->arrRouteTMCA =  null;
+        $this->arrRouteMCA =  null;
         $this->isProhibitedModule =  null;
         $this->isProhibitedRole =  null;
     }
@@ -30,7 +30,7 @@ class RequestAuthContext{
     }
     // ----------------------------------------------------------------
     public function routePath(): ?array {
-        return $this->arrRouteTMCA;
+        return $this->arrRouteMCA;
     }
     // ----------------------------------------------------------------
     public function prohibitedModule(): ?bool {
@@ -41,9 +41,9 @@ class RequestAuthContext{
         return $this->isProhibitedRole;
     }
     // ----------------------------------------------------------------
-    //khi chạy contextRouter->matchUri thì lưu thông tin kết của của match['path'] vào $this->arrRouteTMCA
+    //khi chạy contextRouter->matchUri thì lưu thông tin kết của của match['path'] vào $this->arrRouteMCA
     public function setRoutePath(?array $routePath) {
-        $this->arrRouteTMCA = $routePath;
+        $this->arrRouteMCA = $routePath;
     }
     // ----------------------------------------------------------------
     public function setProhibitedModule(?bool $isProhibitedModule) {
@@ -55,7 +55,7 @@ class RequestAuthContext{
     }
     // ----------------------------------------------------------------
     public function isSetRoutePath() {
-        return is_array($this->arrRouteTMCA);
+        return is_array($this->arrRouteMCA);
     }
 
     

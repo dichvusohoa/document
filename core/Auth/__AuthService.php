@@ -1,6 +1,7 @@
 <?php
 namespace Core\Auth;
 use Core\Http\Response;
+use Core\Database\DbService;
 /*prefix authSrvc*/
 class AuthService{
     protected DbService $dbService;

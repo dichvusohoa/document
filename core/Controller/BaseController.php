@@ -4,7 +4,7 @@ use Core\Http\RequestAuthContext;
 abstract class BaseController{
     protected RequestAuthContext  $requestAuthContext;
     /*---------------------------------------------------------------------------------------------------------------*/
-    /*có thể không cần truyền $arrRouteTMCA vì khi tới các action thì các yếu tố đó đã rõ rồi*/
+    /*có thể không cần truyền $arrRouteMCA vì khi tới các action thì các yếu tố đó đã rõ rồi*/
     function __construct(RequestAuthContext $requestAuthContext){
         $this->requestAuthContext = $requestAuthContext;
     }
@@ -12,9 +12,9 @@ abstract class BaseController{
     /*
      * Mỗi controller con bắt buộc phải định nghĩa
      * cách xác định parameters cho các action của nó.
-     * resolveParam căn cứ vảo $this->request, $strFunctionName mà tính ra giá trị các parameter
+     * resolveParam căn cứ vảo $this->requestAuthContext, $strFunctName mà tính ra giá trị các parameter
      */
-    abstract protected function resolveParams(string $strFunctionName): array;
+    abstract protected function resolveParams(string $strFunctName): array;
     /*---------------------------------------------------------------------------------------------------------------*/
     /**
      * Hàm tiện ích chung: 
