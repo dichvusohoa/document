@@ -1,18 +1,30 @@
 <?php
 namespace Core\Controller\Login;
 use Core\Http\Response;
+use Core\Http\Session;
 use Core\Controller\BaseHtmlPageController;
 use Core\View\HtmlSchema\LoginPageSchema;
 use Core\Auth\AuthService;
+
 class LoginController extends BaseHtmlPageController{
     protected AuthService $authService;
     public function __construct(LoginPageSchema $schema, AuthService $authService){
         parent::__construct($schema);
         $this->authService = $authService;
     }
+    protected function needTurnstile(): bool {
+        $maxFailedBeforeTurnstile = 3;
+        if (!Session::get('login_failed_count')) {
+            Session::set('login_failed_count', 0);
+        }
+        $needTurnstile = Session::get('login_failed_count') >= $maxFailedBeforeTurnstile;
+        return $needTurnstile;
+    }
     protected function resolveParams(string $strFunctName): array{
         if($strFunctName === 'renderPage'){
-            return [];
+            $needTurnstile = $this->needTurnstile();
+            return  ['needTurnstile' => $needTurnstile];
+            
         }
         else if($strFunctName === 'login'){
             $arrMCA = $this->requestAuthContext->routePath();

@@ -27,8 +27,13 @@ abstract class BaseHtmlPageController extends BaseController{
         }
     }
     //ví dụ sau này hàm lấy dữ liệu có thể là index(), list() có thể call lại hàm này
-    public function renderPage(){
-        Response::sendHtmlFile($this->strLayoutFilePath, false, ['desc_fragment'=>$this->arrDescFrag, 'data_fragment' => $this->arrDataFrag, 'ui_context' => $this->arrUiContext]);
+    public function renderPage(?array $arrOptionVar = null){
+        //các variable cố định phải truyền cho việc render page
+        $arrVar = ['desc_fragment'=>$this->arrDescFrag, 'data_fragment' => $this->arrDataFrag, 'ui_context' => $this->arrUiContext];
+        if(is_array($arrOptionVar)){
+            $arrVar = array_merge($arrVar, $arrOptionVar);
+        }
+        Response::sendHtmlFile($this->strLayoutFilePath, false, $arrVar);
     }
     abstract protected function dataAtFragment(string $strFragment):array;
 }

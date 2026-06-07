@@ -839,3 +839,25 @@ Stack trace:
 [06-Jun-2026 09:54:11 Asia/Saigon] Xdebug: [Step Debug] Time-out connecting to debugging client, waited: 200 ms. Tried: localhost:9003 (through xdebug.client_host/xdebug.client_port) :-(
 [06-Jun-2026 09:54:48 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
 [06-Jun-2026 09:55:06 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[07-Jun-2026 10:12:29 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[07-Jun-2026 10:12:33 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[07-Jun-2026 19:10:35 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[07-Jun-2026 19:10:39 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[07-Jun-2026 19:10:52 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[07-Jun-2026 19:27:13 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[07-Jun-2026 21:20:39 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[07-Jun-2026 21:21:15 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[07-Jun-2026 21:22:07 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[07-Jun-2026 21:24:53 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[07-Jun-2026 21:25:37 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[07-Jun-2026 21:25:50 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[07-Jun-2026 21:48:53 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[07-Jun-2026 21:48:56 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[07-Jun-2026 21:54:13 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[07-Jun-2026 21:54:13 Asia/Saigon] Xdebug: [Step Debug] Time-out connecting to debugging client, waited: 200 ms. Tried: localhost:9003 (through xdebug.client_host/xdebug.client_port) :-(
+[07-Jun-2026 21:54:13 Asia/Saigon] Xdebug: [Step Debug] Time-out connecting to debugging client, waited: 200 ms. Tried: localhost:9003 (through xdebug.client_host/xdebug.client_port) :-(
+[07-Jun-2026 21:54:26 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[07-Jun-2026 21:55:26 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[07-Jun-2026 21:57:24 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[07-Jun-2026 21:57:24 Asia/Saigon] Xdebug: [Step Debug] Time-out connecting to debugging client, waited: 200 ms. Tried: localhost:9003 (through xdebug.client_host/xdebug.client_port) :-(
+[07-Jun-2026 21:57:25 Asia/Saigon] Xdebug: [Step Debug] Time-out connecting to debugging client, waited: 200 ms. Tried: localhost:9003 (through xdebug.client_host/xdebug.client_port) :-(
