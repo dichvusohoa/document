@@ -23,7 +23,11 @@ class LoginController extends BaseHtmlPageController{
     protected function resolveParams(string $strFunctName): array{
         if($strFunctName === 'renderPage'){
             $needTurnstile = $this->needTurnstile();
-            return  ['needTurnstile' => $needTurnstile];
+            /*không được viết return  ['needTurnstile' => $needTurnstile] mà phải viết là
+            return  [['needTurnstile' => $needTurnstile]]
+            vì BaseHtmlPageController->renderPage(?array $arrOptionVar = null) sẽ 
+            không nhận dược tham số truyền vào dạng array */
+            return  [['needTurnstile' => $needTurnstile]];
             
         }
         else if($strFunctName === 'login'){

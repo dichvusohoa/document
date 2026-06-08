@@ -8,32 +8,38 @@ use Core\Controller\BaseController;
 /*BaseHtmlPageController vẫn là abstract nên chưa cần implement resolveParam*/
 abstract class BaseHtmlPageController extends BaseController{
     protected RequestAuthContext $requestAuthContext;
-    protected string $strLayoutFilePath; //tên file layout
-    protected array $arrUiContext; // thường thì là role
+    protected BaseHtmlPageSchema $htmlSchema;
+    // protected string $strLayoutFilePath; //tên file layout
+   // protected array $arrUiContext; // thường thì là role
 
-    protected array $arrDescFrag; // Desc = description, dữ liệu view cụ thể tại 1 fragment 
-    protected array $arrDataFrag; // dữ liệu cụ thể tại các fragment
+   // protected array $arrDescFrag; // Desc = description, dữ liệu view cụ thể tại 1 fragment 
+    protected ?array $arrDataFrag; // dữ liệu cụ thể tại các fragment
     function __construct(BaseHtmlPageSchema $htmlSchema){
-        $this->requestAuthContext = $htmlSchema->getRequestAuthContext();
-        $this->strLayoutFilePath = $htmlSchema->getLayoutFilePath();
+       // $this->requestAuthContext = $htmlSchema->getRequestAuthContext();
+       /* $this->strLayoutFilePath = $htmlSchema->getLayoutFilePath();
         $this->arrUiContext = $htmlSchema->getUiContext();
         $this->arrDescFrag = $htmlSchema->getSchema();
-        $this->buildDataFragments();
-        
+        $this->buildDataFragments();*/
+        $this->htmlSchema = $htmlSchema;
+        $this->arrDataFrag = null;
+        parent::__construct($htmlSchema->getRequestAuthContext());
     }        
     protected  function buildDataFragments(): void{
-        foreach ($this->arrDescFrag as $strFragment => $value) {
+        //foreach ($this->arrDescFrag as $strFragment => $value) {
+        foreach ($this->htmlSchema->getSchema() as $strFragment => $value) {
             $this->arrDataFrag[$strFragment] = $this->dataAtFragment($strFragment);
         }
     }
     //ví dụ sau này hàm lấy dữ liệu có thể là index(), list() có thể call lại hàm này
-    public function renderPage(?array $arrOptionVar = null){
+    public function renderPage(?array $arrUiFactor = null){
+        $this->htmlSchema->buildSchemaDetail($arrUiFactor);
+        $this->buildDataFragments();
         //các variable cố định phải truyền cho việc render page
-        $arrVar = ['desc_fragment'=>$this->arrDescFrag, 'data_fragment' => $this->arrDataFrag, 'ui_context' => $this->arrUiContext];
-        if(is_array($arrOptionVar)){
-            $arrVar = array_merge($arrVar, $arrOptionVar);
-        }
-        Response::sendHtmlFile($this->strLayoutFilePath, false, $arrVar);
+        $arrVar = ['desc_fragment'=>$this->htmlSchema->getSchema(), 
+            'data_fragment' => $this->arrDataFrag, 
+            'ui_context' => $this->htmlSchema->getUiContext()];
+        
+        Response::sendHtmlFile($this->htmlSchema->getLayoutFilePath(), false, $arrVar);
     }
     abstract protected function dataAtFragment(string $strFragment):array;
 }

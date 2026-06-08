@@ -5,7 +5,7 @@ class LoginPageSchema extends BaseHtmlPageSchema{
         parent::__construct($schema);
     }*/
     /*---------------------------------------------------------------------------------------------------------------*/        
-    protected function buildSchema(): array{
+    protected function defineSchema(): array{
          // $arrCss = ['/lib_assets/css/style.css', '/lib_assets/css/err.css',
        //     '/lib_assets/css/button.css', '/lib_assets/css/login.css'];
         return [ 'title' => ['type' => 'title'],

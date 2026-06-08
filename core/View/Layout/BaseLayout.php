@@ -74,8 +74,6 @@ abstract class BaseLayout {
     /*---------------------------------------------------------------------------------------------------------------*/
     /*mapToLayoutFile đã có đầy đủ các yếu tố để tính ra layout file name */
     abstract public function mapToLayoutFile():string;  
-    //xác định các nhân tố gây tùy biến giao diện, thường là userInfo nó chứa trong self::requestAuthContext->authInfo()['data']
-    abstract public function mapToUiContext(): array;
     /*---------------------------------------------------------------------------------------------------------------*/
     public function getRequestAuthContext() {
         return $this->requestAuthContext;

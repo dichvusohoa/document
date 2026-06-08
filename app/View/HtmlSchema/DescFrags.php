@@ -4,7 +4,7 @@ use Core\View\HtmlSchema\BaseHtmlPageSchema;
 class DescFrags extends BaseHtmlPageSchema{
    
     /*---------------------------------------------------------------------------------------------------------------*/        
-    public function buildSchema(): array{
+    public function defineSchema(): array{
         return [ 'title' => ['type' => 'title'],
             'css'   => ['type' => 'css'],
             'script'   => ['type' => 'script'],

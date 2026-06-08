@@ -25,7 +25,7 @@ hình là khi acc admin quản trị nhiều danh mục nhỏ dữ liệu kiểu
 thì hoàn toàn có thể để 1 class kiểu như CommonPageSchema.php phục vụ cho nhiều loại schema   
 
  2. Phân tích các loại thành phần dữ liệu BaseHtmlPageSchema chứa
- $requestAuthContext, $arrRouteMCA, $strLayoutFilePath, $arrUiContext có ảnh hưởng gì tới buildSchema.
+ $requestAuthContext, $arrRouteMCA, $strLayoutFilePath, $arrUiContext có ảnh hưởng gì tới defineSchema.
  - $arrRouteMCA: Bình thường với loại HtmlPageSchema chỉ ứng với 1 request uri thì $arrRouteMCA là không cần.
  Nhưng cũng có tình huống HtmlPageSchema ứng với nhiều loại request uri thì có thể cần $arrRouteMCA để phân biệt các request
  - $strLayoutFilePath (đại diện cho nhân tố thiết bị và màn hình): vì 01 HtmlPageSchema ứng với 1 uri request, nhưng uri request này có thể xuất phát từ nhiều device type 
@@ -41,7 +41,7 @@ thì hoàn toàn có thể để 1 class kiểu như CommonPageSchema.php phục
   - $arrUiContext thường chứa user info bao gồm cả role. Thường ít ảnh hưởng đến schema. Ảnh hưởng đến các thiết kế chi tiết
   giao diện trong layout hơn.
   -  $requestAuthContext. Thường để khai thác các param phụ của url request. Thí dụ /school/list?area=hanoi&page=1. Có thể
- dùng $requestAuthContext->request để lấy value của param area, page. Cũng có thể dùng trong buildSchema trong tình huống
+ dùng $requestAuthContext->request để lấy value của param area, page. Cũng có thể dùng trong defineSchema trong tình huống
  * đặc thù nào đó nhưng có lẽ là ít.
    
   
@@ -60,11 +60,14 @@ abstract class BaseHtmlPageSchema {
     public function __construct(BaseLayout $layout){
         $this->requestAuthContext   = $layout->getRequestAuthContext();
         $this->strLayoutFilePath    = $layout->mapToLayoutFile();
-        $this->arrUiContext         = $layout->mapToUiContext();
-        $this->arrSchema  =  $this->buildSchema();
-        $this->processLinkViewFragment();
+     //   $this->arrUiContext         = $layout->mapToUiContext();
+        $this->arrSchema            =  $this->defineSchema();
+        //$this->processLinkViewFragment();
     }
     /*---------------------------------------------------------------------------------------------------------------*/        
+     //xác định các nhân tố gây tùy biến giao diện, thường là userInfo nó chứa trong self::requestAuthContext->authInfo()['data']
+    //abstract public function mapToUiContext(): array;
+   
     public function getRequestAuthContext() {
         return $this->requestAuthContext;
     }
@@ -81,16 +84,19 @@ abstract class BaseHtmlPageSchema {
         return $this->arrSchema;
     }
     /*---------------------------------------------------------------------------------------------------------------*/        
-    abstract protected function buildSchema(): array;
+    abstract protected function defineSchema(): array;
     /*trả về array của các element có cấu trúc như sau
     type: css, script,embed_fragment_layout, link_fragment_layout
     path_fragment( chỉ có giá trị khi type = link_fragment_layout)
     fqcn:function => controller + function phụ trách render dữ liệu cho fragment đó
     */
     /*---------------------------------------------------------------------------------------------------------------*/        
-    protected function processLinkViewFragment() {
-        //biến đổi một chút arrSchema tại cac fragment loại link view. Kết nối các link view phụ này vào và tạo thông tin
-        //$this->arrSchema[$strFragment]['render_view']
+    //protected function processLinkViewFragment() {
+    public function buildSchemaDetail(?array $arrUiFactor = null) {
+        /*biến đổi một chút arrSchema tại cac fragment loại link view. Kết nối các link view phụ này vào và tạo thông tin
+        $this->arrSchema[$strFragment]['render_view']*/
+        $arrUiDefault = ['auth_info' => $this->requestAuthContext->authInfo()];
+        $this->arrUiContext = is_array($arrUiFactor) ? array_merge($arrUiDefault, $arrUiFactor) : $arrUiDefault; 
         foreach ($this->arrSchema as $strFragment => $value) {
             if($this->arrSchema[$strFragment]['type'] === 'link_view'){
                 $this->arrSchema[$strFragment]['render_view'] = Response::sendHtmlFile($this->arrSchema[$strFragment]['path_view'],true,$this->arrUiContext);
