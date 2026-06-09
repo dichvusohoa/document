@@ -28,8 +28,8 @@ không sửa ra [response_type:xx][module:yy][controller:zz] vì lý do có html
 return [
     '[module:*]/category' =>  \App\Controller\CategoryController::class,
     '[module:*]/document' =>  \App\Controller\DocumentController::class,
-    'login' => \Core\Controller\Login\LoginController::class,
-    'admin-login' => \Core\Controller\Login\LoginController::class,
+    'login' => \Core\Controller\Login\LoginPageController::class,
+    'admin-login' => \Core\Controller\Login\LoginPageController::class,
     'client-info' => \Core\Controller\ClientInfoController::class
 ];
             

@@ -5,22 +5,26 @@
         <group>
             <file>file:/D:/Projects/PHP/document/core/Middleware/MiddlewareFactory.php</file>
             <file>file:/D:/Projects/PHP/document/core/resources/views/layouts/simple_layout.phtml</file>
-            <file>file:/D:/Projects/PHP/document/config/config.fca2f.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Controller/Login/__LoginController.php</file>
             <file>file:/D:/Projects/PHP/document/core/View/Layout/BaseLayout.php</file>
             <file>file:/D:/Projects/PHP/document/core/Foundation/ErrorHandler.php</file>
             <file>file:/D:/Projects/PHP/document/config/middleware.route.php</file>
             <file>file:/D:/Projects/PHP/document/public/index.php</file>
-            <file>file:/D:/Projects/PHP/document/spGetUserByNameAndRole.sql</file>
-            <file>file:/D:/Projects/PHP/document/core/Middleware/AuthMiddleware.php</file>
             <file>file:/D:/Projects/PHP/document/core/Http/Session.php</file>
+            <file>file:/D:/Projects/PHP/document/config/config.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Http/RequestAuthContext.php</file>
             <file>file:/D:/Projects/PHP/document/core/Foundation/App.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Controller/Login/__LoginPageController.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Controller/Login/LoginControllerFactory.php</file>
             <file>file:/D:/Projects/PHP/document/core/View/HtmlSchema/BaseHtmlPageSchema.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Controller/Login/LoginPageController.php</file>
             <file>file:/D:/Projects/PHP/document/core/resources/views/login/login_1.phtml</file>
             <file>file:/D:/Projects/PHP/document/database/schema/routines.sql</file>
             <file>file:/D:/Projects/PHP/document/core/Controller/Login/LoginController.php</file>
-            <file>file:/D:/Projects/PHP/document/core/Foundation/HttpKernel.php</file>
+            <file>file:/D:/Projects/PHP/document/app/View/HtmlSchema/DescFrags.php</file>
             <file>file:/D:/Projects/PHP/document/core/resources/views/layouts/client_info.phtml</file>
             <file>file:/D:/Projects/PHP/document/app/View/HtmlSchema/LoginPageSchema.php</file>
+            <file>file:/D:/Projects/PHP/document/config/config.mcr2a.php</file>
             <file>file:/D:/Projects/PHP/document/core/Controller/BaseHtmlPageController.php</file>
             <file>file:/D:/Projects/PHP/document/core/Http/Response.php</file>
             <file>file:/D:/Projects/PHP/document/config/deploy.php</file>
@@ -29,7 +33,9 @@
             <file>file:/D:/Projects/PHP/document/core/Controller/BaseController.php</file>
             <file>file:/D:/Projects/PHP/document/database/schema/tables.sql</file>
             <file>file:/D:/Projects/PHP/document/core/resources/views/login/login.phtml</file>
+            <file>file:/D:/Projects/PHP/document/core/User/UserInfo.php</file>
             <file>file:/D:/Projects/PHP/document/config/config.mc2fc.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Auth/AuthInfo.php</file>
             <file>file:/D:/Projects/PHP/document/core/View/HtmlSchema/LoginPageSchema.php</file>
             <file>file:/D:/Projects/PHP/document/core/View/HtmlFragment.php</file>
         </group>

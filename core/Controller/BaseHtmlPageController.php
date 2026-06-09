@@ -9,20 +9,13 @@ use Core\Controller\BaseController;
 abstract class BaseHtmlPageController extends BaseController{
     protected RequestAuthContext $requestAuthContext;
     protected BaseHtmlPageSchema $htmlSchema;
-    // protected string $strLayoutFilePath; //tên file layout
-   // protected array $arrUiContext; // thường thì là role
-
-   // protected array $arrDescFrag; // Desc = description, dữ liệu view cụ thể tại 1 fragment 
+   
     protected ?array $arrDataFrag; // dữ liệu cụ thể tại các fragment
     function __construct(BaseHtmlPageSchema $htmlSchema){
-       // $this->requestAuthContext = $htmlSchema->getRequestAuthContext();
-       /* $this->strLayoutFilePath = $htmlSchema->getLayoutFilePath();
-        $this->arrUiContext = $htmlSchema->getUiContext();
-        $this->arrDescFrag = $htmlSchema->getSchema();
-        $this->buildDataFragments();*/
+        parent::__construct($htmlSchema->getRequestAuthContext());
         $this->htmlSchema = $htmlSchema;
         $this->arrDataFrag = null;
-        parent::__construct($htmlSchema->getRequestAuthContext());
+        
     }        
     protected  function buildDataFragments(): void{
         //foreach ($this->arrDescFrag as $strFragment => $value) {
