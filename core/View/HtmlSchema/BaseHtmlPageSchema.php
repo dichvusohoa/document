@@ -60,7 +60,9 @@ abstract class BaseHtmlPageSchema {
     public function __construct(BaseLayout $layout){
         $this->requestAuthContext   = $layout->getRequestAuthContext();
         $this->strLayoutFilePath    = $layout->mapToLayoutFile();
-     //   $this->arrUiContext         = $layout->mapToUiContext();
+        //khởi tạo default cho $this->arrUiContext. Sau này nếu cần bổ sung thêm các factor khác ảnh hưởng đến UI
+        //thì sẽ dùng hàm buildSchemaDetail($arrUiFactor) với  $arrUiFactor thường là do BaseHtmlPageController tính ra 
+        $this->arrUiContext         = ['auth_info' => $this->requestAuthContext->authInfo()];
         $this->arrSchema            =  $this->defineSchema();
         //$this->processLinkViewFragment();
     }
@@ -95,8 +97,7 @@ abstract class BaseHtmlPageSchema {
     public function buildSchemaDetail(?array $arrUiFactor = null) {
         /*biến đổi một chút arrSchema tại cac fragment loại link view. Kết nối các link view phụ này vào và tạo thông tin
         $this->arrSchema[$strFragment]['render_view']*/
-        $arrUiDefault = ['auth_info' => $this->requestAuthContext->authInfo()];
-        $this->arrUiContext = is_array($arrUiFactor) ? array_merge($arrUiDefault, $arrUiFactor) : $arrUiDefault; 
+        $this->arrUiContext = is_array($arrUiFactor) ? array_merge($this->arrUiContext, $arrUiFactor) : $arrUiDefault; 
         foreach ($this->arrSchema as $strFragment => $value) {
             if($this->arrSchema[$strFragment]['type'] === 'link_view'){
                 $this->arrSchema[$strFragment]['render_view'] = Response::sendHtmlFile($this->arrSchema[$strFragment]['path_view'],true,$this->arrUiContext);

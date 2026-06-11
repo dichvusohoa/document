@@ -1,7 +1,12 @@
 <?php
 namespace Core\Auth;
 use Core\Http\Response;
+use Core\Http\Session;
+use Core\Http\Cookie;
+use Core\Auth\AuthToken;
 use Core\Database\DbService;
+use \RuntimeException;
+
 /*prefix authSrvc*/
 class AuthService{
     protected DbService $dbService;
@@ -11,22 +16,123 @@ class AuthService{
         $this->dbService    = $dbService;
        
     }
-    public function login(string $strUser, string $strPassword, ?string $strRequiredRole){
+    public function login(string $strUser, string $strPassword, ?string $strRequiredRole =null, $strToken = null){
+        $isAdminLogin = ($strRequiredRole === ADMIN_ROLE_NAME);
+        if($this->needTurnstile($isAdminLogin)){
+            if(!self::verifyTurnstile($strToken)){
+                return [
+                    'status' => Response::SERVER_UNAUTHENTICATED_STATUS,
+                    'data'   => 'Turnstile verification failed',
+                    'extra' => null
+                    ];
+            }
+        }
+
         $arrResp = $this->dbService->fetchOne("lib_spGetUserByNameAndRole",
             ["pName" => $strUser, "pRole" => $strRequiredRole]);
+        if( Response::isResponseError($arrResp)){
+            //sau này thêm ghi error log
+            throw new RuntimeException('Database error while authenticating user');
+        }
+        if(Response::isResponseEmpty($arrResp)){
+            $this->increaseFailCount();
+            return [Response::SERVER_UNAUTHENTICATED_STATUS, 'data' => 'login fail' , 'extra' => null];
+        }
+   
+        if (!password_verify($strPassword, $arrResp['data']['password'])) {
+            $this->increaseFailCount();
+            return [Response::SERVER_UNAUTHENTICATED_STATUS, 'data' => 'login fail' , 'extra' => null];
+        }
+        $this->resetFailCount();
+        Session::set('auth', $arrResp['data']);
+        $authToken = new AuthToken();
+        if(!$isAdminLogin){//ghi vào cookie
+            Cookie::set(['auth', 'token'], $authToken->cookieToken());
+            $strUserId = $arrResp['data']['id'];
+            $this->tokenToDB($authToken, $strUserId);
+        }
+        return [Response::SERVER_AUTHENTICATED_STATUS, 'data' => 'login success' , 'extra' => null];
+    }
+    
+    protected function getFailCount(){
+        //tạm thời dùng session
+        return Session::get('login_fail_count')??0;
+    }
+    protected function increaseFailCount(){
+        //tạm thời dùng session
+        Session::set('login_fail_count',getFailCount()+1);
+    }
+    protected function resetFailCount(){
+        //tạm thời dùng session
+        Session::set('login_fail_count',0);
+    }
+    protected function needTurnstile(bool $isAdminLogin){
+        $failCount = $this->getFailCount();
+        if($isAdminLogin || $failCount >=3){
+            return true;
+        }
+        return false;
+    }
+    protected static function verifyTurnstile(string $token): bool
+{
+        if ($token === '') {
+            return false;
+        }
+
+        $data = [
+            'secret'   => TURNSTILE_SECRET_KEY,
+            'response' => $token
+        ];
+
+        $ch = curl_init(
+            'https://challenges.cloudflare.com/turnstile/v0/siteverify'
+        );
+
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => http_build_query($data)
+        ]);
+
+        $result = curl_exec($ch);
+
+        curl_close($ch);
+
+        if ($result === false) {
+            return false;
+        }
+
+        $response = json_decode($result, true);
+
+        return !empty($response['success']);
+    }
+    protected function verifyCredentials(string $strUser, string $strPassword, ?string $strRequiredRole = null) {
+        $arrResp = $this->dbService->fetchOne("lib_spGetUserByNameAndRole",
+            ["pName" => $strUser, "pRole" => $strRequiredRole]);
+        if (Response::isResponseError($arrResp)) {
+            throw new \RuntimeException('Database error while authenticating user');
+        }
         if( Response::isResponseError($arrResp) || 
             Response::isResponseEmpty($arrResp)){
             return $arrResp;
         }
    
         if (password_verify($strPassword, $arrResp['data']['password'])) {
-            return [Response::SERVER_OK_STATUS, 'data' => 'login success' , 'extra' => null];
+            return [Response::SERVER_AUTHENTICATED_STATUS, 'data' => 'login success' , 'extra' => null];
         }
         else{
-            return [Response::SERVER_OK_STATUS, 'data' => 'login fail' , 'extra' => null];
+            return [Response::SERVER_UNAUTHENTICATED_STATUS, 'data' => 'login fail bởi pass hoặc id' , 'extra' => null];
         }
     }
-    public function logoff(){
-        
+    
+    protected function tokenToDB(AuthToken $authToken, $strUserId){
+        $sExpDateTime = date('Y-m-d H:i:s', strtotime(COOKIE_EXP_BY_DAYS.' day', time()));
+        $arrParam= ["leftToken"=>$authToken->getLeftToken(),"hashedRightToken"=>$authToken->hashedRightToken(),"userId"=>$strUserId,"expDate"=>$sExpDateTime];
+        $exec = $this->dbService->execActionSP("spAddAuthToken",$arrParam);
+        if($exec["status"] === DbTable::ERR_STATUS){
+            $exec = ["status"=>DbTable::ERR_STATUS,"info"=>null,"extra"=>$exec["extra"]];
+            return $exec;
+        }
+        return $exec;
     }
 }

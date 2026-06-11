@@ -18,13 +18,15 @@ class LoginController extends BaseController{
             $isAdmin = array_key_exists($strController, ADMIN_CONTROLLER_RENAME);
             $strRequiredRole = $isAdmin ? ADMIN_ROLE_NAME : null;
             $arrUser = $this->requestAuthContext->request()->post('user');
-            return [$arrUser['login'], $arrUser['password'], $strRequiredRole];
+            //$token là public key
+            $strToken = $this->requestAuthContext->request()->post('cf-turnstile-response');
+            return [$arrUser['login'], $arrUser['password'], $strRequiredRole, $strToken];
         }
     }
     
     
-    public function login(string $strUser, string $strPassword, ?string $strRequiredRole = null){
-        $resp = $this->authService->login($strUser, $strPassword, $strRequiredRole);
+    public function login(string $strUser, string $strPassword, ?string $strRequiredRole = null, ?string $strToken = null){
+        $resp = $this->authService->login($strUser, $strPassword, $strRequiredRole, $strToken = null);
         Response::sendJson($resp);
     }
 }
