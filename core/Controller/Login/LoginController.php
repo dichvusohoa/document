@@ -15,8 +15,8 @@ class LoginController extends BaseController{
         if($strFunctName === 'login'){
             $arrMCA = $this->requestAuthContext->routePath();
             $strController = $arrMCA[0];
-            $isAdmin = array_key_exists($strController, ADMIN_CONTROLLER_RENAME);
-            $strRequiredRole = $isAdmin ? ADMIN_ROLE_NAME : null;
+            $isAdminLogin = array_key_exists($strController, ADMIN_CONTROLLER_RENAME);
+            //$strRequiredRole = $isAdmin ? ADMIN_ROLE_NAME : null;
             $arrUser = $this->requestAuthContext->request()->post('user');
             //$token là public key
             $strToken = $this->requestAuthContext->request()->post('cf-turnstile-response');
@@ -25,8 +25,8 @@ class LoginController extends BaseController{
     }
     
     
-    public function login(string $strUser, string $strPassword, ?string $strRequiredRole = null, ?string $strToken = null){
-        $resp = $this->authService->login($strUser, $strPassword, $strRequiredRole, $strToken = null);
+    public function login(string $strUser, string $strPassword, bool $isAdminLogin = false, ?string $strToken = null){
+        $resp = $this->authService->login($strUser, $strPassword, $isAdminLogin, $strToken);
         Response::sendJson($resp);
     }
 }

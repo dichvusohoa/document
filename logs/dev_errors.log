@@ -909,3 +909,7 @@ Stack trace:
 [09-Jun-2026 19:20:28 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
 [09-Jun-2026 19:22:38 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
 [09-Jun-2026 19:22:42 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[12-Jun-2026 18:20:32 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[12-Jun-2026 18:20:32 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[12-Jun-2026 18:20:32 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[12-Jun-2026 18:20:32 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router

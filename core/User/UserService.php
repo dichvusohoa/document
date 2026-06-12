@@ -23,8 +23,6 @@ class UserService {
 
         // Cập nhật lại data vào response
         $arrResp["data"] = $data;
-
         return $arrResp;
-;
     }
 }
