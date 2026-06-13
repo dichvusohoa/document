@@ -10,17 +10,18 @@ class LoginController extends BaseController{
         parent::__construct($requestAuthContext);
         $this->authService = $authService;
     }
-    
+   
     protected function resolveParams(string $strFunctName): array{
         if($strFunctName === 'login'){
-            $arrMCA = $this->requestAuthContext->routePath();
-            $strController = $arrMCA[0];
-            $isAdminLogin = array_key_exists($strController, ADMIN_CONTROLLER_RENAME);
+            //$arrMCA = $this->requestAuthContext->routePath();
+            //$strController = $arrMCA[0];
+            //$isAdminLogin = array_key_exists($strController, ADMIN_CONTROLLER_RENAME);
             //$strRequiredRole = $isAdmin ? ADMIN_ROLE_NAME : null;
+            $isAdminLogin = LoginHepper::isAdminLoginRequest($requestAuthContext);
             $arrUser = $this->requestAuthContext->request()->post('user');
             //$token là public key
             $strToken = $this->requestAuthContext->request()->post('cf-turnstile-response');
-            return [$arrUser['login'], $arrUser['password'], $strRequiredRole, $strToken];
+            return [$arrUser['login'], $arrUser['password'], $isAdminLogin, $strToken];
         }
     }
     

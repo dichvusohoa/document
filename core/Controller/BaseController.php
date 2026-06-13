@@ -9,6 +9,10 @@ abstract class BaseController{
         $this->requestAuthContext = $requestAuthContext;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
+    public function getRequestAuthContext(){
+        return $this->requestAuthContext;
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
     /*
      * Mỗi controller con bắt buộc phải định nghĩa
      * cách xác định parameters cho các action của nó.

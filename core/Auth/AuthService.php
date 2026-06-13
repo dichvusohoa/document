@@ -5,19 +5,20 @@ use Core\Http\Session;
 use Core\Http\Cookie;
 use Core\Auth\AuthToken;
 use Core\Database\DbService;
-use \RuntimeException;
+use Core\Http\RequestAuthContext;
 
 /*prefix authSrvc*/
 class AuthService{
     protected DbService $dbService;
     protected AuthTokenService    $tokenService;
-    function __construct(DbService $dbService, AuthTokenService $tokenService){
+    protected LoginAttemptService $loginAttemptService;
+    function __construct(DbService $dbService, AuthTokenService $tokenService, LoginAttemptService $loginAttemptService){
         $this->dbService    = $dbService;
         $this->tokenService = $tokenService;
+        $this->loginAttemptService = $loginAttemptService;
     }
     public function login(string $strUser, string $strPassword, bool $isAdminLogin = false, $strToken = null){
-        //$isAdminLogin = ($strRequiredRole === ADMIN_ROLE_NAME);
-        if($this->needTurnstile($isAdminLogin)){
+        if($this->loginAttemptService->needTurnstile($isAdminLogin)){
             if(!self::verifyTurnstile($strToken)){
                 return [
                     'status' => Response::SERVER_UNAUTHENTICATED_STATUS,
@@ -32,7 +33,7 @@ class AuthService{
         if($arrResp['status'] !==Response::SERVER_AUTHENTICATED_STATUS){
             return $arrResp;
         } 
-        $this->resetFailCount();
+        $this->loginAttemptService->resetFailCount();
         Session::set('auth', $arrResp['data']);
         if(!$isAdminLogin){//ghi vào cookie
             $authToken = new AuthToken();
@@ -40,28 +41,21 @@ class AuthService{
             $strUserId = $arrResp['data']['id'];
             $this->tokenService->tokenToDB($authToken, $strUserId);
         }
-        return [Response::SERVER_AUTHENTICATED_STATUS, 'data' => 'login success' , 'extra' => null];
+        return ['status'=> Response::SERVER_AUTHENTICATED_STATUS, 'data' => 'login success' , 'extra' => null];
     }
-    
-    protected function getFailCount(){
-        //tạm thời dùng session
-        return Session::get('login_fail_count')??0;
-    }
-    protected function increaseFailCount(){
-        //tạm thời dùng session
-        Session::set('login_fail_count',$this->getFailCount() + 1);
-    }
-    protected function resetFailCount(){
-        //tạm thời dùng session
-        Session::set('login_fail_count',0);
-    }
-    protected function needTurnstile(bool $isAdminLogin){
-        $failCount = $this->getFailCount();
+    /*public function isAdminLogin(RequestAuthContext $requestAuthContext){
+        $arrMCA = $requestAuthContext->routePath();
+        $strController = $arrMCA[0];
+        return array_key_exists($strController, ADMIN_CONTROLLER_RENAME);
+    }*/
+    /*public function needTurnstile(RequestAuthContext $requestAuthContext){
+        $isAdminLogin = $this->isAdminLogin($requestAuthContext);
+        $failCount = $this->loginAttemptService->getFailCount();
         if($isAdminLogin || $failCount >=3){
             return true;
         }
         return false;
-    }
+    }*/
     protected static function verifyTurnstile(?string $token): bool{
         if ($token === null || $token === '') {
             return false;
@@ -102,7 +96,7 @@ class AuthService{
         }
         
         if(Response::isResponseEmpty($arrResp)){
-            $this->increaseFailCount();
+            $this->loginAttemptService->increaseFailCount();
             return [Response::SERVER_UNAUTHENTICATED_STATUS, 'data' => 'login fail' , 'extra' => null];
         }
    
@@ -110,7 +104,7 @@ class AuthService{
             return [Response::SERVER_AUTHENTICATED_STATUS, 'data' => 'login success' , 'extra' => null];
         }
         else{
-            $this->increaseFailCount();
+            $this->loginAttemptService->increaseFailCount();
             return [Response::SERVER_UNAUTHENTICATED_STATUS, 'data' => 'login fail bởi pass hoặc id' , 'extra' => null];
         }
     }

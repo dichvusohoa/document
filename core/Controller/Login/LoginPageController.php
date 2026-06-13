@@ -5,25 +5,30 @@ use Core\Http\Session;
 use Core\Controller\BaseHtmlPageController;
 use Core\View\HtmlSchema\LoginPageSchema;
 use Core\Auth\AuthService;
-
+use Core\Auth\LoginAttemptService;
 class LoginPageController extends BaseHtmlPageController{
     protected LoginController $apiController;
     protected AuthService $authService;
-    public function __construct(LoginPageSchema $schema, LoginController $apiController){
+    protected LoginAttemptService $loginAttemptService;
+    public function __construct(LoginPageSchema $schema, 
+            LoginController $apiController,
+            LoginAttemptService $loginAttemptService){
         parent::__construct($schema);
         $this->apiController = $apiController;
+        $this->loginAttemptService = $loginAttemptService;
     }
-    protected function needTurnstile(): bool {
+    /*protected function needTurnstile(): bool {
         $maxFailedBeforeTurnstile = 3;
         if (!Session::get('login_failed_count')) {
             Session::set('login_failed_count', 0);
         }
         $needTurnstile = Session::get('login_failed_count') >= $maxFailedBeforeTurnstile;
         return $needTurnstile;
-    }
+    }*/
     protected function resolveParams(string $strFunctName): array{
         if($strFunctName === 'renderPage'){
-            $needTurnstile = $this->needTurnstile();
+            $isAdminLogin = LoginHepper::isAdminLoginRequest($this->requestAuthContext);
+            $needTurnstile = $this->loginAttemptService->needTurnstile($isAdminLogin);
             /*không được viết return  ['needTurnstile' => $needTurnstile] mà phải viết là
             return  [['needTurnstile' => $needTurnstile]]
             vì BaseHtmlPageController->renderPage(?array $arrOptionVar = null) sẽ 
