@@ -6,6 +6,7 @@ use Core\Http\Cookie;
 use Core\Auth\AuthToken;
 use Core\Database\DbService;
 use Core\Http\RequestAuthContext;
+use Core\Controller\Login\LoginAttemptService;
 
 /*prefix authSrvc*/
 class AuthService{

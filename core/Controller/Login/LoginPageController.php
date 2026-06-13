@@ -5,7 +5,7 @@ use Core\Http\Session;
 use Core\Controller\BaseHtmlPageController;
 use Core\View\HtmlSchema\LoginPageSchema;
 use Core\Auth\AuthService;
-use Core\Auth\LoginAttemptService;
+use Core\Controller\Login\LoginAttemptService;
 class LoginPageController extends BaseHtmlPageController{
     protected LoginController $apiController;
     protected AuthService $authService;
