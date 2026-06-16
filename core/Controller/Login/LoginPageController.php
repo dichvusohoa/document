@@ -27,7 +27,7 @@ class LoginPageController extends BaseHtmlPageController{
     }*/
     protected function resolveParams(string $strFunctName): array{
         if($strFunctName === 'renderPage'){
-            $isAdminLogin = LoginHepper::isAdminLoginRequest($this->requestAuthContext);
+            $isAdminLogin = LoginHelper::isAdminLoginRequest($this->requestAuthContext);
             $needTurnstile = $this->loginAttemptService->needTurnstile($isAdminLogin);
             /*không được viết return  ['needTurnstile' => $needTurnstile] mà phải viết là
             return  [['needTurnstile' => $needTurnstile]]

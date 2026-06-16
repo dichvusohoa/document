@@ -17,7 +17,7 @@ class LoginController extends BaseController{
             //$strController = $arrMCA[0];
             //$isAdminLogin = array_key_exists($strController, ADMIN_CONTROLLER_RENAME);
             //$strRequiredRole = $isAdmin ? ADMIN_ROLE_NAME : null;
-            $isAdminLogin = LoginHepper::isAdminLoginRequest($requestAuthContext);
+            $isAdminLogin = LoginHelper::isAdminLoginRequest($this->requestAuthContext);
             $arrUser = $this->requestAuthContext->request()->post('user');
             //$token là public key
             $strToken = $this->requestAuthContext->request()->post('cf-turnstile-response');

@@ -1,5 +1,5 @@
 <?php
-    return ['url'=> 'xyz', 'html' =>'<form></form>', 'required' => true];
+    echo password_hash('123456', PASSWORD_DEFAULT);
     
     
  

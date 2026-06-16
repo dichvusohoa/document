@@ -5,9 +5,8 @@ use Core\Http\Session;
 use Core\Http\Cookie;
 use Core\Auth\AuthToken;
 use Core\Database\DbService;
-use Core\Http\RequestAuthContext;
 use Core\Controller\Login\LoginAttemptService;
-
+use \RuntimeException;
 /*prefix authSrvc*/
 class AuthService{
     protected DbService $dbService;
@@ -35,28 +34,23 @@ class AuthService{
             return $arrResp;
         } 
         $this->loginAttemptService->resetFailCount();
-        Session::set('auth', $arrResp['data']);
+        session_regenerate_id(true);
+        $authData = $arrResp['data'];
+        unset($authData['password']);//lọc bỏ password không lưu vào auth
+        Session::set('auth', $authData);
         if(!$isAdminLogin){//ghi vào cookie
             $authToken = new AuthToken();
-            Cookie::set(['auth', 'token'], $authToken->cookieToken());
             $strUserId = $arrResp['data']['id'];
-            $this->tokenService->tokenToDB($authToken, $strUserId);
+            $exec =  $this->tokenService->tokenToDB($authToken, $strUserId);
+            if (Response::isResponseError($exec)) {
+                throw new RuntimeException('Could not store remember token');
+            }
+            Cookie::set(['auth', 'token'], $authToken->cookieToken());
+            
         }
         return ['status'=> Response::SERVER_AUTHENTICATED_STATUS, 'data' => 'login success' , 'extra' => null];
     }
-    /*public function isAdminLogin(RequestAuthContext $requestAuthContext){
-        $arrMCA = $requestAuthContext->routePath();
-        $strController = $arrMCA[0];
-        return array_key_exists($strController, ADMIN_CONTROLLER_RENAME);
-    }*/
-    /*public function needTurnstile(RequestAuthContext $requestAuthContext){
-        $isAdminLogin = $this->isAdminLogin($requestAuthContext);
-        $failCount = $this->loginAttemptService->getFailCount();
-        if($isAdminLogin || $failCount >=3){
-            return true;
-        }
-        return false;
-    }*/
+    
     protected static function verifyTurnstile(?string $token): bool{
         if ($token === null || $token === '') {
             return false;
@@ -98,15 +92,17 @@ class AuthService{
         
         if(Response::isResponseEmpty($arrResp)){
             $this->loginAttemptService->increaseFailCount();
-            return [Response::SERVER_UNAUTHENTICATED_STATUS, 'data' => 'login fail' , 'extra' => null];
+            return ['status' => Response::SERVER_UNAUTHENTICATED_STATUS, 'data' => 'Tên đăng nhập hoặc mật khẩu không đúng' , 'extra' => null];
         }
    
         if (password_verify($strPassword, $arrResp['data']['password'])) {
-            return [Response::SERVER_AUTHENTICATED_STATUS, 'data' => 'login success' , 'extra' => null];
+            $arrResp['status'] = Response::SERVER_AUTHENTICATED_STATUS;
+            return $arrResp;
+            //return ['status' => Response::SERVER_AUTHENTICATED_STATUS, 'data' => 'login success' , 'extra' => null];
         }
         else{
             $this->loginAttemptService->increaseFailCount();
-            return [Response::SERVER_UNAUTHENTICATED_STATUS, 'data' => 'login fail bởi pass hoặc id' , 'extra' => null];
+            return ['status' =>Response::SERVER_UNAUTHENTICATED_STATUS, 'data' => 'Tên đăng nhập hoặc mật khẩu không đúng' , 'extra' => null];
         }
     }
 }

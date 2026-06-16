@@ -1,5 +1,6 @@
 <?php
 namespace Core\Http;
+use Core\Foundation\ErrorHandler;
 class Response {
     const RESPONSE_HTML_TYPE = 'html';
     const RESPONSE_JSON_TYPE = 'json';

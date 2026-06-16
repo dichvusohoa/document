@@ -3,11 +3,11 @@
 namespace Core\Controller\Login;
 use Core\Http\RequestAuthContext;
 /**
- * Description of LoginHepper
+ * Description of LoginHelper
  *
  * @author admin
  */
-class LoginHepper {
+class LoginHelper {
     protected RequestAuthContext $requestAuthContext;
         
     public static  function isAdminLoginRequest(RequestAuthContext $requestAuthContext): bool{

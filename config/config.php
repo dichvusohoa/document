@@ -7,6 +7,7 @@ define('SYSTEM_MAINTENANCE_MESSAGE','Hệ thống đang bảo trì từ 0h 20/07
 /*danh sách các modules mà guest user có thể truy cập*/
 const GUEST_ACCESSIBLE_MODULES = ['compiled-materials','it-documents'];
 define('SESSION_TIMEOUT', 1800); // thời gian giữ session là 30 phút
+define('COOKIE_EXP_BY_DAYS',7);//// thời gian lưu cookie là 7 ngày
 define('MIN_CACHE_TTL', 3600); // thời gian time to live của cache tối thiểu là 60 phút
 define("ARR_PAGE_SIZE", array(25,50,75,100));
 

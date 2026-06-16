@@ -10,7 +10,10 @@ class UserService {
     }
     function getUserByToken(string $strLeftToken): array{
         $arrResp = $this->dbService->fetchOne("lib_spGetUserByToken",["leftToken" => $strLeftToken]);
-        if( !Response::isResponseOK($arrResp) ){
+        if(Response::isResponseError($arrResp)){
+            throw new \RuntimeException('Database error while getting user by token');
+        }
+        if( Response::isResponseEmpty($arrResp) ){
             return $arrResp;
         }
         // Chuyển JSON string sang array

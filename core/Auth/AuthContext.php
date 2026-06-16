@@ -15,7 +15,7 @@ class AuthContext {
         //$this->arrAuth = [];
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    public function getAuthInfo(): array{
+    public function __getAuthInfo(): array{
         $arrAuthInfo = $this->getAuthInfoBySession();//SERVER_UNAUTHENTICATED_STATUS hoặc  SERVER_AUTHENTICATED_STATUS
         if($arrAuthInfo['data'] === null){
             //xác thực bằng session thất bại phải dùng cookie
@@ -36,6 +36,38 @@ class AuthContext {
        // $arrAuthInfo['status'] = Response::SERVER_DB_ERR_STATUS;
         Response::checkAndDispatch($arrAuthInfo,false);//
         if(AuthInfo::isUnauthenticated($arrAuthInfo) && $arrAuthInfo["data"] === null){
+            //bổ sung các thông tin về guest user cho $auth["data"]
+            $arrAuthInfo["data"] = UserInfo::buildGuest();
+        }
+      
+        
+        //tới đây là trạng thái Response::SERVER_AUTHENTICATED_STATUS hoặc SERVER_UNAUTHENTICATED_STATUS
+        $arrAuthInfo['data']['last_activity'] = time(); 
+        Session::set('auth', $arrAuthInfo['data']);//cập nhật lại session
+        //$this->arrAuth = $auth;
+        return $arrAuthInfo;
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    public function getAuthInfo(): array{
+        $arrAuthInfo = $this->getAuthInfoBySession();//SERVER_UNAUTHENTICATED_STATUS hoặc  SERVER_AUTHENTICATED_STATUS
+        if($arrAuthInfo['data'] === null){
+            //xác thực bằng session thất bại phải dùng cookie
+            //SERVER_UNAUTHENTICATED_STATUS, SERVER_AUTHENTICATED_STATUS, SERVER_DB_ERR_STATUS
+            $arrAuthInfo = $this->getAuthInfoByCookie();
+        }
+        /*đến bước cuối cùng này thì đánh giá tổng thể
+        và modify lại dữ liệu để thuận tiện cho việc xử lý bên ngoài  function
+        $auth["status"] có 2 khả năng:
+         *  SERVER_UNAUTHENTICATED_STATUS: 
+         *  do 
+         *      - không có token hoặc lỗi lưu trữ token trong cookie
+         *      - query dữ liệu ra empty hoặc có dữ liệu nhưng format không chuẩn
+         *  SERVER_AUTHENTICATED_STATUS
+         */
+        //kiểm tra và chuyển hướng kết thúc nếu phải login hoặc xảy ra Response::SERVER_DB_ERR_STATUS
+       // $arrAuthInfo['status'] = Response::SERVER_DB_ERR_STATUS;
+        
+        if(AuthInfo::isUnauthenticated($arrAuthInfo)){
             //bổ sung các thông tin về guest user cho $auth["data"]
             $arrAuthInfo["data"] = UserInfo::buildGuest();
         }
@@ -99,18 +131,11 @@ class AuthContext {
             //sửa lại status từ Response::SERVER_OK_STATUS thành Response::SERVER_AUTHENTICATED_STATUS
             $arrAuthInfo["status"] = Response::SERVER_AUTHENTICATED_STATUS;
             $arrAuthInfo["extra"]  = "auth by cookie";
+            return $arrAuthInfo;
         }
-        /*còn lại là các trường hợp
-        Response::SERVER_DB_ERR_STATUS
-        Response::SERVER_OK_STATUS  nhưng dữ liệu không thỏa mãn AuthInfo::isStandardPartData */
-        if(Response::isResponseOK($arrAuthInfo)){
-            /*Response::SERVER_OK_STATUS  nhưng dữ liệu không thỏa mãn AuthInfo::isStandardPartData 
-            tức là $arrAuthInfo["data"] === null hoặc false hoặc có format không đúng định dạng isStandardPartData
-            */
-            $arrAuthInfo["status"] = Response::SERVER_UNAUTHENTICATED_STATUS;
-            $arrAuthInfo["extra"]  = 'valid token but data format is invalid (not standard auth structure)';
-        }
-        //tới đây còn 2 khả năng  Response::SERVER_DB_ERR_STATUS và Response::SERVER_UNAUTHENTICATED_STATUS
+        /*còn lại là các trường hợp Response::isResponseEmpty*/
+        $arrAuthInfo["status"] = Response::SERVER_UNAUTHENTICATED_STATUS;
+        $arrAuthInfo["extra"]  = 'auth by token but data in database is empty';
         return $arrAuthInfo;
     }
 
