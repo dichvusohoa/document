@@ -1,0 +1,12 @@
+1)
+Khi set session có thể tố chức thành đa cấp vì session chỉ tồn tại trên server
+Khi set cookie thì chỉ nên tổ chức dạng 1 cấp key/value vì cookie ở client thực chất chính
+là như thế. Nhưng vậy sẽ đảm bảo tương thích ở cả client và server
+
+2)
+Đúng rồi! Việc chia token thành left:right có mục đích chính là giảm thiểu rủi ro nếu hacker lấy được cơ sở dữ liệu (DB).
+
+3)
+Nên chọn cách nào trong 3 cách : cách 1: &type=1,2 . cách 2 &type=1&type=2 . Cách 3 type[]=1&type[]=2 . Tôi không biết cách 1 dùng dấu , có an toàn không.
+
+Phân tích nên chọn cách 3
