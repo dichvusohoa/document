@@ -43,6 +43,14 @@ class StaticRouter {
         return $this->arrM;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
+    public function getMC() {
+        return $this->arrMC;
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    public function getStC() {
+        return $this->arrStC;
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
     public function getRole() {
         return $this->arrR;
     }
@@ -67,35 +75,58 @@ class StaticRouter {
         return $this->arrDefaultRoute;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function buildModuleController(){
-        $arTmp =  require CONFIG_PATH.'/list.mc.php';
+    protected function buildModuleController(): void {
+        $arTmp = require CONFIG_PATH . '/list.mc.php';
         $isValid = is_array($arTmp)
             && isset($arTmp['module-controllers'], $arTmp['standalone-controllers'])
             && ValidUtility::isStringListMap($arTmp['module-controllers'])
             && ValidUtility::isStringList($arTmp['standalone-controllers']);
-        if(!$isValid){
-            throw new UnexpectedValueException('File list.mc.php có format không hợp lý'); 
+
+        if (!$isValid) {
+            throw new UnexpectedValueException('File list.mc.php có format không hợp lý');
         }
         $this->arrMC = [];
         $this->arrM = [];
         foreach ($arTmp['module-controllers'] as $strModule => $arrController) {
-            $strModule = StringUtility::spacesToDash($strModule);
-            if (isset($this->arrMC[$strModule])) {
-                throw new UnexpectedValueException("Module '{$strModule}' bị trùng sau khi chuẩn hóa tên.");
+            $normalizedModule = StringUtility::spacesToDash($strModule);
+
+            if (isset($this->arrMC[$normalizedModule])) {
+                throw new UnexpectedValueException(
+                    "Module '{$normalizedModule}' bị trùng sau khi chuẩn hóa tên."
+                );
             }
-            $this->arrM[] = $strModule; 
-            $this->arrMC[$strModule] = array_map(
+            $normalizedControllers = array_map(
                 [StringUtility::class, 'spacesToDash'],
                 $arrController
             );
-            
+            if (count($normalizedControllers) !== count(array_unique($normalizedControllers))) {
+                throw new UnexpectedValueException(
+                    "Module '{$normalizedModule}' có controller bị trùng sau khi chuẩn hóa tên."
+                );
+            }
+            $this->arrM[] = $normalizedModule;
+            $this->arrMC[$normalizedModule] = $normalizedControllers;
         }
-        //$this->arrM = array_map([StringUtility::class, 'spacesToDash'], array_keys($this->arrMC));
-        $this->arrStC = array_map([StringUtility::class, 'spacesToDash'],$arTmp['standalone-controllers'] );
+        $this->arrStC = array_map(
+            [StringUtility::class, 'spacesToDash'],
+            $arTmp['standalone-controllers']
+        );
+        if (count($this->arrStC) !== count(array_unique($this->arrStC))) {
+            throw new UnexpectedValueException(
+                "standalone-controllers có controller bị trùng sau khi chuẩn hóa tên."
+            );
+        }
+        $conflicted = array_intersect($this->arrM, $this->arrStC);
+        if (!empty($conflicted)) {
+            throw new UnexpectedValueException(
+                "Tên standalone controller bị trùng với module sau khi chuẩn hóa: "
+                . implode(', ', $conflicted)
+            );
+        }
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     protected function buildRole(){
-        $arTmp =  require_once CONFIG_PATH.'/list.role.php';
+        $arTmp =  require CONFIG_PATH.'/list.role.php';
         if(!ValidUtility::isStringPairMap($arTmp)){
             throw new UnexpectedValueException('File list.role.php phải là một mảng string'); 
         }
@@ -103,7 +134,7 @@ class StaticRouter {
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     protected function buildFCA2F(){
-        $arrConfig =  require_once CONFIG_PATH.'/config.fca2f.php';
+        $arrConfig =  require CONFIG_PATH.'/config.fca2f.php';
         foreach ($arrConfig as $strClass => $arrAction){
             // 1. Kiểm tra FQCN
             if (!is_string($strClass)) {
@@ -126,7 +157,7 @@ class StaticRouter {
     /*---------------------------------------------------------------------------------------------------------------*/
     protected function buildMiddleware(){
         $this->arrMiddlewareParsed = [];
-        $arrTmp = require_once CONFIG_PATH.'/middleware.route.php';
+        $arrTmp = require CONFIG_PATH.'/middleware.route.php';
         if(!ValidUtility::isStringPairMap($arrTmp)){
             throw new UnexpectedValueException('File middleware.route.php phải là một mảng string'); 
         }
@@ -143,8 +174,8 @@ class StaticRouter {
     /*---------------------------------------------------------------------------------------------------------------*/
     //arrMC2FQCN được xây dựng là [module][controller] => $strFQCN
     //nó không xây dựng đường dẫn kiểu [type][module][controller] vì lý do còn vường html_schema
-    protected function buildMC2FQCN(): void{
-        $arrTmp = require_once CONFIG_PATH.'/config.mc2fc.php';
+    protected function __buildMC2FQCN(): void{
+        $arrTmp = require CONFIG_PATH.'/config.mc2fc.php';
         //FQCN = fully qualified class name
         $this->arrMC2FQCN = [];
         foreach ($arrTmp as $strRouteMCPath => $strFQCN) {
@@ -165,6 +196,76 @@ class StaticRouter {
             }
         }
       
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    protected function buildMC2FQCN(): void {
+        $arrConfig = require CONFIG_PATH . '/config.mc2fc.php';
+
+        if (!is_array($arrConfig)) {
+            throw new UnexpectedValueException(
+                'File config.mc2fc.php phải return một array'
+            );
+        }
+
+        $this->arrMC2FQCN = [];
+
+        foreach ($arrConfig as $strRouteMCPath => $strFQCN) {
+            if (!is_string($strRouteMCPath) || trim($strRouteMCPath) === '') {
+                throw new UnexpectedValueException(
+                    'File config.mc2fc.php: route path phải là string không rỗng'
+                );
+            }
+
+            $this->validateControllerFQCN($strFQCN, $strRouteMCPath);
+
+            $arrMCProduct = $this->parseMCRoutePath($strRouteMCPath);
+
+            foreach ($arrMCProduct as $value) {
+                if (count($value) === 2) {
+                    [$strModule, $strController] = $value;
+
+                    if (isset($this->arrMC2FQCN[$strModule][$strController])) {
+                        throw new UnexpectedValueException(
+                            "File config.mc2fc.php: route '{$strModule}/{$strController}' bị khai báo trùng"
+                        );
+                    }
+
+                    $this->arrMC2FQCN[$strModule][$strController] = $strFQCN;
+                    continue;
+                }
+
+                if (count($value) === 1) {
+                    [$strController] = $value;
+
+                    if (isset($this->arrMC2FQCN[$strController])) {
+                        throw new UnexpectedValueException(
+                            "File config.mc2fc.php: route '{$strController}' bị khai báo trùng"
+                        );
+                    }
+
+                    $this->arrMC2FQCN[$strController] = $strFQCN;
+                    continue;
+                }
+
+                throw new UnexpectedValueException(
+                    "File config.mc2fc.php: route path '{$strRouteMCPath}' parse ra kết quả không hợp lệ"
+                );
+            }
+        }
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    protected function validateControllerFQCN(mixed $strFQCN, string $strRouteMCPath): void {
+        if (!is_string($strFQCN) || trim($strFQCN) === '') {
+            throw new UnexpectedValueException(
+                "File config.mc2fc.php: value tại route '{$strRouteMCPath}' phải là FQCN string không rỗng"
+            );
+        }
+
+        if (!class_exists($strFQCN)) {
+            throw new UnexpectedValueException(
+                "File config.mc2fc.php: class '{$strFQCN}' tại route '{$strRouteMCPath}' không tồn tại"
+            );
+        }
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     protected function buildMCAR(){
@@ -223,7 +324,7 @@ class StaticRouter {
             $refTree[$strController] ??= [];
           
             if(!isset($this->arrMC2FQCN[$str][$strController])){
-                throw new \RuntimeException("Hai file config không tương thích. File config.mcr2a có đường dẫn {$str}{$strController} nhưng không có đường dẫn {$str}{$strController} trong file config.mc2fc");
+                throw new \RuntimeException("Hai file config không tương thích. File config.mcr2a có đường dẫn {$str}/{$strController} nhưng không có đường dẫn {$str}/{$strController} trong file config.mc2fc");
             }
             $strFCQN = $this->arrMC2FQCN[$str][$strController];
             //$strHtmlSchema = $strType === 'html_class' ? $arrFCQN['html_schema'] : null;
