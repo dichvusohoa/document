@@ -59,12 +59,6 @@ class ContextRouter{
         $arrSegment = $this->securityAdminControllerName($arrSegment);
         $numSeg = count($arrSegment);
 
-        // Chọn route mặc định theo loại response
-        /*if (Request::isHtmlResponse()) {
-            $routes = DEFAULT_HTML_ROUTE;
-        } else {
-            $routes = DEFAULT_API_ROUTE;
-        }*/
         $routes = DEFAULT_ROUTE;
         // Xác định segment đầu tiên
         $strTmp = $numSeg === 0 ? DEFAULT_ENTRY : $arrSegment[0];

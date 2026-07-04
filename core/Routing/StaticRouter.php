@@ -1,12 +1,15 @@
 <?php
 namespace Core\Routing;
 use \UnexpectedValueException;
+use \InvalidArgumentException;
 use Core\Utility\ValidUtility;
 use Core\Utility\StringUtility;
 use Core\Utility\MathUtility;
 class StaticRouter {
     //Đầu vào - load từ file
-    protected array $arrM; //M = module name. load từ file /config/list.module.php
+    protected array $arrM; //M = module name. load từ file /config/list.mc.php
+    protected array $arrMC; //C = danh sách các controller phụ thuộc vào module. load từ file /config/list.mc.php
+    protected array $arrStC; //StC = standalone controller: danh sách các controller độc lập không có module
     protected array $arrR; //R = Role, danh sách tất cả các role. load từ file /config/list.role.php
     //MC2FQCN = module-controller-FQCN (fully qualified class name). 
     //xây dựng  từ file /config/config.mc2fc.php. 
@@ -23,16 +26,17 @@ class StaticRouter {
     // ['roles' => ..., 'fqcn' =>..., 'html_schema' => ...,'function' => ..., 'method' => ...]
     // đây là cấu trúc cho tất cả mọi user
     protected array $arrMCAR; //build từ config.mcr2a.php.  Đây là khối dữ liệu lớn nhất
-   
+    protected array $arrDefaultRoute; //build từ config.default.route
     
     /*---------------------------------------------------------------------------------------------------------------*/
     function __construct(){
-        $this->buildModule();
+        $this->buildModuleController();
         $this->buildRole();
         $this->buildFCA2F();
         $this->buildMiddleware(); 
         $this->buildMC2FQCN();//
         $this->buildMCAR();
+        $this->buildDefaultRoute();
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     public function getModule() {
@@ -59,12 +63,35 @@ class StaticRouter {
         return $this->arrMCAR;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function buildModule(){
-        $arTmp =  require_once CONFIG_PATH.'/list.module.php';
-        if(!ValidUtility::isStringPairMap($arTmp)){
-            throw new UnexpectedValueException('File list.module.php phải là một mảng string'); 
+    public function getDefaultRoute(){
+        return $this->arrDefaultRoute;
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    protected function buildModuleController(){
+        $arTmp =  require CONFIG_PATH.'/list.mc.php';
+        $isValid = is_array($arTmp)
+            && isset($arTmp['module-controllers'], $arTmp['standalone-controllers'])
+            && ValidUtility::isStringListMap($arTmp['module-controllers'])
+            && ValidUtility::isStringList($arTmp['standalone-controllers']);
+        if(!$isValid){
+            throw new UnexpectedValueException('File list.mc.php có format không hợp lý'); 
         }
-        $this->arrM = array_map([StringUtility::class, 'spacesToDash'], array_keys($arTmp));
+        $this->arrMC = [];
+        $this->arrM = [];
+        foreach ($arTmp['module-controllers'] as $strModule => $arrController) {
+            $strModule = StringUtility::spacesToDash($strModule);
+            if (isset($this->arrMC[$strModule])) {
+                throw new UnexpectedValueException("Module '{$strModule}' bị trùng sau khi chuẩn hóa tên.");
+            }
+            $this->arrM[] = $strModule; 
+            $this->arrMC[$strModule] = array_map(
+                [StringUtility::class, 'spacesToDash'],
+                $arrController
+            );
+            
+        }
+        //$this->arrM = array_map([StringUtility::class, 'spacesToDash'], array_keys($this->arrMC));
+        $this->arrStC = array_map([StringUtility::class, 'spacesToDash'],$arTmp['standalone-controllers'] );
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     protected function buildRole(){
@@ -232,18 +259,22 @@ class StaticRouter {
             //$arrPairRA = $this->parseExprRAList($strFQCN, $arrExprRA) rồi
             if (!isset($this->arrFCQNA2F[$strFQCN][$strAction])) {
                 throw new \RuntimeException(
-                    "Action '{$strAction}' không tồn tại trong config.fca2f của class {$strFQCN}"
+                    "File config.fca2f, class {$strFQCN}, action '{$strAction}' không tồn tại"
                 );
             }
             $arrActionDetail = $this->arrFCQNA2F[$strFQCN][$strAction];
 
             // Khởi tạo leaf nếu chưa tồn tại
             if (!isset($arrNode[$strAction])) {
-
+                if (empty($arrActionDetail['method'])) {
+                    throw new \InvalidArgumentException(
+                        "File config.fca2f, class {$strFQCN}, action '{$strAction}' thiếu khai báo method"
+                    );
+                }
                 $arrNode[$strAction] = [
                     'roles'            => [],
                     'fqcn'             => $strFQCN,
-                    'function'         => $arrActionDetail['function'],
+                    'function'         => $arrActionDetail['function'] ?? $strAction,
                     'method'           => strtoupper($arrActionDetail['method'])
                 ];
             }
@@ -316,49 +347,242 @@ class StaticRouter {
      * [[controller]] nếu khuyết không có tên module
      */
     protected function parseMCRoutePath(string $strMCRoutePath): array {
-        $slashCount = substr_count(trim($strMCRoutePath), '/');
+        $strMCRoutePath = trim($strMCRoutePath);
+        $slashCount = substr_count($strMCRoutePath, '/');
         if ($slashCount > 1) {
-            //chỉ có tối đa 2 segment là module và controller
-            throw new InvalidArgumentException("Invalid MCRoutePath format: too many slashes in '$strMCRoutePath'");
+            throw new InvalidArgumentException(
+                "Invalid MCRoutePath format: too many slashes in '$strMCRoutePath'"
+            );
         }
-        if ($slashCount === 1) { //$strMCRoutePath có format dạng moduleExpr/ControllerExpr
-            [$strModuleExpr, $strControllerExpr] = explode('/', $strMCRoutePath, 2);
-            if($strModuleExpr === '' || $strControllerExpr === ''){
-                throw new InvalidArgumentException("Invalid MCRoutePath format '$strMCRoutePath'");
+        if ($slashCount === 1) {
+            return $this->parseModuleControllerRoutePath($strMCRoutePath);
+        }
+
+        return $this->parseStandaloneControllerRoutePath($strMCRoutePath);
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    protected function parseModuleControllerRoutePath(string $strMCRoutePath): array {
+        [$strModuleExpr, $strControllerExpr] = explode('/', $strMCRoutePath, 2);
+
+        if ($strModuleExpr === '' || $strControllerExpr === '') {
+            throw new InvalidArgumentException("Invalid MCRoutePath format '$strMCRoutePath'");
+        }
+
+        $modules = $this->parseModuleExpr($strModuleExpr);
+        $result = [];
+
+        foreach ($modules as $strModule) {
+            $controllers = $this->parseControllerExprForModule($strControllerExpr, $strModule);
+
+            foreach ($controllers as $strController) {
+                $result[] = [$strModule, $strController];
             }
-            $arrParse = RoutePattern::parse($strModuleExpr, $this->arrM, RoutePattern::EXPR_ALL_MODES );
-            if($arrParse['type'] !== '' && $arrParse['type'] !== 'module'){
-                throw new InvalidArgumentException("Biểu thức {$strModuleExpr} phải có type là module, chứ không được là {$arrParse['type']}");
-            }
-            $modules = $arrParse['values'];
-            $arrParse2 = RoutePattern::parse($strControllerExpr, [], RoutePattern::EXPR_SINGLE_VALUE | RoutePattern::EXPR_INCLUDE_VALUES );
-            $controllers = $arrParse2['values'];
         }
-        else{
-            $modules = null; //null là không có chứ không phải là []
-            $arrParse = RoutePattern::parse($strMCRoutePath, [], RoutePattern::EXPR_SINGLE_VALUE | RoutePattern::EXPR_INCLUDE_VALUES );
-            $controllers = $arrParse['values'];
-        }
-        if($modules === null){
-            //xoay vecto $controllers thành vecto dạng cột
-            $result = array_map(function($item) {
-                return [$item];
-            }, $controllers);
-        }
-        else{
-            $result = MathUtility::cartesianProduct([$modules, $controllers]);
-        }
+
         return $result;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    public function toArray(): array {
+    protected function parseModuleExpr(string $strModuleExpr): array {
+        $arrParse = RoutePattern::parse(
+            $strModuleExpr,
+            $this->arrM,
+            RoutePattern::EXPR_ALL_MODES
+        );
+
+        if ($arrParse['type'] !== '' && $arrParse['type'] !== 'module') {
+            throw new InvalidArgumentException(
+                "Biểu thức {$strModuleExpr} phải có type là module, chứ không được là {$arrParse['type']}"
+            );
+        }
+
+        return $arrParse['values'];
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    protected function parseControllerExprForModule(string $strControllerExpr, string $strModule): array {
+        if (!isset($this->arrMC[$strModule])) {
+            throw new InvalidArgumentException(
+                "Module '{$strModule}' không tồn tại trong list.mc.php"
+            );
+        }
+
+        $arrParse = RoutePattern::parse(
+            $strControllerExpr,
+            $this->arrMC[$strModule],
+            RoutePattern::EXPR_ALL_MODES
+        );
+
+        if ($arrParse['type'] !== '' && $arrParse['type'] !== 'controller') {
+            throw new InvalidArgumentException(
+                "Biểu thức {$strControllerExpr} phải có type là controller, chứ không được là {$arrParse['type']}"
+            );
+        }
+
+        return $arrParse['values'];
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    protected function parseStandaloneControllerRoutePath(string $strControllerExpr): array {
+        // $controllers = $this->parseStandaloneControllerExpr($strControllerExpr);
+        $arrParse = RoutePattern::parse(
+            $strControllerExpr,
+            $this->arrStC,
+            RoutePattern::EXPR_ALL_MODES
+        );
+
+        if ($arrParse['type'] !== '' && $arrParse['type'] !== 'controller') {
+            throw new InvalidArgumentException(
+                "Biểu thức {$strControllerExpr} phải có type là controller, chứ không được là {$arrParse['type']}"
+            );
+        }
+         $controllers = $arrParse['values'];
+         /*xoay vecto $controllers thành vecto dạng cột, ý nghĩa là biến đổi  ['login', 'client-info'] thành
+         [['login'], ['client-info']]
+         */
+        return array_map(
+            fn(string $strController) => [$strController],
+            $controllers
+        );
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    protected function buildDefaultRoute(): void {
+        $arrConfig = $this->loadAndValidateDefaultRouteConfig();
+
+        $this->arrDefaultRoute = [
+            'default_entry' => $this->normalizeDefaultEntry($arrConfig['default_entry']),
+            'routes' => $this->normalizeDefaultRoutes($arrConfig['routes']),
+        ];
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    protected function loadAndValidateDefaultRouteConfig(): array {
+        $arrConfig = require CONFIG_PATH . '/config.default.route.php';
+        if (
+            !is_array($arrConfig)
+            || !isset($arrConfig['default_entry'], $arrConfig['routes'])
+            || !is_array($arrConfig['default_entry'])
+            || !is_array($arrConfig['routes'])
+            || !isset($arrConfig['default_entry']['type'], $arrConfig['default_entry']['value'])
+            || !is_string($arrConfig['default_entry']['type'])
+            || !is_string($arrConfig['default_entry']['value'])
+        ) {
+            throw new UnexpectedValueException(
+                'File config.default.route.php có format không hợp lệ'
+            );
+        }
+
+        return $arrConfig;
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    protected function normalizeDefaultEntry(array $entry): array {
+        $type = $entry['type'];
+        $value = StringUtility::spacesToDash($entry['value']);
+
+        if (!in_array($type, ['module', 'controller'], true)) {
+            throw new UnexpectedValueException(
+                "File config.default.route.php: default_entry.type phải là 'module' hoặc 'controller'"
+            );
+        }
+
+        if ($type === 'module' && !in_array($value, $this->arrM, true)) {
+            throw new UnexpectedValueException(
+                "File config.default.route.php: default_entry.value '{$value}' không phải giá trị module hợp lệ"
+            );
+        }
+
+        if ($type === 'controller' && !in_array($value, $this->arrStC, true)) {
+            throw new UnexpectedValueException(
+                "File config.default.route.php: default_entry.value '{$value}' không phải giá trị standalone controller hợp lệ"
+            );
+        }
+
         return [
+            'type' => $type,
+            'value' => $value,
+        ];
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    protected function normalizeDefaultRoutes(array $routes): array {
+        $result = [];
+        foreach ($routes as $entry => $routeValue) {
+            $entry = StringUtility::spacesToDash($entry);
+            
+            if (is_string($routeValue)) {// Trường hợp controller => action
+                $result[$entry] = $this->normalizeStandaloneDefaultRoute($entry, $routeValue);
+            }
+            else{
+                $result[$entry] = $this->normalizeModuleDefaultRoute($entry, $routeValue);
+            }
+        }
+
+        return $result;
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    protected function normalizeStandaloneDefaultRoute(string $controller, string $action): string {
+        $action = StringUtility::spacesToDash($action);
+
+        if (!in_array($controller, $this->arrStC, true)) {
+            throw new UnexpectedValueException(
+                "File config.default.route.php: Default route '{$controller}' không phải standalone controller hợp lệ"
+            );
+        }
+
+        if (!$this->actionExists(null, $controller, $action)) {
+            throw new UnexpectedValueException(
+                "File config.default.route.php: Action mặc định '{$action}' không tồn tại trong controller '{$controller}'"
+            );
+        }
+
+        return $action;
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    protected function normalizeModuleDefaultRoute(string $module, mixed $routeValue): array {
+        if (!in_array($module, $this->arrM, true)) {
+            throw new UnexpectedValueException(
+                "File config.default.route.php: Default route '{$module}' không phải giá trị module hợp lệ"
+            );
+        }
+        if (!ValidUtility::isStringPairMap($routeValue) || count($routeValue) !== 1) {
+            throw new UnexpectedValueException(
+                "File config.default.route.php: Default route của module '{$module}' phải có format ['controller' => 'action']"
+            );
+        }
+
+        $controller = StringUtility::spacesToDash(array_key_first($routeValue));
+        $action = StringUtility::spacesToDash($routeValue[array_key_first($routeValue)]);
+
+        if (!isset($this->arrMC[$module]) || !in_array($controller, $this->arrMC[$module], true)) {
+            throw new UnexpectedValueException(
+                "File config.default.route.php: Controller mặc định '{$controller}' không thuộc module '{$module}'"
+            );
+        }
+
+        if (!$this->actionExists($module, $controller, $action)) {
+            throw new UnexpectedValueException(
+                "File config.default.route.php: Action mặc định '{$action}' không tồn tại trong '{$module}/{$controller}'"
+            );
+        }
+
+        return [$controller => $action];
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    protected function actionExists(?string $module, string $controller, string $action): bool {
+        if ($module !== null) {
+            return isset($this->arrMCAR[$module][$controller][$action]);
+        }
+
+        return isset($this->arrMCAR[$controller][$action]);
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    /*phục vụ cho cache StaticRouter*/
+    public function toArray(): array {
+        return[
             'arrM' => $this->arrM,
+            'arrMC' => $this->arrMC,
+            'arrStC' => $this->arrStC,
             'arrR' => $this->arrR,
             'arrMC2FQCN' => $this->arrMC2FQCN,
             'arrFCQNA2F' => $this->arrFCQNA2F,
             'arrMiddlewareParsed' => $this->arrMiddlewareParsed,
             'arrMCAR' => $this->arrMCAR,
+            'arrDefaultRoute' => $this->arrDefaultRoute
         ];
     }
     /*---------------------------------------------------------------------------------------------------------------*/

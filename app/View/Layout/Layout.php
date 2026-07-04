@@ -1,7 +1,7 @@
 <?php
 namespace App\View\Layout;
 use Core\View\Layout\BaseLayout;
-use Core\Http\RequestAuthContext;
+//use Core\Http\RequestAuthContext;
 class Layout extends BaseLayout{
     public function mapToLayoutFile():string{
         $arrRouteMCA = $this->requestAuthContext->routePath();
@@ -11,13 +11,13 @@ class Layout extends BaseLayout{
         }
         else{
             return 
-            APP_PATH.'/resources/views/layouts/layout_0a.phtml'; //2 column
+            APP_PATH.'/resources/views/layouts/layout.phtml'; //2 column
         }
     } 
-    public function mapToUiContext(): array{
+    /*public function mapToUiContext(): array{
         $authInfo = $this->requestAuthContext->authInfo();
         return $authInfo['data'];
-    }
+    }*/
 
     
 }

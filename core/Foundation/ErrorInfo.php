@@ -51,12 +51,30 @@ class ErrorInfo{
         if($arrErr['status'] === Response::SERVER_MAINTENANCE_STATUS){
             return self::render503($arrErr);
         }
+        elseif($arrErr['status'] === Response::SERVER_EXECUTE_ACCESS_FORBIDDEN){
+            return self::render403($arrErr);
+        }
         elseif($arrErr['status'] === Response::SERVER_RESOURCE_NOT_FOUND_STATUS){
             return self::render404($arrErr);
         }
         else{
             return self::renderHtmlDefault($arrErr);
         }
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    protected static function render403($arrErr): string {
+        if(!self::isValid($arrErr)){
+            return '<h1>403 - </h1>';
+        }
+        $strMessage = isset($arrErr['data']['message']) ? htmlspecialchars((string)$arrErr['data']['message'], ENT_QUOTES, 'UTF-8') : 'service unavailable';
+        return 
+        <<<HTML
+        <div>
+            
+            <h1>403 - Không đủ quyền truy cập</h1>
+            <p>{$strMessage}</p>
+        </div>
+        HTML;  
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     protected static function render404($arrErr): string {

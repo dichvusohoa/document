@@ -4,7 +4,7 @@ Dùng tiền tố để xác định loại constraint:
 
 1  pk__ cho Primary Key    : pk__<table> : KHÔNG LÀM ĐƯỢC maria không cho sửa
 
-fk__ cho Foreign Key: fk__<child_table>__<parent_table>__<foreign_column>
+fk__ cho Foreign Key: fk__<child_table>__<foreign_column>__<parent_table>
 Ví dụ fk__auth_token__user__user_id
 
 2  uk__ cho Unique Key: uk__<table>__<column> hoặc uk__<table>__<column1>_<column2>
@@ -19,3 +19,13 @@ Ví dụ
 idx__<table>__<column>
 
 
+Loại	Convention
+Primary Key	PRIMARY (không đặt tên được trong MariaDB)
+Foreign Key	fk__<child_table>__<foreign_column>__<parent_table>
+Unique Key	uk__<table>__<column1>_<column2>
+Check	ck__<table>__<column>__<rule>
+Index	idx__<table>__<column1>_<column2>
+Fulltext	ft__<table>__<column1>_<column2>
+
+
+dùng SHOW CREATE TABLE `table_name` để check 

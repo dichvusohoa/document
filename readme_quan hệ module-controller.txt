@@ -6,7 +6,7 @@ class FoodController.class.php chứ không phải chỉ là đang nói tới ch
 Như vậy 'App\\Controller\\UserAdmin\\LoginController' và 'App\\Controller\\User\\LoginController'
 là 2 controller hoàn toàn khác nhau
 
-1. Module và controller có quan hệ 1 - nhiều hay nhiều nhiều
+1. Module và controller có quan hệ 1 - nhiều hay nhiều nhiều ???
 
 Khi phân chia module theo chức năng ví dụ như quản lý trường học: module dinh dưỡng, học sinh,
 kế toán thì đúng là M-C có quan hệ 1 nhiều. Vì chức năng của các module là khác nhau nên controller
@@ -20,6 +20,10 @@ phần dựa theo quyền truy cập của người dùng. Ví dụ một hệ t
 dữ liệu cho anonimous, dữ liệu cho school_admin, accountal, teacher , dữ liệu cho amin tổng.
 
 Như vậy chỉ có một controller ví dụ là document_controller, nhưng có thể gắn với nhiều module 
+
+2026-07-02: xác định loại bài toán này không liên quan đến module. Phân quyền data không dính dáng gì tới module
++ module-controller là quan hệ 1- NHIỀU
++ có những controller độc lập không có module
 
 2. Controller có thể không gắn với module nào. Điều này có thể vì khái niệm
 module sinh ra thường bởi lý do thương mại nhiều hơn là kỹ thuật.

@@ -1,7 +1,7 @@
 <?php
 namespace Core\Utility;
 class ValidUtility{
-    
+    /*$arr có dạng ['a','b', 'c']*/
     static public function isStringList(mixed $arr): bool {
         if(!is_array($arr)){
             return false;
@@ -77,4 +77,24 @@ class ValidUtility{
         return empty(array_diff_assoc($map1, $map2))
             && empty(array_diff_assoc($map2, $map1));
     }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    /*$obj có dạng ['a' => ['x','y'], 'b'=>['z']]*/
+    public static function isStringListMap(mixed $obj): bool {
+        if (!is_array($obj)) {
+            return false;
+        }
+
+        foreach ($obj as $key => $value) {
+            if (!is_string($key)) {
+                return false;
+            }
+
+            if (!self::isStringList($value)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
 }

@@ -1,12 +1,90 @@
-1)
-Khi set session có thể tố chức thành đa cấp vì session chỉ tồn tại trên server
-Khi set cookie thì chỉ nên tổ chức dạng 1 cấp key/value vì cookie ở client thực chất chính
-là như thế. Nhưng vậy sẽ đảm bảo tương thích ở cả client và server
+Ý tôi là đoạn này:
 
-2)
-Đúng rồi! Việc chia token thành left:right có mục đích chính là giảm thiểu rủi ro nếu hacker lấy được cơ sở dữ liệu (DB).
+$arTmp = require_once CONFIG_PATH.'/list.mc.php';
 
-3)
-Nên chọn cách nào trong 3 cách : cách 1: &type=1,2 . cách 2 &type=1&type=2 . Cách 3 type[]=1&type[]=2 . Tôi không biết cách 1 dùng dấu , có an toàn không.
+thường nên viết thành:
 
-Phân tích nên chọn cách 3
+$arTmp = require CONFIG_PATH.'/list.mc.php';
+
+Lý do là require_once có cơ chế nhớ rằng file đã được include rồi. Nếu trong cùng một request bạn gọi lại:
+
+require_once 'config.php';
+
+thì PHP sẽ không đọc file lần thứ hai, mà trả về true.
+
+Ví dụ:
+
+// config.php
+<?php
+return ['a' => 1];
+$x = require_once 'config.php';   // ['a' => 1]
+$y = require_once 'config.php';   // true
+
+Đây là hành vi của require_once.
+
+Trong khi đó:
+
+$x = require 'config.php';   // ['a' => 1]
+$y = require 'config.php';   // ['a' => 1]
+
+require sẽ luôn thực thi file và luôn trả về giá trị return.
+
+Trong trường hợp của anh
+
+Các hàm như:
+
+protected function buildModuleController()
+{
+    $arTmp = require CONFIG_PATH.'/list.mc.php';
+}
+
+thực ra chỉ được gọi một lần trong StaticRouter::__construct().
+
+Nghĩa là:
+
+dùng require
+dùng require_once
+
+gần như không có khác biệt gì.
+
+Vì thế, trong code của anh, dùng require_once cũng không gây lỗi.
+
+Tôi chỉ khuyên dùng require vì hai lý do
+Ngữ nghĩa rõ hơn
+
+Ý anh là:
+
+"Đọc file config này."
+
+chứ không phải
+
+"Chỉ đọc nếu trước đó chưa đọc."
+
+Tránh bug sau này
+
+Giả sử sau này anh viết:
+
+$arrModule = require_once 'list.mc.php';
+$arrRole   = require_once 'list.role.php';
+
+...
+
+// rebuild lại
+$arrModule = require_once 'list.mc.php';
+
+Lần thứ hai:
+
+$arrModule === true
+
+chứ không phải mảng.
+
+Đây là lỗi khá khó phát hiện.
+
+Với framework của anh
+
+Tôi sẽ thống nhất quy tắc:
+
+File config trả về dữ liệu (return [...]) ⇒ luôn dùng require.
+require_once chỉ dùng cho các file định nghĩa class, function hoặc bootstrap (nếu không dùng autoload).
+
+Đó cũng là cách nhiều framework PHP hiện đại áp dụng.

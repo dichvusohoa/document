@@ -21,7 +21,12 @@
    /* border:  1px solid green;*/
     
 }
-
+.login__header{
+    display:flex;
+    /*căn lề login__header và field-error center theo trục H*/
+    align-items:center; 
+    column-gap: 1rem
+}
 .login__label {
   
 }
@@ -33,10 +38,11 @@
     height: 3.0rem;
     margin-top: 2rem ; /*mép trên cách input password 2 rem*/
 }
-
-.login__message {
+.field-error {
+    color: #c62828;
+}
+.message--error {
     /* Tùy chỉnh thông báo lỗi nếu có */
-    color: red;
-    font-size: 1.4rem;
-    margin-top: 1.0rem;
+    color: #c62828;
+   
 }

@@ -1,0 +1,16 @@
+SELECT * FROM `child_prepaid_service` LEFT OUTER JOIN child ON child.child_id =  child_prepaid_service.child_id
+WHERE child.class_id =1
+
+LUU Y LA KO CO PHEP TINH CUOC QUA XA VE TUONG LAI
+
+
+1. Ky cuoc thanh toan gan nhat truoc do (ko vuot qua ngay be nhap hoc) (<= ngay hien tai). Neu dung la ngay dang xem thi de nguyen ko thi buoc 2
+2. xem co du lieu ve Ky cuoc thanh toan gan nhat truoc do, neu ko co thi insert, neu co thi xem xem next_day_of bill .
+
+xem xem next day of bill >= ngay xem xet thi chen ban ghi
+
+SELECT service_id, GROUP_CONCAT( CONCAT( CAST( licence_time_value AS CHAR ) , ' ', licence_time_unit ) )
+FROM service_licence_time
+LEFT OUTER JOIN licence_time ON licence_time.licence_time_id = service_licence_time.licence_time_id
+WHERE service_id =2
+GROUP BY service_id

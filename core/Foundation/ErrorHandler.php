@@ -4,6 +4,8 @@ use \Throwable;
 use \ErrorException;
 use Core\Http\Request;
 use Core\Http\Response;
+use Core\Http\HttpException;
+
 class ErrorHandler {
     protected static bool $convertNotice = false;
     /*---------------------------------------------------------------------------------------------------------------*/
@@ -19,7 +21,7 @@ class ErrorHandler {
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     public static function toHttpStatus(Throwable|array $e){
-        return ($e instanceof \Core\Foundation\HttpException)
+        return ($e instanceof HttpException)
         ? $e->getHttpStatusCode() //các mã như 503, 404
         : 500; // mặc định 500 nếu không phải là HttpException
         
@@ -31,6 +33,9 @@ class ErrorHandler {
             case 503:
             $resStatus = Response::SERVER_MAINTENANCE_STATUS;
             break;
+            case 403:
+            $resStatus = Response::SERVER_EXECUTE_ACCESS_FORBIDDEN;
+            break;    
             case 404:
             $resStatus = Response::SERVER_RESOURCE_NOT_FOUND_STATUS;
             break;

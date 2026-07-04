@@ -2,11 +2,8 @@
 namespace App\View\HtmlSchema;
 use Core\View\HtmlSchema\BaseHtmlPageSchema;
 class LoginPageSchema extends BaseHtmlPageSchema{
-   
     /*---------------------------------------------------------------------------------------------------------------*/        
     public function defineSchema(): array{
-         // $arrCss = ['/lib_assets/css/style.css', '/lib_assets/css/err.css',
-       //     '/lib_assets/css/button.css', '/lib_assets/css/login.css'];
         return [ 'title' => ['type' => 'title'],
             'css'   => ['type' => 'css'],
             'script'   => ['type' => 'script'],

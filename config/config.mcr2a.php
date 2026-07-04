@@ -24,16 +24,18 @@ mcr2a meaning module + controller + role  to action
  
   */
 return [
-'compiled-materials/category' => ['guest'=>'index','cm_admin' => '[action:*]','admin' => '[action:*]'],
+/*'compiled-materials/category' => ['guest'=>'index','cm_admin' => '[action:*]','admin' => '[action:*]'],
 'compiled-materials/document' => ['guest'=>'index','cm_admin' => '[action:*]','admin' => '[action:*]'],
 'it-documents/category' => ['guest'=>'index','it_admin' => '[action:*]','admin' => '[action:*]'],
 'it-documents/document' => ['guest'=>'index','it_admin' => '[action:*]','admin' => '[action:*]'],
 'pbt-framework/category' => ['pbt_fwk_user'=>'index','pbt_fwk_admin' => '[action:*]','admin' => '[action:*]'],
 'pbt-framework/document' => ['pbt_fwk_user'=>'index','pbt_fwk_admin' => '[action:*]','admin' => '[action:*]'],
 'bud-project/category' => ['bud_prj_user'=>'index','bud_prj_admin' => '[action:*]','admin' => '[action:*]'],
-'bud-project/document' => ['bud_prj_user'=>'index','bud_prj_admin' => '[action:*]','admin' => '[action:*]'],
+'bud-project/document' => ['bud_prj_user'=>'index','bud_prj_admin' => '[action:*]','admin' => '[action:*]'],*/
+'category' => ['[role:guest|pbt_fwk_user|bud_prj_user]'=>'index','[role:cm_admin|it_admin|pbt_fwk_admin|bud_prj_admin|admin]' => '[action:*]'],
+'document' => ['[role:guest|pbt_fwk_user|bud_prj_user]'=>'index','[role:cm_admin|it_admin|pbt_fwk_admin|bud_prj_admin|admin]' => '[action:*]'],
 'login' => ['guest'=>'[action:index|login]'],
-'admin-login' => ['guest'=>'[action:index|login]'],
+//'admin-login' => ['guest'=>'[action:index|login]'],
 'client-info' => ['[role:*]'=>'index']    
 ];
 

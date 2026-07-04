@@ -48,7 +48,8 @@ class AuthService{
             Cookie::set(['auth', 'token'], $authToken->cookieToken());
             
         }
-        return ['status'=> Response::SERVER_AUTHENTICATED_STATUS, 'data' => 'login success' , 'extra' => null];
+        //return ['status'=> Response::SERVER_AUTHENTICATED_STATUS, 'data' => 'login success' , 'extra' => null];
+        return ['status'=> Response::SERVER_AUTHENTICATED_STATUS, 'data' => null , 'extra' => null];
     }
     
     protected static function verifyTurnstile(?string $token): bool{
@@ -98,7 +99,6 @@ class AuthService{
         if (password_verify($strPassword, $arrResp['data']['password'])) {
             $arrResp['status'] = Response::SERVER_AUTHENTICATED_STATUS;
             return $arrResp;
-            //return ['status' => Response::SERVER_AUTHENTICATED_STATUS, 'data' => 'login success' , 'extra' => null];
         }
         else{
             $this->loginAttemptService->increaseFailCount();

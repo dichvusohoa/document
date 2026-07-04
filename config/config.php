@@ -5,7 +5,8 @@ tham số chung nhất còn deploy.php chứa các tham số có thể thay đ�
 define('SYSTEM_MAINTENANCE', false);
 define('SYSTEM_MAINTENANCE_MESSAGE','Hệ thống đang bảo trì từ 0h 20/07/2025');
 /*danh sách các modules mà guest user có thể truy cập*/
-const GUEST_ACCESSIBLE_MODULES = ['compiled-materials','it-documents'];
+//const GUEST_ACCESSIBLE_MODULES = ['compiled-materials','it-documents'];
+const GUEST_ACCESSIBLE_MODULES = [];
 define('SESSION_TIMEOUT', 1800); // thời gian giữ session là 30 phút
 define('COOKIE_EXP_BY_DAYS',7);//// thời gian lưu cookie là 7 ngày
 define('MIN_CACHE_TTL', 3600); // thời gian time to live của cache tối thiểu là 60 phút
@@ -56,12 +57,14 @@ function loadCfgConnection() {
 const ADMIN_CONTROLLER_RENAME = ['admin-login' => 'cacquak'];
 const ADMIN_ROLE_NAME = 'admin';
 //DEFAULT_ENTRY dùng trong tình huống khi url dạng khuyết cả module, controller, action
-define('DEFAULT_ENTRY',  'compiled-materials'); //có thể là module hoặc controller
+//define('DEFAULT_ENTRY',  'compiled-materials'); //có thể là module hoặc controller
+define('DEFAULT_ENTRY',  'category'); //có thể là module hoặc controller
 const DEFAULT_ROUTE = [// module => comtroller => action hoặc comtroller => action
-    'compiled-materials' => ['category' => 'index'],    
+    /*'compiled-materials' => ['category' => 'index'],    
     'it-documents' => ['category' => 'index'], 
     'pbt-framework' => ['category' => 'index'], 
-    'bud-project' => ['category' => 'index'], 
+    'bud-project' => ['category' => 'index'], */
+    'category' => 'index',
     'login' => 'index',
     'admin-login' => 'index',
     'client-info' => 'index'

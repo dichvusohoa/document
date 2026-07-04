@@ -1,11 +1,18 @@
 <fieldset class="login">
     <legend class="login__legend">ĐĂNG NHẬP</legend>
     <form class="login__form" name="frm_login" method="post">
-        <label class="login__label" for="user[login]">Tên đăng nhập</label>
-        <input class="login__input" type="text" name="user[login]" id="user[login]" maxlength="25">
-
-        <label class="login__label" for="user[password]">Mật khẩu</label>
-        <input class="login__input" type="password" id="user[password]" name="user[password]" maxlength="25">
+        <div class="message message--error"></div>
+        <div class="login__header">
+            <label class="login__label" for="user_login">Tên đăng nhập</label>
+            <div class="field-error" data-field-error="user.login"></div>
+        </div>    
+        <input class="login__input" type="text" name="user[login]" id="user_login" maxlength="25">
+        
+        <div class="login__header">
+            <label class="login__label" for="user_password">Mật khẩu</label>
+            <div class="field-error" data-field-error="user.password"></div>
+        </div>
+        <input class="login__input" type="password" id="user_password" name="user[password]" maxlength="25">
         <?php if ($needTurnstile): ?>
             <div class="cf-turnstile"
                  data-sitekey="<?= TURNSTILE_SITE_KEY ?>"
@@ -14,7 +21,7 @@
         <?php endif; ?>
         <button class="btn-light3d"  type="submit" data-action = "login">Đăng nhập</button>
         
-        <div class="message message--error"></div>
+        
     </form>
 </fieldset>
     

@@ -17,14 +17,7 @@ class LoginPageController extends BaseHtmlPageController{
         $this->apiController = $apiController;
         $this->loginAttemptService = $loginAttemptService;
     }
-    /*protected function needTurnstile(): bool {
-        $maxFailedBeforeTurnstile = 3;
-        if (!Session::get('login_failed_count')) {
-            Session::set('login_failed_count', 0);
-        }
-        $needTurnstile = Session::get('login_failed_count') >= $maxFailedBeforeTurnstile;
-        return $needTurnstile;
-    }*/
+    
     protected function resolveParams(string $strFunctName): array{
         if($strFunctName === 'renderPage'){
             $isAdminLogin = LoginHelper::isAdminLoginRequest($this->requestAuthContext);
@@ -67,7 +60,14 @@ class LoginPageController extends BaseHtmlPageController{
         }
     }    
     public function login() {
-        $this->apiController->doAction('login');
+        $arrResp = $this->apiController->doAction('login');
+        if($arrResp['status'] === Response::SERVER_AUTHENTICATED_STATUS){
+            $strRedirectUrl = Session::get('intended_url') ?? '/';
+            Session::remove('intended_url');
+            $arrResp['data'] = $strRedirectUrl;
+            $arrResp['extra'] =  'redirect';
+        }
+        Response::sendJson($arrResp);
     }
     
 }

@@ -1,0 +1,6 @@
+Hoc lieu: 0, 200,000 , 700,000
+Hoc phi: Tai sao lai giam 30%, khong con phan biet do tuoi nua a
+Tieng anh, mua ?
+An: toan 35,000
+
+ 

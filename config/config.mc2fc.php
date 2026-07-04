@@ -26,11 +26,13 @@
 không sửa ra [response_type:xx][module:yy][controller:zz] vì lý do có html_schema, dùng thế này tiện hơn
   */
 return [
-    '[module:*]/category' =>  \App\Controller\CategoryController::class,
-    '[module:*]/document' =>  \App\Controller\DocumentController::class,
-    'login' => \Core\Controller\Login\LoginPageController::class,
-    'admin-login' => \Core\Controller\Login\LoginPageController::class,
-    'client-info' => \Core\Controller\ClientInfoController::class
+    //'[module:*]/category' =>  \App\Controller\CategoryController::class,
+    //'[module:*]/document' =>  \App\Controller\DocumentController::class,
+    'category'      => \App\Controller\Category\CategoryPageController::class,
+    'document'      => \App\Controller\Document\DocumentPageController::class,
+    'login'         => \Core\Controller\Login\LoginPageController::class,
+   // 'admin-login'   => \Core\Controller\Login\LoginPageController::class,
+    'client-info'   => \Core\Controller\ClientInfoController::class
 ];
             
         

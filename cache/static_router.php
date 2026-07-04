@@ -2,10 +2,6 @@
 return array (
   'arrM' => 
   array (
-    0 => 'compiled-materials',
-    1 => 'it-documents',
-    2 => 'pbt-framework',
-    3 => 'bud-project',
   ),
   'arrR' => 
   array (
@@ -20,55 +16,32 @@ return array (
   ),
   'arrMC2FQCN' => 
   array (
-    'compiled-materials' => 
-    array (
-      'category' => 'App\\Controller\\CategoryController',
-      'document' => 'App\\Controller\\DocumentController',
-    ),
-    'it-documents' => 
-    array (
-      'category' => 'App\\Controller\\CategoryController',
-      'document' => 'App\\Controller\\DocumentController',
-    ),
-    'pbt-framework' => 
-    array (
-      'category' => 'App\\Controller\\CategoryController',
-      'document' => 'App\\Controller\\DocumentController',
-    ),
-    'bud-project' => 
-    array (
-      'category' => 'App\\Controller\\CategoryController',
-      'document' => 'App\\Controller\\DocumentController',
-    ),
+    'category' => 'App\\Controller\\Category\\CategoryPageController',
+    'document' => 'App\\Controller\\Document\\DocumentPageController',
     'login' => 'Core\\Controller\\Login\\LoginPageController',
-    'admin-login' => 'Core\\Controller\\Login\\LoginPageController',
     'client-info' => 'Core\\Controller\\ClientInfoController',
   ),
   'arrFCQNA2F' => 
   array (
-    'App\\Controller\\CategoryController' => 
+    'App\\Controller\\Category\\CategoryPageController' => 
     array (
       'index' => 
       array (
-        'function' => 'index',
         'method' => 'get',
       ),
       'update' => 
       array (
-        'function' => 'update',
         'method' => 'post',
       ),
     ),
-    'App\\Controller\\DocumentController' => 
+    'App\\Controller\\Document\\DocumentPageController' => 
     array (
       'index' => 
       array (
-        'function' => 'index',
         'method' => 'get',
       ),
       'update' => 
       array (
-        'function' => 'update',
         'method' => 'post',
       ),
     ),
@@ -81,7 +54,6 @@ return array (
       ),
       'login' => 
       array (
-        'function' => 'login',
         'method' => 'post',
       ),
     ),
@@ -89,7 +61,6 @@ return array (
     array (
       'index' => 
       array (
-        'function' => 'index',
         'method' => 'json',
       ),
     ),
@@ -112,8 +83,8 @@ return array (
     array (
       'expr' => 
       array (
-        'module' => '[module:pbt-framework|bud-project]',
-        'controller' => NULL,
+        'module' => NULL,
+        'controller' => '[controller:category|document]',
         'action' => NULL,
         'method' => NULL,
         'role' => NULL,
@@ -123,250 +94,75 @@ return array (
   ),
   'arrMCAR' => 
   array (
-    'compiled-materials' => 
-    array (
-      'category' => 
-      array (
-        'index' => 
-        array (
-          'roles' => 
-          array (
-            0 => 'guest',
-            1 => 'cm_admin',
-            2 => 'admin',
-          ),
-          'fqcn' => 'App\\Controller\\CategoryController',
-          'function' => 'index',
-          'method' => 'GET',
-        ),
-        'update' => 
-        array (
-          'roles' => 
-          array (
-            0 => 'cm_admin',
-            1 => 'admin',
-          ),
-          'fqcn' => 'App\\Controller\\CategoryController',
-          'function' => 'update',
-          'method' => 'POST',
-        ),
-      ),
-      'document' => 
-      array (
-        'index' => 
-        array (
-          'roles' => 
-          array (
-            0 => 'guest',
-            1 => 'cm_admin',
-            2 => 'admin',
-          ),
-          'fqcn' => 'App\\Controller\\DocumentController',
-          'function' => 'index',
-          'method' => 'GET',
-        ),
-        'update' => 
-        array (
-          'roles' => 
-          array (
-            0 => 'cm_admin',
-            1 => 'admin',
-          ),
-          'fqcn' => 'App\\Controller\\DocumentController',
-          'function' => 'update',
-          'method' => 'POST',
-        ),
-      ),
-    ),
-    'it-documents' => 
-    array (
-      'category' => 
-      array (
-        'index' => 
-        array (
-          'roles' => 
-          array (
-            0 => 'guest',
-            1 => 'it_admin',
-            2 => 'admin',
-          ),
-          'fqcn' => 'App\\Controller\\CategoryController',
-          'function' => 'index',
-          'method' => 'GET',
-        ),
-        'update' => 
-        array (
-          'roles' => 
-          array (
-            0 => 'it_admin',
-            1 => 'admin',
-          ),
-          'fqcn' => 'App\\Controller\\CategoryController',
-          'function' => 'update',
-          'method' => 'POST',
-        ),
-      ),
-      'document' => 
-      array (
-        'index' => 
-        array (
-          'roles' => 
-          array (
-            0 => 'guest',
-            1 => 'it_admin',
-            2 => 'admin',
-          ),
-          'fqcn' => 'App\\Controller\\DocumentController',
-          'function' => 'index',
-          'method' => 'GET',
-        ),
-        'update' => 
-        array (
-          'roles' => 
-          array (
-            0 => 'it_admin',
-            1 => 'admin',
-          ),
-          'fqcn' => 'App\\Controller\\DocumentController',
-          'function' => 'update',
-          'method' => 'POST',
-        ),
-      ),
-    ),
-    'pbt-framework' => 
-    array (
-      'category' => 
-      array (
-        'index' => 
-        array (
-          'roles' => 
-          array (
-            0 => 'pbt_fwk_user',
-            1 => 'pbt_fwk_admin',
-            2 => 'admin',
-          ),
-          'fqcn' => 'App\\Controller\\CategoryController',
-          'function' => 'index',
-          'method' => 'GET',
-        ),
-        'update' => 
-        array (
-          'roles' => 
-          array (
-            0 => 'pbt_fwk_admin',
-            1 => 'admin',
-          ),
-          'fqcn' => 'App\\Controller\\CategoryController',
-          'function' => 'update',
-          'method' => 'POST',
-        ),
-      ),
-      'document' => 
-      array (
-        'index' => 
-        array (
-          'roles' => 
-          array (
-            0 => 'pbt_fwk_user',
-            1 => 'pbt_fwk_admin',
-            2 => 'admin',
-          ),
-          'fqcn' => 'App\\Controller\\DocumentController',
-          'function' => 'index',
-          'method' => 'GET',
-        ),
-        'update' => 
-        array (
-          'roles' => 
-          array (
-            0 => 'pbt_fwk_admin',
-            1 => 'admin',
-          ),
-          'fqcn' => 'App\\Controller\\DocumentController',
-          'function' => 'update',
-          'method' => 'POST',
-        ),
-      ),
-    ),
-    'bud-project' => 
-    array (
-      'category' => 
-      array (
-        'index' => 
-        array (
-          'roles' => 
-          array (
-            0 => 'bud_prj_user',
-            1 => 'bud_prj_admin',
-            2 => 'admin',
-          ),
-          'fqcn' => 'App\\Controller\\CategoryController',
-          'function' => 'index',
-          'method' => 'GET',
-        ),
-        'update' => 
-        array (
-          'roles' => 
-          array (
-            0 => 'bud_prj_admin',
-            1 => 'admin',
-          ),
-          'fqcn' => 'App\\Controller\\CategoryController',
-          'function' => 'update',
-          'method' => 'POST',
-        ),
-      ),
-      'document' => 
-      array (
-        'index' => 
-        array (
-          'roles' => 
-          array (
-            0 => 'bud_prj_user',
-            1 => 'bud_prj_admin',
-            2 => 'admin',
-          ),
-          'fqcn' => 'App\\Controller\\DocumentController',
-          'function' => 'index',
-          'method' => 'GET',
-        ),
-        'update' => 
-        array (
-          'roles' => 
-          array (
-            0 => 'bud_prj_admin',
-            1 => 'admin',
-          ),
-          'fqcn' => 'App\\Controller\\DocumentController',
-          'function' => 'update',
-          'method' => 'POST',
-        ),
-      ),
-    ),
-    'login' => 
+    'category' => 
     array (
       'index' => 
       array (
         'roles' => 
         array (
           0 => 'guest',
+          1 => 'pbt_fwk_user',
+          2 => 'bud_prj_user',
+          3 => 'cm_admin',
+          4 => 'it_admin',
+          5 => 'pbt_fwk_admin',
+          6 => 'bud_prj_admin',
+          7 => 'admin',
         ),
-        'fqcn' => 'Core\\Controller\\Login\\LoginPageController',
-        'function' => 'renderPage',
+        'fqcn' => 'App\\Controller\\Category\\CategoryPageController',
+        'function' => 'index',
         'method' => 'GET',
       ),
-      'login' => 
+      'update' => 
+      array (
+        'roles' => 
+        array (
+          0 => 'cm_admin',
+          1 => 'it_admin',
+          2 => 'pbt_fwk_admin',
+          3 => 'bud_prj_admin',
+          4 => 'admin',
+        ),
+        'fqcn' => 'App\\Controller\\Category\\CategoryPageController',
+        'function' => 'update',
+        'method' => 'POST',
+      ),
+    ),
+    'document' => 
+    array (
+      'index' => 
       array (
         'roles' => 
         array (
           0 => 'guest',
+          1 => 'pbt_fwk_user',
+          2 => 'bud_prj_user',
+          3 => 'cm_admin',
+          4 => 'it_admin',
+          5 => 'pbt_fwk_admin',
+          6 => 'bud_prj_admin',
+          7 => 'admin',
         ),
-        'fqcn' => 'Core\\Controller\\Login\\LoginPageController',
-        'function' => 'login',
+        'fqcn' => 'App\\Controller\\Document\\DocumentPageController',
+        'function' => 'index',
+        'method' => 'GET',
+      ),
+      'update' => 
+      array (
+        'roles' => 
+        array (
+          0 => 'cm_admin',
+          1 => 'it_admin',
+          2 => 'pbt_fwk_admin',
+          3 => 'bud_prj_admin',
+          4 => 'admin',
+        ),
+        'fqcn' => 'App\\Controller\\Document\\DocumentPageController',
+        'function' => 'update',
         'method' => 'POST',
       ),
     ),
-    'admin-login' => 
+    'login' => 
     array (
       'index' => 
       array (

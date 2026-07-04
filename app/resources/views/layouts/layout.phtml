@@ -12,15 +12,6 @@
     <?php echo HtmlUtility::favicon('/lib_assets/images/logos/');//favicon ?>
     <?php $strName = $keys[1]; HtmlFragment::render($strName, $desc_fragment[$strName], $data_fragment[$strName]); //css ?>
     <?php $strName = $keys[2]; HtmlFragment::render($strName, $desc_fragment[$strName], $data_fragment[$strName]); //script ?>
-    <script>
-        app.fragments = <?php 
-            echo json_encode(
-                HtmlUtility::filterFragmentsForClient($fragments),
-                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
-            ); 
-        ?>;
-        document.addEventListener('DOMContentLoaded', () => app.renderData());
-    </script>
 </head>
 <body>
     <?php echo HtmlUtility::toScriptLinks(PUBLIC_PATH, "/lib_assets/js/jcheck_cross_browser.js"); ?>
@@ -30,8 +21,8 @@
         <button>Sign in</button>
     </header>
     <nav id='hmenu'></nav>
-    <?php $name = $keys[5]; BaseLayout::renderSubLayout($name, $fragments[$name]); //slide bar  ?>
-    <?php $name = $keys[6]; BaseLayout::renderSubLayout($name, $fragments[$name]); //nội dung ?>
+    <?php $strName = $keys[3]; HtmlFragment::render($strName, $desc_fragment[$strName], $data_fragment[$strName]); //script ?>
+    <?php $strName = $keys[4]; HtmlFragment::render($strName, $desc_fragment[$strName], $data_fragment[$strName]); //script ?>
     <footer>
         <p>Footer content here</p>
     </footer>

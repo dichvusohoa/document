@@ -5,7 +5,7 @@ use Core\Utility\StringUtility;
 use Core\Utility\MathUtility;
 class StaticRouter {
     //Đầu vào - load từ file
-    protected array $arrM; //M = module name. load từ file /config/list.module.php
+    protected array $arrM; //M = module name. load từ file /config/list.m.c.php
     protected array $arrR; //R = Role, danh sách tất cả các role. load từ file /config/list.role.php
     //MC2FQCN = module-controller-FQCN (fully qualified class name). 
     //xây dựng  từ file /config/config.mc2fc.php. 

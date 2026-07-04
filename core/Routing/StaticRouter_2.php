@@ -232,18 +232,22 @@ class StaticRouter {
             //$arrPairRA = $this->parseExprRAList($strFQCN, $arrExprRA) rồi
             if (!isset($this->arrFCQNA2F[$strFQCN][$strAction])) {
                 throw new \RuntimeException(
-                    "Action '{$strAction}' không tồn tại trong config.fca2f của class {$strFQCN}"
+                    "File config.fca2f, class {$strFQCN}, action '{$strAction}' không tồn tại"
                 );
             }
             $arrActionDetail = $this->arrFCQNA2F[$strFQCN][$strAction];
 
             // Khởi tạo leaf nếu chưa tồn tại
             if (!isset($arrNode[$strAction])) {
-
+                if (empty($arrActionDetail['method'])) {
+                    throw new \InvalidArgumentException(
+                        "File config.fca2f, class {$strFQCN}, action '{$strAction}' thiếu khai báo method"
+                    );
+                }
                 $arrNode[$strAction] = [
                     'roles'            => [],
                     'fqcn'             => $strFQCN,
-                    'function'         => $arrActionDetail['function'],
+                    'function'         => $arrActionDetail['function'] ?? $strAction,
                     'method'           => strtoupper($arrActionDetail['method'])
                 ];
             }

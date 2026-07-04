@@ -8,8 +8,10 @@ return
     'guest' => 'khách', 
     'cm_admin' => 'admin tài liệu sưu tập', 
     'it_admin' => 'admin tài liệu tin học', 
-    'pbt_fwk_user' => 'người dùng PBT framework', 'pbt_fwk_admin' => 'admin PBT framework', 
-    'bud_prj_user'=>'người dùng BUD project', 'bud_prj_admin'=>'admin BUD project' ,
+    'pbt_fwk_user' => 'người dùng PBT framework', 
+    'pbt_fwk_admin' => 'admin PBT framework', 
+    'bud_prj_user'=>'người dùng BUD project', 
+    'bud_prj_admin'=>'admin BUD project' ,
     'admin'=>'quản trị hệ thống'
 ];
             

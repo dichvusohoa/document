@@ -1,12 +1,15 @@
-1)
-Khi set session có thể tố chức thành đa cấp vì session chỉ tồn tại trên server
-Khi set cookie thì chỉ nên tổ chức dạng 1 cấp key/value vì cookie ở client thực chất chính
-là như thế. Nhưng vậy sẽ đảm bảo tương thích ở cả client và server
+VỀ constrain trong mariaDB. không hiển thị đầy đủ trong giao diện phpMyAdmin
+Thí dụ
+CREATE TABLE `category_status` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `code` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `title` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `sort_order` int(11) NOT NULL DEFAULT 100,
+  `is_active` tinyint(3) unsigned NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk__category_status__code` (`code`),
+  KEY `idx__category_status__sort_order` (`sort_order`),
+  CONSTRAINT `ck__category_status__is_active__boolean` CHECK (`is_active` in (0,1))
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_c
 
-2)
-Đúng rồi! Việc chia token thành left:right có mục đích chính là giảm thiểu rủi ro nếu hacker lấy được cơ sở dữ liệu (DB).
-
-3)
-Nên chọn cách nào trong 3 cách : cách 1: &type=1,2 . cách 2 &type=1&type=2 . Cách 3 type[]=1&type[]=2 . Tôi không biết cách 1 dùng dấu , có an toàn không.
-
-Phân tích nên chọn cách 3
+Dung lệnh SHOW CREATE TABLE category_status để thay thế

@@ -1,7 +1,6 @@
 <?php
 namespace Core\Controller\Login;
 use Core\Http\RequestAuthContext;
-use Core\Http\Response;
 use Core\Controller\BaseController;
 use Core\Auth\AuthService;
 class LoginController extends BaseController{
@@ -13,10 +12,6 @@ class LoginController extends BaseController{
    
     protected function resolveParams(string $strFunctName): array{
         if($strFunctName === 'login'){
-            //$arrMCA = $this->requestAuthContext->routePath();
-            //$strController = $arrMCA[0];
-            //$isAdminLogin = array_key_exists($strController, ADMIN_CONTROLLER_RENAME);
-            //$strRequiredRole = $isAdmin ? ADMIN_ROLE_NAME : null;
             $isAdminLogin = LoginHelper::isAdminLoginRequest($this->requestAuthContext);
             $arrUser = $this->requestAuthContext->request()->post('user');
             //$token là public key
@@ -24,10 +19,8 @@ class LoginController extends BaseController{
             return [$arrUser['login'], $arrUser['password'], $isAdminLogin, $strToken];
         }
     }
-    
-    
     public function login(string $strUser, string $strPassword, bool $isAdminLogin = false, ?string $strToken = null){
         $resp = $this->authService->login($strUser, $strPassword, $isAdminLogin, $strToken);
-        Response::sendJson($resp);
+        return $resp;
     }
 }

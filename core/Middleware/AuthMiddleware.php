@@ -9,6 +9,7 @@ use Core\Foundation\ErrorInfo;
 use Core\Foundation\Auth\Auth;*/
 use Core\Auth\AuthInfo;
 use Core\Http\Session;
+use Core\Http\HttpException;
 class AuthMiddleware {
     public function handle(RequestAuthContext $requestAuthContext, Closure $next){
         if( $requestAuthContext->prohibitedModule() || $requestAuthContext->prohibitedRole() ){

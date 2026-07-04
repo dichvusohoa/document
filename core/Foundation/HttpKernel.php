@@ -3,9 +3,9 @@ namespace Core\Foundation;
 use Core\Routing\RouterFactory;
 use Core\Middleware\MiddlewareChain;
 use Core\Middleware\MiddlewareFactory;
-use Core\Controller\BaseController;
 use Core\Controller\ControllerResolver;
 use Core\Http\RequestAuthContext;
+use Core\Http\HttpException;
 class HttpKernel  {
     protected RequestAuthContext $requestAuthContext;
     protected RouterFactory $routerFactory;

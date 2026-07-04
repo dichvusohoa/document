@@ -122,7 +122,10 @@ export class AutoForm{
     }
     /*----------------------------------------------------------------------------------------------------*/
     render(jsonData){
-        //chưa code
+        //chưa code tổng quát đầy đủ
+        if(jsonData['status'] === 'server_authenticated' && jsonData['extra'] === 'redirect'){
+            window.location.href = jsonData['data'];
+        }
     }
     
     /*----------------------------------------------------------------------------------------------------*/

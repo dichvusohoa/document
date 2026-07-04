@@ -19,6 +19,7 @@ class Response {
     // sữ dụng mã này khi thực hiện nhiều lệnh SQL, có một số thành công và một số thất bại 
     const SERVER_INCOMPLETE_STATUS = 'server_incomplete';
     const SERVER_PARSE_ERR_STATUS = 'server_parse_error'; //ví dụ dùng khi json_encode lỗi
+    const SERVER_EXECUTE_ACCESS_FORBIDDEN = 'execute access forbidden';// 403 forbidden 
     const SERVER_RESOURCE_NOT_FOUND_STATUS = 'server_resource_not_found';// 404 not found 
     
     public static array $ERROR_STATUSES = [
