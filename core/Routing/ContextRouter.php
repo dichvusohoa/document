@@ -49,86 +49,6 @@ class ContextRouter{
         return $arrSegment;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    public function __matchUri(Request $request): ?array {
-        $arrSegment = $request->segmentUri();
-        if ($arrSegment === null) {
-            throw new HttpException(404, 'Not Found');
-        }
-
-        // Xử lý rename admin controller
-        $arrSegment = $this->securityAdminControllerName($arrSegment);
-        $numSeg = count($arrSegment);
-
-        $routes = DEFAULT_ROUTE;
-        // Xác định segment đầu tiên
-        $strTmp = $numSeg === 0 ? DEFAULT_ENTRY : $arrSegment[0];
-
-        // Kiểm tra có module hay không
-        if (in_array($strTmp, $this->staticRouter->getModule(), true)) {
-            $path = $this->toMCAWithModule($strTmp, $arrSegment);
-            $strModule = $path[1] ?? null;
-        } else {
-            $path = $this->toMCAWithoutModule($strTmp, $arrSegment);
-            $strModule = null;
-        }
-        /*hệ thống không phân tích được url, tình huống thường xảy ra khi gõ sai 
-        đường dẫn*/
-        if ($path === null) {
-            return [
-                'path' => null,
-                'route_info' => null,
-                'middlewares' => null,
-                'prohibited_module' => null,
-                'prohibited_role' => null
-            ];
-        }
-        $leaf = self::getValueAt($this->staticRouter->getMCAR(), $path);
-        /*Tình huống này là để đề phòng tăng cường, nhưng có lẽ khó xảy ra vì nếu các url
-        sai thì có lẽ hầu như rơi vào tình huống trên tức là path trả về null rồi. 
-        Vẫn giữ đoạn code dưới đây để đề phòng
-         */
-        if ($leaf === null) { 
-            return [
-                'path' => $path,
-                'route_info' => null,
-                'middlewares' => null,
-                'prohibited_module' => null,
-                'prohibited_role' => null
-            ];
-        }
-        // Tính middleware khi $path và $leaf khác null
-        $middlewares = $this->attachMiddlewares($path, $leaf);
-        // Kiểm tra module có bị cấm hay không
-        if ($strModule && !in_array($strModule, $this->arrEnableModule, true)) {
-            return [ // không có quyền truy cập module này
-                'path' => $path,
-                'route_info' => $leaf,
-                'middlewares' => $middlewares,
-                'prohibited_module' => true,
-                'prohibited_role' => null
-            ];
-        }
-
-        // Kiểm tra role
-        $commonRoles = array_intersect($this->arrUserRole, $leaf['roles']);
-        if (empty($commonRoles)) {
-            return [ //không có role để truy cập action này
-                'path' => $path,
-                'route_info' => $leaf,
-                'middlewares' => $middlewares,
-                'prohibited_module' => false,
-                'prohibited_role' => true
-            ];
-        }
-        return [
-            'path' => $path,
-            'route_info' => $leaf,
-            'middlewares' => $middlewares,
-            'prohibited_module' => false,
-            'prohibited_role' => false
-        ];
-    }
-    /*---------------------------------------------------------------------------------------------------------------*/
     public function matchUri(Request $request): ?array {
         $arrSegment = $request->segmentUri();
         if ($arrSegment === null) {
@@ -224,63 +144,15 @@ class ContextRouter{
         return $result;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    //$arrSegment[0] = $strModule
-    protected function __toMCAWithModule(string $strModule, array $arrSegment) {
-        $numSeg = count($arrSegment);
-        if($numSeg >= 3){
-            return [$strModule, $arrSegment[1], $arrSegment[2]]; //module-controller-action
-        }
-        //từ đây đi là khuyết thành phần, phải dùng các DEFAULT_ROUTE để xác định
-        $routes = DEFAULT_ROUTE;
-        if( !isset($routes[$strModule]) ||  //không có value [$controller => $action]
-            !ValidUtility::isStringPairMap($routes[$strModule]) || // không đúng format không có value [$controller => $action]
-            // nghĩa là $routes[$strModule] có định dạng [$controller => $action] => count($routes[$strModule]) ===1
-            count($routes[$strModule]) !==1){ // chỉ có 1 cặp giá trị duy nhất [$controller => $action]
-            //return false;
-            return null;
-        }
-        $arrCA = $routes[$strModule];
-        if($numSeg === 2){
-            $strController = $arrSegment[1];
-        }
-        else{//lấy từ default
-            $strController = array_keys($arrCA)[0];//controller
-        }
-        if(!isset($arrCA[$strController])){
-            return null;
-        }
-        else{
-            $strAction = $arrCA[$strController];
-        }
-        return [$strModule, $strController, $strAction];
-        
-    }
-    /*---------------------------------------------------------------------------------------------------------------*/
-    protected function __toMCAWithoutModule(string $strController, array $arrSegment) {
-        $routes = DEFAULT_ROUTE;
-        if(count($arrSegment) >= 2){
-            $strAction = $arrSegment[1];
-        }
-        else{//khuyết action
-            if(isset($routes[$strController]) && is_string($routes[$strController])){
-                $strAction = $routes[$strController];
-            }
-            else{
-                return null;
-            }
-        }
-        return [$strController, $strAction];
-    }
-    /*---------------------------------------------------------------------------------------------------------------*/
     protected function toMCA(array $arrSegment): ?array {
-        $module = $this->resolveModule($arrSegment);
+        $module = $this->toMCAModule($arrSegment);
 
-        $controller = $this->resolveController($module, $arrSegment);
+        $controller = $this->toMCAController($module, $arrSegment);
         if ($controller === null) {
             return null;
         }
 
-        $action = $this->resolveAction($module, $controller, $arrSegment);
+        $action = $this->toMCAAction($module, $controller, $arrSegment);
         if ($action === null) {
             return null;
         }
@@ -290,7 +162,7 @@ class ContextRouter{
             : [$module, $controller, $action];
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function resolveModule(array $arrSegment): ?string {
+    protected function toMCAModule(array $arrSegment): ?string {
         //$defaultRoute = $this->staticRouter->getDefaultRoute();
 
         if (empty($arrSegment)) {
@@ -302,7 +174,7 @@ class ContextRouter{
         
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function resolveController(?string $module, array $arrSegment): ?string {
+    protected function toMCAController(?string $module, array $arrSegment): ?string {
         //$defaultRoute = $this->staticRouter->getDefaultRoute();
         //$routes = $defaultRoute['routes'];
         if ($module !== null) {
@@ -328,7 +200,7 @@ class ContextRouter{
             : null;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function resolveAction(?string $module, string $controller, array $arrSegment): ?string {
+    protected function toMCAAction(?string $module, string $controller, array $arrSegment): ?string {
         $defaultAction = $this->staticRouter->getDefaultAction($module, $controller);
         $candidate = $module !== null
             ? ($arrSegment[2] ?? null)

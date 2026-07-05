@@ -1,5 +1,5 @@
 <?php
-/*list.m.c.php  Example
+/*config.mc.php  Example
 return [
     'module-controllers' => [
         'module1' => ['controller1', 'controller2'],

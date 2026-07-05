@@ -56,19 +56,7 @@ function loadCfgConnection() {
  */
 const ADMIN_CONTROLLER_RENAME = ['admin-login' => 'cacquak'];
 const ADMIN_ROLE_NAME = 'admin';
-//DEFAULT_ENTRY dùng trong tình huống khi url dạng khuyết cả module, controller, action
-//define('DEFAULT_ENTRY',  'compiled-materials'); //có thể là module hoặc controller
-define('DEFAULT_ENTRY',  'category'); //có thể là module hoặc controller
-const DEFAULT_ROUTE = [// module => comtroller => action hoặc comtroller => action
-    /*'compiled-materials' => ['category' => 'index'],    
-    'it-documents' => ['category' => 'index'], 
-    'pbt-framework' => ['category' => 'index'], 
-    'bud-project' => ['category' => 'index'], */
-    'category' => 'index',
-    'login' => 'index',
-    'admin-login' => 'index',
-    'client-info' => 'index'
-];
+
 
 define ('URI_CLIENT_INFO', '/client-info'); 
 //define ('URI_DATA_LAYOUT', '/data-layout?response_type=json'); 

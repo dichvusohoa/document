@@ -7,32 +7,32 @@ use Core\Utility\StringUtility;
 use Core\Utility\MathUtility;
 class StaticRouter {
     //Đầu vào - load từ file
-    protected array $arrM; //M = module name. load từ file /config/list.mc.php
-    protected array $arrMC; //C = danh sách các controller phụ thuộc vào module. load từ file /config/list.mc.php
+    protected array $arrM; //M = module name. load từ file /config/config.mc.php
+    protected array $arrMC; //C = danh sách các controller phụ thuộc vào module. load từ file /config/config.mc.php
     protected array $arrStC; //StC = standalone controller: danh sách các controller độc lập không có module
-    protected array $arrR; //R = Role, danh sách tất cả các role. load từ file /config/list.role.php
+    protected array $arrR; //R = Role, danh sách tất cả các role. load từ file /config/config.role.php
     //MC2FQCN = module-controller-FQCN (fully qualified class name). 
     //xây dựng  từ file /config/config.mc2fc.php. 
     protected array $arrMC2FQCN; 
     
     //FCQNA2F = FCQN (fully qualified class name)+ A (action) => Function
-    //load từ file /config/config.fca2f
-    protected array $arrFCQNA2F;
-    protected array $arrMiddlewareParsed; //load từ file middleware.route.php và phân tích
+    //load từ file /config/config.fc.action.php
+    protected array $arrFCAction;
+    protected array $arrMiddlewareParsed; //load từ file config.middleware.php và phân tích
 
 
     //kết quả cần tính ra  array
     // $arrMCAR: cấu trúc gốm các phần từ [strType][strModule(có thể thiếu)][strController][strAction]=>
     // ['roles' => ..., 'fqcn' =>..., 'html_schema' => ...,'function' => ..., 'method' => ...]
     // đây là cấu trúc cho tất cả mọi user
-    protected array $arrMCAR; //build từ config.mcr2a.php.  Đây là khối dữ liệu lớn nhất
+    protected array $arrMCAR; //build từ config.mc2ra.php.  Đây là khối dữ liệu lớn nhất
     protected array $arrDefaultRoute; //build từ config.default.route
     
     /*---------------------------------------------------------------------------------------------------------------*/
     function __construct(){
         $this->buildModuleController();
         $this->buildRole();
-        $this->buildFCA2F();
+        $this->buildFCAction();
         $this->buildMiddleware(); 
         $this->buildMC2FQCN();//
         $this->buildMCAR();
@@ -59,8 +59,8 @@ class StaticRouter {
         return $this->arrMC2FQCN;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    public function getFCQNA2F() {
-        return $this->arrFCQNA2F;
+    public function getFCAction() {
+        return $this->arrFCAction;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     public function getMiddleware() {
@@ -82,7 +82,7 @@ class StaticRouter {
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     public function getDefaultControllerInModule(string $module): ?string {
-        return array_key_first($this->arrDefaultRoute[$module] ?? []);
+        return array_key_first($this->arrDefaultRoute['routes'][$module] ?? []);
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     public function getDefaultStandaloneController(): ?string {
@@ -102,7 +102,7 @@ class StaticRouter {
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     protected function buildModuleController(): void {
-        $strFileName = 'list.mc.php';
+        $strFileName = 'config.mc.php';
         $arTmp = require CONFIG_PATH .'/'. $strFileName;
         $isValid = is_array($arTmp)
             && isset($arTmp['module-controllers'], $arTmp['standalone-controllers'])
@@ -153,7 +153,7 @@ class StaticRouter {
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     protected function buildRole(){
-        $strFileName = 'list.role.php';
+        $strFileName = 'config.role.php';
         $arTmp =  require CONFIG_PATH.'/'. $strFileName;
         if(!ValidUtility::isStringPairMap($arTmp)){
             throw new UnexpectedValueException("File {$strFileName} phải trả về kết quả là một mảng string"); 
@@ -161,8 +161,8 @@ class StaticRouter {
         $this->arrR = array_keys($arTmp);
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function buildFCA2F(){
-        $strFileName = 'config.fca2f.php';
+    protected function buildFCAction(){
+        $strFileName = 'config.fc.action.php';
         $arrConfig =  require CONFIG_PATH.'/'.$strFileName;
         foreach ($arrConfig as $strClass => $arrAction){
             // 1. Kiểm tra FQCN
@@ -184,12 +184,12 @@ class StaticRouter {
                 }
             }
         }
-        $this->arrFCQNA2F = $arrConfig;
+        $this->arrFCAction = $arrConfig;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     protected function buildMiddleware(){
         $this->arrMiddlewareParsed = [];
-        $strFileName = 'middleware.route.php';
+        $strFileName = 'config.middleware.php';
         $arrTmp = require CONFIG_PATH.'/'.$strFileName;
         if(!ValidUtility::isStringPairMap($arrTmp)){
             throw new UnexpectedValueException("File {$strFileName} phải trả về kết quả là một mảng string"); 
@@ -228,12 +228,22 @@ class StaticRouter {
                     "File {$strFileName}: route path phải là string không rỗng"
                 );
             }
+            if (!is_string($strFQCN) || trim($strFQCN) === '') {
+                throw new UnexpectedValueException(
+                    "File {$strFileName}: value tại route '{$strRouteMCPath}' phải là FQCN string không rỗng"
+                );
+            }
 
-            $this->validateControllerFQCN($strFQCN, $strRouteMCPath);
+            if (!class_exists($strFQCN)) {
+                throw new UnexpectedValueException(
+                    "File {$strFileName}: class '{$strFQCN}' tại route '{$strRouteMCPath}' không tồn tại"
+                );
+            }
 
-            $arrMCProduct = $this->parseMCRoutePath($strRouteMCPath);
+            $arrMC = $this->parseMCRoutePath($strRouteMCPath);
 
-            foreach ($arrMCProduct as $value) {
+            foreach ($arrMC as $value) {
+                $this->validateMC2FQCNRouteCompatibility($value, $strRouteMCPath);
                 if (count($value) === 2) {
                     [$strModule, $strController] = $value;
 
@@ -260,30 +270,50 @@ class StaticRouter {
                     continue;
                 }
 
-                throw new UnexpectedValueException(
-                    "File {$strFileName}: route path '{$strRouteMCPath}' parse ra kết quả không hợp lệ"
-                );
             }
         }
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function validateControllerFQCN(mixed $strFQCN, string $strRouteMCPath): void {
-        $strFileName = 'config.mc2fc.php';
-        if (!is_string($strFQCN) || trim($strFQCN) === '') {
-            throw new UnexpectedValueException(
-                "File {$strFileName}: value tại route '{$strRouteMCPath}' phải là FQCN string không rỗng"
-            );
+    protected function validateMC2FQCNRouteCompatibility(array $route, string $strRouteMCPath): void {
+        $strFileName = 'config.mc2ra.php';
+        $strFileName2 = 'config.mc.php';
+        if (count($route) === 2) {
+            [$module, $controller] = $route;
+
+            if (!$this->moduleExists($module)) {
+                throw new UnexpectedValueException(
+                    "File {$strFileName}: module '{$module}' trong '{$rawPath}' không tồn tại trong {$strFileName2}"
+                );
+            }
+
+            if (!$this->controllerExistsInModule($module, $controller)) {
+                throw new UnexpectedValueException(
+                    "File {$strFileName}: controller '{$controller}' không thuộc module '{$module}' trong {$strFileName2}"
+                );
+            }
+
+            return;
         }
 
-        if (!class_exists($strFQCN)) {
-            throw new UnexpectedValueException(
-                "File {$strFileName}: class '{$strFQCN}' tại route '{$strRouteMCPath}' không tồn tại"
-            );
+        if (count($route) === 1) {
+            [$controller] = $route;
+
+            if (!$this->standaloneControllerExists($controller)) {
+                throw new UnexpectedValueException(
+                    "File {$strFileName}: standalone controller '{$controller}' không tồn tại trong {$strFileName2}"
+                );
+            }
+
+            return;
         }
+
+        throw new UnexpectedValueException(
+            "File {$strFileName}: route '{$strRouteMCPath}' parse ra cấu trúc không hợp lệ"
+        );
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     protected function buildMCAR(){
-        $strFileName = 'config.mcr2a.php';
+        $strFileName = 'config.mc2ra.php';
         $arrTmp = [];
         $arrData = require CONFIG_PATH . '/' . $strFileName;
         if (!is_array($arrData)) {
@@ -370,23 +400,23 @@ class StaticRouter {
         array $arrExprRA,
         array $arrNode //cái này là đã vào sâu tới mức controller rồi 
     ): array {
-
+        $strFileName = 'config.fc.action.php';
         $arrPairRA = $this->parseExprRAList($strFQCN, $arrExprRA);
         foreach ($arrPairRA as [$strRole, $strAction]) {
-            //không cần kiểm tra !isset($this->arrFCQNA2F[$strFQCN]) vì đã kiểm tra trong
+            //không cần kiểm tra !isset($this->arrFCAction[$strFQCN]) vì đã kiểm tra trong
             //$arrPairRA = $this->parseExprRAList($strFQCN, $arrExprRA) rồi
-            if (!isset($this->arrFCQNA2F[$strFQCN][$strAction])) {
+            if (!isset($this->arrFCAction[$strFQCN][$strAction])) {
                 throw new \RuntimeException(
-                    "File config.fca2f, class {$strFQCN}, action '{$strAction}' không tồn tại"
+                    "File {$strFileName}: class {$strFQCN}, action '{$strAction}' không tồn tại"
                 );
             }
-            $arrActionDetail = $this->arrFCQNA2F[$strFQCN][$strAction];
+            $arrActionDetail = $this->arrFCAction[$strFQCN][$strAction];
 
             // Khởi tạo leaf nếu chưa tồn tại
             if (!isset($arrNode[$strAction])) {
                 if (empty($arrActionDetail['method'])) {
                     throw new InvalidArgumentException(
-                        "File config.fca2f, class {$strFQCN}, action '{$strAction}' thiếu khai báo method"
+                        "File {$strFileName}: class {$strFQCN}, action '{$strAction}' thiếu khai báo method"
                     );
                 }
                 $arrNode[$strAction] = [
@@ -412,10 +442,11 @@ class StaticRouter {
     //$strFQCN có ý nghĩa là class name chứa các action trong $arrExpRA
     protected function parseExprRAList(string $strFQCN, array $arrExprRA): array{
         //cần $allAction để cung cấp cho phân tích biểu thức
-        if(!isset($this->arrFCQNA2F[$strFQCN])){
-            throw new \RuntimeException("File config.fca2f không tìm thấy class: {$strFQCN}");
+        $strFileName = 'config.fc.action.php';
+        if(!isset($this->arrFCAction[$strFQCN])){
+            throw new \RuntimeException("File {$strFileName} không tìm thấy class {$strFQCN}");
         }
-        $allAction = array_keys($this->arrFCQNA2F[$strFQCN]);
+        $allAction = array_keys($this->arrFCAction[$strFQCN]);
         $arrTmp = [];
         foreach($arrExprRA as $strExprR => $strExprA){
             //$strExprR và $strExprA đều có thể là expression
@@ -517,7 +548,7 @@ class StaticRouter {
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     protected function parseControllerExprForModule(string $strControllerExpr, string $strModule): array {
-        $strFileName = 'list.mc.php';
+        $strFileName = 'config.mc.php';
         if (!isset($this->arrMC[$strModule])) {
             throw new InvalidArgumentException(
                 "File {$strFileName}: module '{$strModule}' không tồn tại"
@@ -541,7 +572,7 @@ class StaticRouter {
     /*---------------------------------------------------------------------------------------------------------------*/
     protected function parseStandaloneControllerRoutePath(string $strControllerExpr): array {
         // $controllers = $this->parseStandaloneControllerExpr($strControllerExpr);
-        $strFileName = 'list.mc.php';
+        $strFileName = 'config.mc.php';
         $arrParse = RoutePattern::parse(
             $strControllerExpr,
             $this->arrStC,
@@ -716,7 +747,7 @@ class StaticRouter {
             'arrStC' => $this->arrStC,
             'arrR' => $this->arrR,
             'arrMC2FQCN' => $this->arrMC2FQCN,
-            'arrFCQNA2F' => $this->arrFCQNA2F,
+            'arrFCAction' => $this->arrFCAction,
             'arrMiddlewareParsed' => $this->arrMiddlewareParsed,
             'arrMCAR' => $this->arrMCAR,
             'arrDefaultRoute' => $this->arrDefaultRoute

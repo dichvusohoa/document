@@ -1,9 +1,8 @@
 <?php
-/*config.fca2f.php
-fca2f meaning: fully qualified class name - FQCN + action To function
+/*config.fc.action.php
+fc.action.php meaning: fully qualified class name - FQCN 
  * fc = fully qualified class name - FQCN
- * a = Action
- * f = Function
+
  
 Chú ý FQCN =>[
         'action' => ['function' => 'functionName', 'method' => 'methodName']

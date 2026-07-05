@@ -1,5 +1,5 @@
 <?php
-/*list.role.php liệt kê tất các các role. Trong code ta sử dụng phần key của array
+/*config.role.php liệt kê tất các các role. Trong code ta sử dụng phần key của array
 ứng dụng khi dựng dữ liệu định tuyến thì dùng nó để valid các giá trị ra ngoài phạm vi
  * role đã định nghĩa trước
   */

@@ -1328,3 +1328,10 @@ Stack trace:
 [03-Jul-2026 16:10:04 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
 [04-Jul-2026 22:25:01 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
 [04-Jul-2026 22:25:06 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[05-Jul-2026 15:54:36 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[05-Jul-2026 15:54:39 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[05-Jul-2026 15:57:10 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[05-Jul-2026 16:45:39 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[05-Jul-2026 20:42:39 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[05-Jul-2026 20:42:39 Asia/Saigon] Xdebug: [Step Debug] Time-out connecting to debugging client, waited: 200 ms. Tried: localhost:9003 (through xdebug.client_host/xdebug.client_port) :-(
+[05-Jul-2026 20:42:41 Asia/Saigon] Xdebug: [Step Debug] Time-out connecting to debugging client, waited: 200 ms. Tried: localhost:9003 (through xdebug.client_host/xdebug.client_port) :-(

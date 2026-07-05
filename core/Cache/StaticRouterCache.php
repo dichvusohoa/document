@@ -11,13 +11,13 @@ class StaticRouterCache extends Cache
             CACHE_PATH . '/static_router.php',
             3600,
             [
-                CONFIG_PATH.'/list.module.php',
-                CONFIG_PATH.'/list.role.php',
-                CONFIG_PATH.'/config.fca2f.php',
+                CONFIG_PATH.'/config.mc.php',
+                CONFIG_PATH.'/config.role.php',
+                CONFIG_PATH.'/config.fc.action.php',
                 CONFIG_PATH.'/config.mc2fc.php',
-                CONFIG_PATH.'/config.api.mcr2a.php',
-                CONFIG_PATH.'/config.html.mcr2a.php',
-                CONFIG_PATH.'/middleware.route.php',
+                CONFIG_PATH.'/config.mc2ra.php',
+                CONFIG_PATH.'/config.default.route.php',
+                CONFIG_PATH.'/config.middleware.php',
             ],
             StaticRouter::class
         );
