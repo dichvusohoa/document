@@ -28,9 +28,11 @@ abstract class BaseHtmlPageController extends BaseController{
         $this->htmlSchema->buildSchemaDetail($arrUiFactor);
         $this->buildDataFragments();
         //các variable cố định phải truyền cho việc render page
-        $arrVar = ['desc_fragment'=>$this->htmlSchema->getSchema(), 
+       /* $arrVar = ['desc_fragment'=>$this->htmlSchema->getSchema(), 
             'data_fragment' => $this->arrDataFrag, 
-            'ui_context' => $this->htmlSchema->getUiContext()];
+            'ui_context' => $this->htmlSchema->getUiContext()];*/
+        $arrVar = ['desc_fragment'=>$this->htmlSchema->getSchema(), 
+            'data_fragment' => $this->arrDataFrag];
         
         Response::sendHtmlFile($this->htmlSchema->getLayoutFilePath(), false, $arrVar);
     }

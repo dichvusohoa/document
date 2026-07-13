@@ -70,7 +70,7 @@ class ContextRouter{
                 'prohibited_role' => null
             ];
         }
-        $leaf = self::getValueAt($this->staticRouter->getMCAR(), $path);
+        $leaf = $this->staticRouter->getRouteInfo($path);
         /*Tình huống này là để đề phòng tăng cường, nhưng có lẽ khó xảy ra vì nếu các url
         sai thì có lẽ hầu như rơi vào tình huống trên tức là path trả về null rồi. 
         Vẫn giữ đoạn code dưới đây để đề phòng
@@ -118,30 +118,14 @@ class ContextRouter{
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     protected function attachMiddlewares(array $arrMCA, array $leaf): array {
-        $arrSegment = [
-            'method'     => $leaf['method'],
-            'role'       => array_intersect($this->arrUserRole, $leaf['roles'])//có thể là nhiều role
-        ];
+        $result = MCARMeInfo::buildEmpty();
+        [$result['role'], $result['method']] = [array_values(array_intersect($this->arrUserRole, $leaf['roles'])), $leaf['method']];
         if (count($arrMCA) === 3) { // module-controller-action
-           // $arrSegment['fctype']     = $arrMCA[0];
-            $arrSegment['module']     = $arrMCA[0];
-            $arrSegment['controller'] = $arrMCA[1];
-            $arrSegment['action']     = $arrMCA[2];
+            [$result['$module'], $result['controller'], $result['$action']] = $arrMCA;
         } elseif (count($arrMCA) === 2) { // controller-action only
-            //$arrSegment['fctype']     = $arrMCA[0];
-            $arrSegment['module']     = null;
-            $arrSegment['controller'] = $arrMCA[0];
-            $arrSegment['action']     = $arrMCA[1];
+            [$result['module'], $result['controller'], $result['action']] = [null, $arrMCA[0], $arrMCA[1]];
         }
-
-        $result = [];
-        foreach ($this->staticRouter->getMiddleware() as $element) {
-            if (RoutePatternList::match($element['expr'], $arrSegment)) {
-                $result[] = $element['fqcn'];
-            }
-        }
-
-        return $result;
+        return $this->staticRouter->matchMiddlewares($result);
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     protected function toMCA(array $arrSegment): ?array {
@@ -163,32 +147,28 @@ class ContextRouter{
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     protected function toMCAModule(array $arrSegment): ?string {
-        //$defaultRoute = $this->staticRouter->getDefaultRoute();
-
         if (empty($arrSegment)) {
             return $this->staticRouter->getDefaultModule();
         }
-
         $first = $arrSegment[0];
         return $this->staticRouter->moduleExists($first) ? $first: null;
         
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     protected function toMCAController(?string $module, array $arrSegment): ?string {
-        //$defaultRoute = $this->staticRouter->getDefaultRoute();
-        //$routes = $defaultRoute['routes'];
         if ($module !== null) {
             if (isset($arrSegment[1])) {
                 return $this->staticRouter->controllerExistsInModule($module, $arrSegment[1])
                     ? $arrSegment[1]
-                    : null;
+                    //: null; chưa thể khẳng định là $arrSegment[1] là controller sai hay là other param
+                    :$this->staticRouter->getDefaultControllerInModule($module);    
             }
             else {
                 return $this->staticRouter->getDefaultControllerInModule($module);
             }
             
         }
-
+        //từ đây trở đi là khuyết module
         $controller = $arrSegment[0] ?? null;
 
         if ($controller === null) {
@@ -209,33 +189,13 @@ class ContextRouter{
         if ($candidate === null) {
             return $defaultAction;
         }
-
+        //từ đây là url có action
         if ($this->staticRouter->actionExists($module, $controller, $candidate)) {
             return $candidate;
         }
-
+        /*tới đây chưa thể khẳng định $candidate là action sai hay là đó là $candidate là other-param
+         */
         return $defaultAction;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected static function getValueAt(array $data, array $path): mixed {
-        foreach ($path as $key) {
-            if (!is_array($data) || !array_key_exists($key, $data)) {
-                return null;
-            }
-            $data = $data[$key];
-        }
-        return $data;
-    }
-    /*---------------------------------------------------------------------------------------------------------------*/
-    protected static function setValueAt(array &$data, array $path, array $value): void{
-        $ref = &$data;
-        foreach ($path as $key) {
-            if (!isset($ref[$key]) || !is_array($ref[$key])) {
-                $ref[$key] = [];
-            }
-            $ref = &$ref[$key];
-        }
-
-        $ref = $value;
-    }
 }

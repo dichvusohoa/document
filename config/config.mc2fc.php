@@ -23,7 +23,6 @@
  * 
  
   
-không sửa ra [response_type:xx][module:yy][controller:zz] vì lý do có html_schema, dùng thế này tiện hơn
   */
 return [
     //'[module:*]/category' =>  \App\Controller\CategoryController::class,

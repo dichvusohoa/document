@@ -4,7 +4,7 @@ use \InvalidArgumentException;
 class RoutePatternList {
     public static function buildEmpty(){ 
         
-        //return ['fctype'=> null,'module'=> null, 'controller' => null, 'action' => null, 'method' => null ,'role' => null];
+        //return ['module'=> null, 'controller' => null, 'action' => null, 'method' => null ,'role' => null];
         return ['module'=> null, 'controller' => null, 'action' => null, 'method' => null ,'role' => null];
     }
     public static function buildFromRoutePath(string $strRoutePath){ 
@@ -28,8 +28,13 @@ class RoutePatternList {
     public static function match(array $arrSegmentExp, array $arrSegment): bool {
         $isMatchedAtLeastOnce = false;
         foreach($arrSegmentExp as $strType => $strExpr){
-            if($strExpr === null || $arrSegment[$strType] === null){
+            if($strExpr === null){ 
+                // $arrSegmentExp không yêu cầu với trường hợp $strType
                 continue;
+            }
+            if($arrSegment[$strType] === null){ 
+                // $arrSegmentExp có yêu cầu với trường hợp $strType nhưng $arrSegment không xác định được arrSegment [$strType] 
+                return false;
             }
             if(RoutePattern::match($strType, $strExpr, $arrSegment[$strType])){
                 $isMatchedAtLeastOnce = true;

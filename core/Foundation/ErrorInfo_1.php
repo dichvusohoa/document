@@ -8,13 +8,37 @@ class ErrorInfo{
         return 
         [    
             'status' => $status,
-            'data' => ErrorInfoData::buildEmpty($message),
+            'data' => [
+                'message'   => $message,
+                'code'      => null,
+                'type'      => null, //thường là class name
+                'file'      => null,
+                'line'      => null,
+                'trace'     => null,
+                'headers'   => null
+            ],
             'extra' => null
         ];
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     public static function isValid(mixed $arrData): bool {
-        return Response::isValid($arrData) && ErrorInfoData::isValid($arrData['data']);
+        return is_array($arrData)
+            && isset($arrData['status'])
+            && isset($arrData['data']) && is_array($arrData['data'])
+            && isset($arrData['data']['message']) && is_string($arrData['data']['message'])
+            && array_key_exists('code',$arrData['data']) 
+            && ($arrData['data']['code'] === null || is_int($arrData['data']['code']) || is_string($arrData['data']['code']) )     
+            && array_key_exists('type', $arrData['data']) //class name nếu có
+            && ($arrData['data']['type'] === null || is_string($arrData['data']['type']) )         
+            && array_key_exists('file', $arrData['data'])
+            && ($arrData['data']['file'] === null || is_string($arrData['data']['file']))    
+            && array_key_exists('line', $arrData['data'])
+            && ($arrData['data']['line'] === null || is_int($arrData['data']['line']) )        
+            && array_key_exists('trace', $arrData['data'])
+            && ($arrData['data']['trace'] === null || is_array($arrData['data']['trace']) )
+            && array_key_exists('headers', $arrData['data'])
+            && ($arrData['data']['headers'] === null || is_array($arrData['data']['headers']) );    
+           
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     /**
@@ -87,9 +111,35 @@ class ErrorInfo{
         if(!self::isValid($arrErr) || !APP_DEBUG ){
             return '<h1>500 - Lỗi hệ thống</h1>';
         }
-        $type = isset($arrErr['data']['type']) ? $arrErr['data']['type'] : '';
-        return "<h1>500 - {$type}</h1>"
-        . ErrorInfoData::renderHtml($arrErr['data']);
+        $arr = $arrErr["data"];
+        $type = isset($arr['type']) ? $arr['type'] : '';//thường là class name có lỗi
+        $code = isset($arr['code']) ? $arr['code'] : ''; //quan trọng trong PDOExecption
+        $strFile = isset($arr['file']) ? $arr['file'] : '(n/a)';
+        $line = isset($arr['line']) ? $arr['line'] : '';
+        /*ENT_QUOTES có nghĩa là chuyển đổi cả dấu nháy đơn ' và dấu nháy kép " thành thực thể HTML tương ứng:*/
+        $strMessage = isset($arr['message']) ? htmlspecialchars((string)$arr['message'], ENT_QUOTES, 'UTF-8') : 'Unknown error';
+        
+
+        $strTraceHtml = '';
+        if (!empty($arr['trace']) && is_array($arr['trace'])) {
+            $arrTraceLines = array_map(function ($line) {
+                return htmlspecialchars($line, ENT_QUOTES, 'UTF-8');
+            }, $arr['trace']);
+            /*dùng thẻ pre để giữ đúng định dạng*/
+            $strTraceHtml = "<pre style=\"background:#eee;padding:1em;border:1px solid #ccc;\">" .
+                         implode("\n", $arrTraceLines) .
+                         "</pre>";
+        }
+
+        return <<<HTML
+                <h1>500 - {$type}</h1>
+                <strong>Loại lỗi:</strong> {$type}<br>
+                <strong>Mã lỗi:</strong> {$code}<br>
+                <strong>Thông điệp:</strong> {$strMessage}<br>
+                <strong>Vị trí:</strong> {$strFile} : {$line}<br>
+                {$strTraceHtml}
+            
+        HTML;  
     }
     /*---------------------------------------------------------------------------------------------------------------*/
 }

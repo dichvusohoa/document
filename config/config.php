@@ -58,7 +58,7 @@ const ADMIN_CONTROLLER_RENAME = ['admin-login' => 'cacquak'];
 const ADMIN_ROLE_NAME = 'admin';
 
 
-define ('URI_CLIENT_INFO', '/client-info'); 
+define ('URI_CLIENT_INFO', '/client-info?response_type=json'); 
 //define ('URI_DATA_LAYOUT', '/data-layout?response_type=json'); 
 //define('CSS_SCRIPT_VERSION','2024.12.21.00.20'); //viết theo đúng format yyyy.MM.dd.hh.mm  (năm tháng ngày giờ phút) hoặc yyyyMMddhhmmss năm tháng ngày giờ phút giây)
 

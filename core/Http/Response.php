@@ -32,7 +32,11 @@ class Response {
     
     /*---------------------------------------------------------------------------------------------------------------*/
     public static function isValid(mixed $response): bool {
-        return is_array($response) && isset($response["status"]) && is_string($response["status"]) && array_key_exists("data", $response);
+        //return is_array($response) && isset($response["status"]) && is_string($response["status"]) && array_key_exists("data", $response);
+        return is_array($response) && 
+        isset($response["status"]) && is_string($response["status"]) && 
+        array_key_exists("data", $response)&&
+        array_key_exists("extra", $response);       
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     public static function isResponseError(mixed $response): bool {
@@ -68,7 +72,6 @@ class Response {
     /*---------------------------------------------------------------------------------------------------------------*/
     public static function sendHtmlFile(string $strFilePath, bool $isToBuffer = false, ?array $vars = null) {
         if (!file_exists($strFilePath)) {
-            //throw new Exception("Html file not found: $strFilePath");
             throw new \Exception("Html file not found: $strFilePath");
         }
         // “bơm” mảng thành các biến cục bộ trong phạm vi include

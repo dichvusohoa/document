@@ -79,7 +79,7 @@ class ValidUtility{
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     /*$obj có dạng ['a' => ['x','y'], 'b'=>['z']]*/
-    public static function isStringListMap(mixed $obj): bool {
+    public static function isStringListMap(mixed $obj, bool $strict = true): bool {
         if (!is_array($obj)) {
             return false;
         }
@@ -88,12 +88,14 @@ class ValidUtility{
             if (!is_string($key)) {
                 return false;
             }
-
-            if (!self::isStringList($value)) {
+            $rule =  self::isStringList($value);
+            if(!$strict){
+                $rule = $rule || is_string($value);
+            }
+            if (!$rule) {
                 return false;
             }
         }
-
         return true;
     }
     /*---------------------------------------------------------------------------------------------------------------*/

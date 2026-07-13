@@ -7,6 +7,7 @@ use Core\Http\Response;
 use Core\Http\HttpException;
 
 class ErrorHandler {
+    protected static bool $convertNotice = false;
     /*---------------------------------------------------------------------------------------------------------------*/
     protected static function getHandleErrorFilePath($filename){
         $strCustomPath = APP_PATH.'resources'.DIRECTORY_SEPARATOR.'views'.DIRECTORY_SEPARATOR.'errors'. DIRECTORY_SEPARATOR.$filename;
@@ -45,58 +46,44 @@ class ErrorHandler {
         return $resStatus;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected static function toErrorInfoData(Throwable $e): array {
-        $arr = ErrorInfoData::buildEmpty();
-
-        $arr['message'] = $e->getMessage();
-        $arr['code']    = $e->getCode();
-        $arr['type']    = get_class($e);
-        $arr['file']    = $e->getFile();
-        $arr['line']    = $e->getLine();
-        $arr['trace']   = explode("\n", $e->getTraceAsString());
-
-        if ($e instanceof HttpException) {
-            $arr['headers'] = $e->getHeaders();
-        }
-
-        if ($e->getPrevious() !== null) {
-            $arr['previous'] = self::toErrorInfoData($e->getPrevious());
-        }
-
-        return $arr;
-    }
-    /*---------------------------------------------------------------------------------------------------------------*/
     /*$e là array là do handleShutdown truyền vào. khi đó $e thường chỉ có 3 field
     message,file, line*/
-    public static function toResponseFormat(Throwable|array $e): array {
-        $serverStatus = self::toResponseStatus($e);
-        $httpStatus   = self::toHttpStatus($e);
+    public static function toResponseFormat(Throwable|array $e){
+        $serverStatus =  self::toResponseStatus($e);
+        $httpStatus   =  self::toHttpStatus($e);
         $resp = ErrorInfo::buildEmpty();
-        $resp['status'] = $serverStatus;
-        $resp['extra']  = $httpStatus;
-        if ($e instanceof Throwable) {
-            $resp['data'] = self::toErrorInfoData($e);
-        } elseif (is_array($e)) {
+        if($e instanceof Throwable){
+            $resp['data']['message'] = $e->getMessage();
+            $resp['data']['code']    = $e->getCode();
+            $resp['data']['type']  = get_class($e);
+            $resp['data']['file']  = $e->getFile();
+            $resp['data']['line']  = $e->getLine();
+            //$resp['data']['trace'] = explode('\n', $e->getTraceAsString());
+            $resp['data']['trace'] = explode("\n", $e->getTraceAsString());
+            if($e instanceof HttpException){
+                $resp['data']['headers'] = $e->getHeaders();
+            }
+        }
+        elseif (is_array($e)) {
+            /*Đề phòng tương thích với lịch sử của PHP thôi. Đã test thử trên PHP 8.0
+            và thấy rằng khi lỗi xảy ra thì đa số là class instanceof Throwable nên
+             nhánh này sẽ rất ít xảy ra nữa
+             */
             $resp['data']['message'] = $e['message'] ?? 'Unknown error';
-            $resp['data']['file']    = $e['file'] ?? null;
-            $resp['data']['line']    = $e['line'] ?? null;
             $resp['data']['code']    = null;
             $resp['data']['type']    = self::phpErrorTypeToString($e['type'] ?? null);
+            $resp['data']['file']    = $e['file'] ?? null;
+            $resp['data']['line']    = $e['line'] ?? null;
+            
         }
+        $resp['status'] = $serverStatus;
+        $resp['extra'] = $httpStatus;
         return $resp;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected static function phpErrorTypeToString(?int $type): string {    
-        return match ($type) {
-            E_ERROR         => 'E_ERROR',
-            E_PARSE         => 'E_PARSE',
-            E_CORE_ERROR    => 'E_CORE_ERROR',
-            E_COMPILE_ERROR => 'E_COMPILE_ERROR',
-            default         => 'PHP_FATAL_ERROR',
-        };
-    }
-    /*---------------------------------------------------------------------------------------------------------------*/
-    public static function register(): void{
+    
+    public static function register(bool $convertNotice = false): void{
+        self::$convertNotice = $convertNotice;
         // Chuyển warning, recoverable error... thành exception
         set_error_handler([self::class, 'handleError']);
         // Bắt mọi throwable chưa catch
@@ -110,6 +97,12 @@ class ErrorHandler {
         if (!(error_reporting() & $errno)) {
             return false;
         }
+        // Nếu là Notice nhưng không muốn chuyển
+        if (!$convertNotice = self::$convertNotice) {
+            if (in_array($errno, [E_NOTICE, E_USER_NOTICE])) {
+                return false;
+            }
+        }
         throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
     }
     /*---------------------------------------------------------------------------------------------------------------*/
@@ -118,11 +111,8 @@ class ErrorHandler {
         self::handleErrorResponse($errInfo);
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    /*
-    * Trên PHP 8.x, đa số lỗi runtime đã là Throwable.
-    * Tuy nhiên vẫn giữ shutdown handler để bắt một số fatal error
-    * không đi qua set_error_handler/set_exception_handler.
-    */
+    /*hàm này là để đề phòng tương thích với lịch sử của PHP thôi. Đã test thử trên PHP 8.0
+    và thấy rằng khi lỗi xảy ra thì đều là dạng class instanceof Throwable */
     public static function handleShutdown(): void {
         $error = error_get_last();
         //$error chỉ có các field type, message, file, line
@@ -152,8 +142,9 @@ class ErrorHandler {
         http_response_code($httpStatus);
         if($strFullPathFileName !== ''){
             $errInfo = $respErr; //sẽ dùng trong file include
-            //if($respErr['data']['headers']
-            //){
+            //báo cho client biết có lỗi bằng http_response_code
+            //http_response_code($httpStatus);
+            //if($respErr['data']['headers']){
             if (!empty($respErr['data']['headers']) && is_array($respErr['data']['headers'])) {
                 foreach ($respErr['data']['headers'] as $k => $v) {
                     header("$k: $v");

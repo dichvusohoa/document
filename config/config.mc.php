@@ -18,7 +18,8 @@ return [
     'standalone-controllers' => [
         'category',
         'document',
-        'client-info'
+        'client-info',
+        'login'
     ],
 ];
         

@@ -17,7 +17,7 @@ class CategoryController extends BaseController{
             return [$arrUser['login'], $arrUser['password'], $isAdminLogin, $strToken];
         }
     }
-    public function login(string $strUser, string $strPassword, bool $isAdminLogin = false, ?string $strToken = null){
+    public function index(){
         $resp = $this->authService->login($strUser, $strPassword, $isAdminLogin, $strToken);
         return $resp;
     }

@@ -1,5 +1,6 @@
 <?php
 namespace Core\Middleware;
+use UnexpectedValueException;
 use Psr\Container\ContainerInterface;
 use Core\Utility\ValidUtility;
 class MiddlewareFactory {

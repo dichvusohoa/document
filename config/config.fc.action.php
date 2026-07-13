@@ -13,7 +13,7 @@ Chú ý FQCN =>[
   */
 return[   
     \App\Controller\Category\CategoryPageController::class => [   
-        'index' =>['method'=>'get'],
+        'index' =>['function'=>'renderPage','method'=>'get'],
         'update' =>['method'=>'post']
     ],
     \App\Controller\Document\DocumentPageController::class =>[   

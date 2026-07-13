@@ -97,7 +97,10 @@ abstract class BaseHtmlPageSchema {
     public function buildSchemaDetail(?array $arrUiFactor = null) {
         /*biến đổi một chút arrSchema tại cac fragment loại link view. Kết nối các link view phụ này vào và tạo thông tin
         $this->arrSchema[$strFragment]['render_view']*/
-        $this->arrUiContext = is_array($arrUiFactor) ? array_merge($this->arrUiContext, $arrUiFactor) : $arrUiDefault; 
+   
+        if(is_array($arrUiFactor)){
+            $this->arrUiContext = array_merge($this->arrUiContext, $arrUiFactor);
+        }
         foreach ($this->arrSchema as $strFragment => $value) {
             if($this->arrSchema[$strFragment]['type'] === 'link_view'){
                 $this->arrSchema[$strFragment]['render_view'] = Response::sendHtmlFile($this->arrSchema[$strFragment]['path_view'],true,$this->arrUiContext);

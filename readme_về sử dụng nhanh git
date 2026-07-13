@@ -12,3 +12,7 @@ git commit -m "router"
 git push
 
 ví dụ git add Core/Routing/StaticRouter.php
+
+git add .
+git commit -m "StaticRouter"
+git push
