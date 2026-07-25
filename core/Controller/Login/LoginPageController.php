@@ -19,19 +19,7 @@ class LoginPageController extends BaseHtmlPageController{
     }
     
     protected function resolveParams(string $strFunctName): array{
-        if($strFunctName === 'renderPage'){
-            $isAdminLogin = LoginHelper::isAdminLoginRequest($this->requestAuthContext);
-            $needTurnstile = $this->loginAttemptService->needTurnstile($isAdminLogin);
-            /*không được viết return  ['needTurnstile' => $needTurnstile] mà phải viết là
-            return  [['needTurnstile' => $needTurnstile]]
-            vì BaseHtmlPageController->renderPage(?array $arrOptionVar = null) sẽ 
-            không nhận dược tham số truyền vào dạng array */
-            return  [['needTurnstile' => $needTurnstile]];
-            
-        }
-        else{//các hàm do $apiController chạy
-            return [];
-        }
+        return [];
     }
     protected function dataAtFragment(string $strFragmentName):array{
         switch ($strFragmentName){
@@ -58,7 +46,14 @@ class LoginPageController extends BaseHtmlPageController{
             case 'login':    
                 return ['status'=> Response::SERVER_OK_STATUS,'data'=> null, 'extra'=>null];
         }
-    }    
+    } 
+    protected function uiContextAtFragment(string $strFragmentName): array {
+        if($strFragmentName === 'login'){
+            $isAdminLogin = LoginHelper::isAdminLoginRequest($this->requestAuthContext);
+            $needTurnstile = $this->loginAttemptService->needTurnstile($isAdminLogin);
+            return ['needTurnstile' => $needTurnstile];
+        }    
+    }
     public function login() {
         $arrResp = $this->apiController->doAction('login');
         if($arrResp['status'] === Response::SERVER_AUTHENTICATED_STATUS){

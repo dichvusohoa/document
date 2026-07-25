@@ -1,6 +1,25 @@
 <?php
 namespace Core\Utility;
 class HtmlUtility{
+    public static function escape(mixed $value): string{
+        return htmlspecialchars(
+            (string) $value,
+            ENT_QUOTES | ENT_SUBSTITUTE,
+            'UTF-8'
+        );
+    }
+    public static function toEmbeddedJson(mixed $data): string{
+        return json_encode(
+            $data,
+            JSON_UNESCAPED_UNICODE
+            | JSON_UNESCAPED_SLASHES
+            | JSON_HEX_TAG
+            | JSON_HEX_AMP
+            | JSON_HEX_APOS
+            | JSON_HEX_QUOT
+            | JSON_THROW_ON_ERROR
+        );
+    }
     static public function toCssLinks(string $strPublicPath, string|array $arrCss): string {
         if (!is_array($arrCss)){
             $arrCss = [$arrCss];//chuyển 1 string thành mảng 1 phần tử
@@ -22,7 +41,7 @@ class HtmlUtility{
                 $href = self::appendAssetVersion($strPublicPath, $href);
             }
             // Build attributes
-            $attrString = self::buildHtmlAttributes($attrs);
+            $attrString = self::toHtmlAttributeString($attrs);
             $output .= "<link rel='stylesheet' href='{$href}' type='text/css'{$attrString} />\n";
         }
         return $output;
@@ -88,7 +107,7 @@ class HtmlUtility{
             }
 
             // ---------- Normal script ----------
-            $attrString = self::buildHtmlAttributes($attrs);
+            $attrString = self::toHtmlAttributeString($attrs);
             $output .= "<script src=\"{$src}\"{$attrString}></script>\n";
         }
 
@@ -150,7 +169,7 @@ class HtmlUtility{
         
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected static function buildHtmlAttributes(array $attrs): string {
+    public static function toHtmlAttributeString(array $attrs): string {
         $html = '';
         foreach ($attrs as $key => $value) {
             // Boolean attribute: defer, async, nomodule...

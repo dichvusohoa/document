@@ -2,6 +2,7 @@
 namespace Core\User;
 use Core\Http\Response;
 use Core\Database\DbService;
+use RuntimeException;
 /*prefix usrSrv hoặc usrService*/
 class UserService {
     protected DbService $dbService;
@@ -11,7 +12,7 @@ class UserService {
     function getUserByToken(string $strLeftToken): array{
         $arrResp = $this->dbService->fetchOne("lib_spGetUserByToken",["leftToken" => $strLeftToken]);
         if(Response::isResponseError($arrResp)){
-            throw new \RuntimeException('Database error while getting user by token');
+            throw new RuntimeException('Lỗi database trong khi lấy user by token');
         }
         if( Response::isResponseEmpty($arrResp) ){
             return $arrResp;

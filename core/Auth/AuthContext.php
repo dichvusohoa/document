@@ -15,39 +15,6 @@ class AuthContext {
         //$this->arrAuth = [];
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    public function __getAuthInfo(): array{
-        $arrAuthInfo = $this->getAuthInfoBySession();//SERVER_UNAUTHENTICATED_STATUS hoặc  SERVER_AUTHENTICATED_STATUS
-        if($arrAuthInfo['data'] === null){
-            //xác thực bằng session thất bại phải dùng cookie
-            //SERVER_UNAUTHENTICATED_STATUS, SERVER_AUTHENTICATED_STATUS, SERVER_DB_ERR_STATUS
-            $arrAuthInfo = $this->getAuthInfoByCookie();
-        }
-        /*đến bước cuối cùng này thì đánh giá tổng thể
-        và modify lại dữ liệu để thuận tiện cho việc xử lý bên ngoài  function
-        $auth["status"] có 3 khả năng:
-         *  SERVER_DB_ERR_STATUS: do query dữ liệu khi check cookie bị lỗi
-         *  SERVER_UNAUTHENTICATED_STATUS: 
-         *  do 
-         *      - không có token hoặc lỗi lưu trữ token trong cookie
-         *      - query dữ liệu ra empty hoặc có dữ liệu nhưng format không chuẩn
-         *  SERVER_AUTHENTICATED_STATUS
-         */
-        //kiểm tra và chuyển hướng kết thúc nếu phải login hoặc xảy ra Response::SERVER_DB_ERR_STATUS
-       // $arrAuthInfo['status'] = Response::SERVER_DB_ERR_STATUS;
-        Response::checkAndDispatch($arrAuthInfo,false);//
-        if(AuthInfo::isUnauthenticated($arrAuthInfo) && $arrAuthInfo["data"] === null){
-            //bổ sung các thông tin về guest user cho $auth["data"]
-            $arrAuthInfo["data"] = UserInfo::buildGuest();
-        }
-      
-        
-        //tới đây là trạng thái Response::SERVER_AUTHENTICATED_STATUS hoặc SERVER_UNAUTHENTICATED_STATUS
-        $arrAuthInfo['data']['last_activity'] = time(); 
-        Session::set('auth', $arrAuthInfo['data']);//cập nhật lại session
-        //$this->arrAuth = $auth;
-        return $arrAuthInfo;
-    }
-    /*---------------------------------------------------------------------------------------------------------------*/
     public function getAuthInfo(): array{
         $arrAuthInfo = $this->getAuthInfoBySession();//SERVER_UNAUTHENTICATED_STATUS hoặc  SERVER_AUTHENTICATED_STATUS
         if($arrAuthInfo['data'] === null){
@@ -113,7 +80,6 @@ class AuthContext {
      * resp["status"] === 
      *  Response::SERVER_AUTHENTICATED_STATUS || 
      *  Response::SERVER_UNAUTHENTICATED_STATUS || 
-     *  Response::SERVER_DB_ERR_STATUS
      */
     protected function getAuthInfoByCookie(): array {
         $strToken = Cookie::get(['auth','token']);

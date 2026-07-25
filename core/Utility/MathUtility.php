@@ -1,7 +1,50 @@
 <?php
 namespace Core\Utility;
-use \InvalidArgumentException;
+use InvalidArgumentException;
 class MathUtility{
+    public static function toNonNegativeInt(mixed $value): int{
+        if (is_int($value)) {
+            if ($value < 0) {
+                throw new InvalidArgumentException(
+                    'Giá trị phải là số nguyên không âm.'
+                );
+            }
+
+            return $value;
+        }
+
+        if (!is_string($value)) {
+            throw new InvalidArgumentException(
+                'Giá trị phải là số nguyên không âm.'
+            );
+        }
+
+        $value = trim($value);
+
+        if ($value === '' || !ctype_digit($value)) {
+            throw new InvalidArgumentException(
+                'Giá trị phải là số nguyên không âm.'
+            );
+        }
+
+        $result = filter_var(
+            $value,
+            FILTER_VALIDATE_INT,
+            [
+                'options' => [
+                    'min_range' => 0
+                ]
+            ]
+        );
+
+        if ($result === false) {
+            throw new InvalidArgumentException(
+                'Giá trị phải là số nguyên không âm và không vượt quá giới hạn kiểu int.'
+            );
+        }
+
+        return $result;
+    }
     /**
     * Tính tích Đề các (Cartesian Product) của một danh sách các mảng đầu vào.
     *

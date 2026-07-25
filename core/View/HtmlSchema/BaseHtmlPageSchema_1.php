@@ -1,5 +1,6 @@
 <?php
 namespace Core\View\HtmlSchema;
+use Core\Http\Response;
 use Core\View\Layout\BaseLayout;
 use Core\Http\RequestAuthContext;
 /*1. BaseHtmlPageSchema có nhiệm vụ chính là tính ra một cấu trúc mô tả đặc tính các thành phần 
@@ -53,101 +54,59 @@ thì hoàn toàn có thể để 1 class kiểu như CommonPageSchema.php phục
 abstract class BaseHtmlPageSchema {
     protected RequestAuthContext $requestAuthContext;
     protected string    $strLayoutFilePath;
-    protected array     $arrSchema; 
-    protected array     $arrPositionToFragmentMap;
+    protected array     $arrUiContext;
+    protected array     $arrSchema;  
     /*---------------------------------------------------------------------------------------------------------------*/
     public function __construct(BaseLayout $layout){
         $this->requestAuthContext   = $layout->getRequestAuthContext();
         $this->strLayoutFilePath    = $layout->mapToLayoutFile();
-        $arrSchema            =  $this->defineSchema();
-        $this->validateSchema($arrSchema);
-        $arrPositionToFragmentMap = $this->definePositionToFragmentMap();
-        $this->validatePositionToFragmentMap($arrPositionToFragmentMap, $arrSchema);
-        $this->arrSchema = $arrSchema; 
-        $this->arrPositionToFragmentMap = $arrPositionToFragmentMap;  
+        //khởi tạo default cho $this->arrUiContext. Sau này nếu cần bổ sung thêm các factor khác ảnh hưởng đến UI
+        //thì sẽ dùng hàm buildSchemaDetail($arrUiFactor) với  $arrUiFactor thường là do BaseHtmlPageController tính ra 
+        $this->arrUiContext         = ['auth_info' => $this->requestAuthContext->authInfo()];
+        $this->arrSchema            =  $this->defineSchema();
+        //$this->processLinkViewFragment();
     }
     /*---------------------------------------------------------------------------------------------------------------*/        
-    protected function validateSchema(array $arrSchema): void{
-        if ($arrSchema === []) {
-            throw new UnexpectedValueException(
-                'Schema của trang không được rỗng.'
-            );
-        }
-        foreach ($arrSchema as $strFragmentName => $arrDesc) {
-            if (!is_string($strFragmentName)
-                || trim($strFragmentName) === ''
-            ) {
-                throw new UnexpectedValueException(
-                    'Tên fragment trong schema phải là chuỗi không rỗng.'
-                );
-            }
-            HtmlFragmentSchemaData::validate($arrDesc, $strFragmentName); 
-        }
-    }
-    /*---------------------------------------------------------------------------------------------------------------*/        
-    protected function validatePositionToFragmentMap(
-        array $arrPositionToFragmentMap,
-        array $arrSchema
-    ): void {
-        if ($arrPositionToFragmentMap === []) {
-            throw new UnexpectedValueException(
-                'Map position tới fragment không được rỗng.'
-            );
-        }
-
-        foreach (
-            $arrPositionToFragmentMap
-            as $strPositionId => $strFragmentName
-        ) {
-            if (
-                !is_string($strPositionId)
-                || trim($strPositionId) === ''
-            ) {
-                throw new UnexpectedValueException(
-                    'Position ID trong map position-fragment '
-                    . 'phải là chuỗi không rỗng.'
-                );
-            }
-
-            if (
-                !is_string($strFragmentName)
-                || trim($strFragmentName) === ''
-            ) {
-                throw new UnexpectedValueException(
-                    "Fragment name được map tại position "
-                    . "'{$strPositionId}' phải là chuỗi không rỗng."
-                );
-            }
-
-            if (!array_key_exists($strFragmentName, $arrSchema)) {
-                throw new UnexpectedValueException(
-                    "Position '{$strPositionId}' trỏ tới fragment "
-                    . "'{$strFragmentName}', nhưng fragment này "
-                    . 'không tồn tại trong schema.'
-                );
-            }
-        }
-    }
-    /*---------------------------------------------------------------------------------------------------------------*/        
+     //xác định các nhân tố gây tùy biến giao diện, thường là userInfo nó chứa trong self::requestAuthContext->authInfo()['data']
+    //abstract public function mapToUiContext(): array;
+   
     public function getRequestAuthContext() {
         return $this->requestAuthContext;
     }
-    /*---------------------------------------------------------------------------------------------------------------*/        
+    /*---------------------------------------------------------------------------------------------------------------*/
     public function getLayoutFilePath() {
         return $this->strLayoutFilePath;
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/        
+    public function getUiContext() {
+        return $this->arrUiContext;
     }
     /*---------------------------------------------------------------------------------------------------------------*/        
     public function getSchema(){
         return $this->arrSchema;
     }
-    /*---------------------------------------------------------------------------------------------------------------*/   
-    public function getPositionToFragmentMap(){
-        return $this->arrPositionToFragmentMap;
-    }
     /*---------------------------------------------------------------------------------------------------------------*/        
     abstract protected function defineSchema(): array;
+    /*trả về array của các element có cấu trúc như sau
+    type: css, script,embed_fragment_layout, link_fragment_layout
+    path_fragment( chỉ có giá trị khi type = link_fragment_layout)
+    fqcn:function => controller + function phụ trách render dữ liệu cho fragment đó
+    */
     /*---------------------------------------------------------------------------------------------------------------*/        
-    abstract protected function definePositionToFragmentMap(): array;
+    //protected function processLinkViewFragment() {
+    public function buildSchemaDetail(?array $arrUiFactor = null) {
+        /*biến đổi một chút arrSchema tại cac fragment loại link view. Kết nối các link view phụ này vào và tạo thông tin
+        $this->arrSchema[$strFragment]['render_view']*/
+   
+        if(is_array($arrUiFactor)){
+            $this->arrUiContext = array_merge($this->arrUiContext, $arrUiFactor);
+        }
+        foreach ($this->arrSchema as $strFragment => $value) {
+            if($this->arrSchema[$strFragment]['type'] === 'link_view'){
+                $this->arrSchema[$strFragment]['render_view'] = Response::sendHtmlFile($this->arrSchema[$strFragment]['path_view'],true,$this->arrUiContext);
+            }
+        }
+    }
     /*---------------------------------------------------------------------------------------------------------------*/        
  
 }

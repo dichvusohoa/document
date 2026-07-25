@@ -2,6 +2,7 @@
 namespace Core\Http;
 use \Exception;
 /*Cách dùng
+HttpException tạo ra là để tạo Exception chủ động 
 throw new HttpException(404, 'Not Found');
 throw new HttpException(503, 'Service Unavailable', ['Retry-After' => 120]);
 */
@@ -26,4 +27,5 @@ class HttpException extends Exception {
     public function getHeaders(): array{
         return $this->headers;
     }
+    
 }

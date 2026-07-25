@@ -67,10 +67,14 @@ class ErrorHandler {
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     /*$e là array là do handleShutdown truyền vào. khi đó $e thường chỉ có 3 field
-    message,file, line*/
-    public static function toResponseFormat(Throwable|array $e): array {
-        $serverStatus = self::toResponseStatus($e);
-        $httpStatus   = self::toHttpStatus($e);
+    message,file, line
+    - $strRespStatus có giá trị tường minh thường khi do chủ động gọi hàm ErrorHandler::toResponseFormat, ví dụ như trong DbService
+    - $strRespStatus = null khi throw Exception (kể cả chủ động hay thụ động). Sau đó tại handleException
+     thu được Throwable $e và đem biến đổi ra format Response bằng lệnh toResponseFormat($e) không có tham số $strRespStatus
+     */
+    public static function toResponseFormat(Throwable|array $e, ?string $strRespStatus = null): array {
+        $serverStatus =  $strRespStatus ?? self::toResponseStatus($e);
+        $httpStatus   =  self::toHttpStatus($e);
         $resp = ErrorInfo::buildEmpty();
         $resp['status'] = $serverStatus;
         $resp['extra']  = $httpStatus;
@@ -152,8 +156,6 @@ class ErrorHandler {
         http_response_code($httpStatus);
         if($strFullPathFileName !== ''){
             $errInfo = $respErr; //sẽ dùng trong file include
-            //if($respErr['data']['headers']
-            //){
             if (!empty($respErr['data']['headers']) && is_array($respErr['data']['headers'])) {
                 foreach ($respErr['data']['headers'] as $k => $v) {
                     header("$k: $v");

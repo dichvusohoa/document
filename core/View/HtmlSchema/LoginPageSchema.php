@@ -6,22 +6,46 @@ class LoginPageSchema extends BaseHtmlPageSchema{
     }*/
     /*---------------------------------------------------------------------------------------------------------------*/        
     protected function defineSchema(): array{
-         // $arrCss = ['/lib_assets/css/style.css', '/lib_assets/css/err.css',
-       //     '/lib_assets/css/button.css', '/lib_assets/css/login.css'];
-        return [ 'title' => ['type' => 'title'],
-            'css'   => ['type' => 'css'],
-            'script'   => ['type' => 'script'],
-            'login' => ['type' => 'link_view','path_view' => CORE_PATH.'/resources/views/login/login.phtml']
+        return [ 
+            'title' => 
+                [   'fragment_type' => 'element', 
+                    'data_source' => 'controller',
+                    'render_mode' =>  'server',
+                    'render_detail' => ['tag' => 'title'],
+                    'failure' => 'fail_page'
+                ],
+            'css'   => 
+                [   'fragment_type' => 'css_link', 
+                    'data_source' => 'controller',
+                    'render_mode' =>  'server',
+                    'render_detail' => null,
+                    'failure' => 'fail_page'
+                ],
+            'script'   => 
+                [   'fragment_type' => 'script', 
+                    'data_source' => 'controller',
+                    'render_mode' =>  'server',
+                    'render_detail' => null,
+                    'failure' => 'fail_page'
+                ],    
+            'login' => 
+                [   'fragment_type' => 'view', 
+                    'data_source' => 'controller',
+                    'render_mode' =>  'server',
+                    'render_detail' => 
+                        [   
+                            'file' => CORE_PATH.'/resources/views/login/login.phtml',
+                            'ui_context' => 'custom'
+                        ],
+                    'failure' => 'fail_page'
+                ]
             ];
+        
+    }
+    protected function definePositionToFragmentMap(): array{
+        return['title' => 'title', 'css' => 'css', 'script' => 'script', 'main'=>'login'];
         
     }
     
     
-    /*trả về array của các element có cấu trúc như sau
-    type: css, script,embed_fragment_layout, link_fragment_layout
-    path_fragment( chỉ có giá trị khi type = link_fragment_layout)
-    fqcn:function => controller + function phụ trách render dữ liệu cho fragment đó
-    */
-    //abstract public function dependencyFragments(string $masterFragment, string $strAction):array;
-    //trả về mảng các dependency fragments. Chưa có cách nào mô tả tham sổ
 }
