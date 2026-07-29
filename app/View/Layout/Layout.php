@@ -11,13 +11,9 @@ class Layout extends BaseLayout{
         }
         else{
             return 
-            APP_PATH.'/resources/views/layouts/layout.phtml'; //2 column
+            APP_PATH.'/resources/views/layouts/layout_main2.phtml'; //2 column
         }
     } 
-    /*public function mapToUiContext(): array{
-        $authInfo = $this->requestAuthContext->authInfo();
-        return $authInfo['data'];
-    }*/
-
+    
     
 }

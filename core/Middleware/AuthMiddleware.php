@@ -1,12 +1,8 @@
 <?php
 namespace Core\Middleware;
 use \Closure;
-//use App\Foundation\App;
 use Core\Http\RequestAuthContext;
 use Core\Http\Response;
-/*use Core\Foundation\ErrorHandler;
-use Core\Foundation\ErrorInfo;
-use Core\Foundation\Auth\Auth;*/
 use Core\Auth\AuthInfo;
 use Core\Http\Session;
 use Core\Http\HttpException;

@@ -85,7 +85,7 @@ abstract class BaseHtmlPageController extends BaseController{
             $arrFragmentUiContext,
             $this->arrDefaultUiContext    
         );
-        Response::sendHtmlFile($this->htmlSchema->getLayoutFilePath(), false, $fragmentRenderer);
+        Response::sendHtmlFile($this->htmlSchema->getLayoutFilePath(), false, ['fragmentRenderer' => $fragmentRenderer]);
     }
     final protected function enforceDataAtFragmentContract(
         string $strFragmentName,

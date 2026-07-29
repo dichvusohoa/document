@@ -2,6 +2,7 @@
 namespace Core\View\HtmlSchema;
 use Core\View\Layout\BaseLayout;
 use Core\Http\RequestAuthContext;
+use UnexpectedValueException;
 /*1. BaseHtmlPageSchema có nhiệm vụ chính là tính ra một cấu trúc mô tả đặc tính các thành phần 
  (như header, footer, menu, main ...)  của 1 trang web hoàn chỉnh. Trung tâm của class này là
  function schema 

@@ -2,7 +2,7 @@ Chạy git bash
 cd  D:/Projects/PHP/document   
 
 1. Đẩy nhiều file lên
-
+git add .
 git commit -m "mô tả thay đổi"
 git push
 
@@ -16,3 +16,6 @@ ví dụ git add Core/Routing/StaticRouter.php
 git add .
 git commit -m "StaticRouter"
 git push
+
+
+git commit -m 'chuan hoa renderPage'

@@ -103,14 +103,11 @@ return array (
       array (
         'roles' => 
         array (
-          0 => 'guest',
-          1 => 'pbt_fwk_user',
-          2 => 'bud_prj_user',
-          3 => 'cm_admin',
-          4 => 'it_admin',
-          5 => 'pbt_fwk_admin',
-          6 => 'bud_prj_admin',
-          7 => 'admin',
+          0 => 'cm_admin',
+          1 => 'it_admin',
+          2 => 'pbt_fwk_admin',
+          3 => 'bud_prj_admin',
+          4 => 'admin',
         ),
         'fqcn' => 'App\\Controller\\Category\\CategoryPageController',
         'function' => 'renderPage',

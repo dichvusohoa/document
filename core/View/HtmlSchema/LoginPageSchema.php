@@ -44,7 +44,6 @@ class LoginPageSchema extends BaseHtmlPageSchema{
     }
     protected function definePositionToFragmentMap(): array{
         return['title' => 'title', 'css' => 'css', 'script' => 'script', 'main'=>'login'];
-        
     }
     
     

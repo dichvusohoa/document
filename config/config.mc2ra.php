@@ -32,7 +32,7 @@ return [
 'pbt-framework/document' => ['pbt_fwk_user'=>'index','pbt_fwk_admin' => '[action:*]','admin' => '[action:*]'],
 'bud-project/category' => ['bud_prj_user'=>'index','bud_prj_admin' => '[action:*]','admin' => '[action:*]'],
 'bud-project/document' => ['bud_prj_user'=>'index','bud_prj_admin' => '[action:*]','admin' => '[action:*]'],*/
-'category' => ['[role:guest|pbt_fwk_user|bud_prj_user]'=>'index','[role:cm_admin|it_admin|pbt_fwk_admin|bud_prj_admin|admin]' => '[action:*]'],
+'category' => ['[role:cm_admin|it_admin|pbt_fwk_admin|bud_prj_admin|admin]' => '[action:*]'],
 'document' => ['[role:guest|pbt_fwk_user|bud_prj_user]'=>'index','[role:cm_admin|it_admin|pbt_fwk_admin|bud_prj_admin|admin]' => '[action:*]'],
 'login' => ['guest'=>'[action:index|login]'],
 //'admin-login' => ['guest'=>'[action:index|login]'],

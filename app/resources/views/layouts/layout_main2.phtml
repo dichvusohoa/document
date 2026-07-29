@@ -13,7 +13,10 @@
 </head>
 <body>
     <?php echo HtmlUtility::toScriptLinks(PUBLIC_PATH, "/lib_assets/js/jcheck_cross_browser.js"); ?>
-    <?php $fragmentRenderer->renderPosition('main') ?>
-   
+    <main>
+        <?php $fragmentRenderer->renderPosition('left_main') ?>
+        <?php //$fragmentRenderer->renderPosition('right_main') ?>
+       
+    </main>
 </body>
 </html>

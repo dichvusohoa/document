@@ -17,7 +17,10 @@ class AuthService{
         $this->tokenService = $tokenService;
         $this->loginAttemptService = $loginAttemptService;
     }
-    public function login(string $strUser, string $strPassword, bool $isAdminLogin = false, $strToken = null){
+    public function login(string $strUser, 
+            string $strPassword, 
+            bool $isAdminLogin = false, 
+            string $strToken = null){
         if($this->loginAttemptService->needTurnstile($isAdminLogin)){
             if(!self::verifyTurnstile($strToken)){
                 return [
@@ -35,9 +38,10 @@ class AuthService{
         } 
         $this->loginAttemptService->resetFailCount();
         session_regenerate_id(true);
+        /*
         $authData = $arrResp['data'];
         unset($authData['password']);//lọc bỏ password không lưu vào auth
-        Session::set('auth', $authData);
+        Session::set('auth', $authData);*/
         if(!$isAdminLogin){//ghi vào cookie
             $authToken = new AuthToken();
             $strUserId = $arrResp['data']['id'];
@@ -48,6 +52,9 @@ class AuthService{
             Cookie::set(['auth', 'token'], $authToken->cookieToken());
             
         }
+        $authData = $arrResp['data'];
+        unset($authData['password']);//lọc bỏ password không lưu vào auth
+        Session::set('auth', $authData);
         //return ['status'=> Response::SERVER_AUTHENTICATED_STATUS, 'data' => 'login success' , 'extra' => null];
         return ['status'=> Response::SERVER_AUTHENTICATED_STATUS, 'data' => null , 'extra' => null];
     }

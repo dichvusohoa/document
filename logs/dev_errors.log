@@ -1572,3 +1572,61 @@ Stack trace:
 [25-Jul-2026 16:44:20 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
 [25-Jul-2026 16:46:43 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
 [25-Jul-2026 16:52:13 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[26-Jul-2026 22:36:49 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[26-Jul-2026 22:36:49 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[26-Jul-2026 22:36:49 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[26-Jul-2026 22:45:16 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[26-Jul-2026 22:50:09 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[27-Jul-2026 21:08:34 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[27-Jul-2026 21:08:34 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[27-Jul-2026 21:08:34 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[27-Jul-2026 21:08:45 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[27-Jul-2026 21:08:45 Asia/Saigon] PHP Fatal error:  Class App\View\HtmlSchema\CategoryPageSchema contains 1 abstract method and must therefore be declared abstract or implement the remaining methods (Core\View\HtmlSchema\BaseHtmlPageSchema::definePositionToFragmentMap) in D:\Projects\PHP\document\app\View\HtmlSchema\CategoryPageSchema.php on line 4
+[27-Jul-2026 22:48:31 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[27-Jul-2026 22:48:31 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[27-Jul-2026 22:48:31 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[27-Jul-2026 22:49:33 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[28-Jul-2026 08:54:17 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[28-Jul-2026 08:54:17 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[28-Jul-2026 08:54:17 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[28-Jul-2026 08:55:14 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[28-Jul-2026 08:55:14 Asia/Saigon] PHP Fatal error:  Class App\View\HtmlSchema\CategoryPageSchema contains 1 abstract method and must therefore be declared abstract or implement the remaining methods (Core\View\HtmlSchema\BaseHtmlPageSchema::definePositionToFragmentMap) in D:\Projects\PHP\document\app\View\HtmlSchema\CategoryPageSchema.php on line 4
+[28-Jul-2026 08:56:50 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[28-Jul-2026 08:56:50 Asia/Saigon] PHP Fatal error:  Class App\View\HtmlSchema\CategoryPageSchema contains 1 abstract method and must therefore be declared abstract or implement the remaining methods (Core\View\HtmlSchema\BaseHtmlPageSchema::definePositionToFragmentMap) in D:\Projects\PHP\document\app\View\HtmlSchema\CategoryPageSchema.php on line 4
+[28-Jul-2026 09:12:38 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[28-Jul-2026 09:12:38 Asia/Saigon] PHP Fatal error:  Class App\View\HtmlSchema\CategoryPageSchema contains 1 abstract method and must therefore be declared abstract or implement the remaining methods (Core\View\HtmlSchema\BaseHtmlPageSchema::definePositionToFragmentMap) in D:\Projects\PHP\document\app\View\HtmlSchema\CategoryPageSchema.php on line 4
+[28-Jul-2026 09:12:40 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[28-Jul-2026 09:12:40 Asia/Saigon] PHP Fatal error:  Class App\View\HtmlSchema\CategoryPageSchema contains 1 abstract method and must therefore be declared abstract or implement the remaining methods (Core\View\HtmlSchema\BaseHtmlPageSchema::definePositionToFragmentMap) in D:\Projects\PHP\document\app\View\HtmlSchema\CategoryPageSchema.php on line 4
+[28-Jul-2026 09:12:51 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[28-Jul-2026 09:13:21 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[28-Jul-2026 09:13:21 Asia/Saigon] PHP Fatal error:  Class App\View\HtmlSchema\CategoryPageSchema contains 1 abstract method and must therefore be declared abstract or implement the remaining methods (Core\View\HtmlSchema\BaseHtmlPageSchema::definePositionToFragmentMap) in D:\Projects\PHP\document\app\View\HtmlSchema\CategoryPageSchema.php on line 4
+[28-Jul-2026 09:13:21 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[28-Jul-2026 09:15:20 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[28-Jul-2026 09:15:22 Asia/Saigon] PHP Fatal error:  Class App\View\HtmlSchema\CategoryPageSchema contains 1 abstract method and must therefore be declared abstract or implement the remaining methods (Core\View\HtmlSchema\BaseHtmlPageSchema::definePositionToFragmentMap) in D:\Projects\PHP\document\app\View\HtmlSchema\CategoryPageSchema.php on line 4
+[28-Jul-2026 09:51:16 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[28-Jul-2026 09:51:16 Asia/Saigon] PHP Fatal error:  Class App\View\HtmlSchema\CategoryPageSchema contains 1 abstract method and must therefore be declared abstract or implement the remaining methods (Core\View\HtmlSchema\BaseHtmlPageSchema::definePositionToFragmentMap) in D:\Projects\PHP\document\app\View\HtmlSchema\CategoryPageSchema.php on line 4
+[28-Jul-2026 09:53:43 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[28-Jul-2026 09:53:43 Asia/Saigon] Xdebug: [Step Debug] Time-out connecting to debugging client, waited: 200 ms. Tried: localhost:9003 (through xdebug.client_host/xdebug.client_port) :-(
+[28-Jul-2026 09:53:44 Asia/Saigon] Xdebug: [Step Debug] Time-out connecting to debugging client, waited: 200 ms. Tried: localhost:9003 (through xdebug.client_host/xdebug.client_port) :-(
+[28-Jul-2026 09:55:15 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[28-Jul-2026 09:55:15 Asia/Saigon] Xdebug: [Step Debug] Time-out connecting to debugging client, waited: 200 ms. Tried: localhost:9003 (through xdebug.client_host/xdebug.client_port) :-(
+[28-Jul-2026 09:55:15 Asia/Saigon] Xdebug: [Step Debug] Time-out connecting to debugging client, waited: 200 ms. Tried: localhost:9003 (through xdebug.client_host/xdebug.client_port) :-(
+[28-Jul-2026 09:55:48 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[28-Jul-2026 09:55:48 Asia/Saigon] Xdebug: [Step Debug] Time-out connecting to debugging client, waited: 200 ms. Tried: localhost:9003 (through xdebug.client_host/xdebug.client_port) :-(
+[28-Jul-2026 09:55:49 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[28-Jul-2026 09:55:49 Asia/Saigon] Xdebug: [Step Debug] Time-out connecting to debugging client, waited: 200 ms. Tried: localhost:9003 (through xdebug.client_host/xdebug.client_port) :-(
+[28-Jul-2026 09:55:50 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[28-Jul-2026 09:55:50 Asia/Saigon] Xdebug: [Step Debug] Time-out connecting to debugging client, waited: 200 ms. Tried: localhost:9003 (through xdebug.client_host/xdebug.client_port) :-(
+[28-Jul-2026 09:55:51 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[28-Jul-2026 09:55:51 Asia/Saigon] Xdebug: [Step Debug] Time-out connecting to debugging client, waited: 200 ms. Tried: localhost:9003 (through xdebug.client_host/xdebug.client_port) :-(
+[28-Jul-2026 09:55:59 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[28-Jul-2026 09:56:00 Asia/Saigon] Xdebug: [Step Debug] Time-out connecting to debugging client, waited: 200 ms. Tried: localhost:9003 (through xdebug.client_host/xdebug.client_port) :-(
+[28-Jul-2026 09:56:00 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[28-Jul-2026 09:56:01 Asia/Saigon] Xdebug: [Step Debug] Time-out connecting to debugging client, waited: 200 ms. Tried: localhost:9003 (through xdebug.client_host/xdebug.client_port) :-(
+[29-Jul-2026 11:20:52 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[29-Jul-2026 11:20:53 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[29-Jul-2026 11:20:53 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[29-Jul-2026 11:20:55 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[29-Jul-2026 11:42:22 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[29-Jul-2026 11:42:22 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[29-Jul-2026 11:42:26 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
