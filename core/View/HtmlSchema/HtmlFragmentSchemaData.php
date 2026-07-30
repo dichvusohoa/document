@@ -110,7 +110,7 @@ class HtmlFragmentSchemaData{
             );
         }
 
-        ValidUtility::validateNoUnexpectedFields($arrData, self::ALLOWED_FIELDS, '', $strContext);
+        ValidUtility::validateNoUnexpectedFields($arrData, self::ALLOWED_FIELDS, $strContext);
         self::validateFragmentType($arrData, $strContext);
         self::validateDataSource($arrData, $strContext);
         self::validateRenderMode($arrData, $strContext);
@@ -259,15 +259,15 @@ class HtmlFragmentSchemaData{
         ValidUtility::validateNoUnexpectedFields(
             $arrRenderDetail,
             self::VIEW_DETAIL_FIELDS,
-            'render_detail',
-            $strContext
+            $strContext,
+            'render_detail'    
         );
 
         ValidUtility::validateRequiredNonEmptyStringField(
             $arrRenderDetail,
             'file',
             $strContext,
-            'render_detail.file'
+            'render_detail'
         );
         self::validateUiContext(
             $arrRenderDetail,
@@ -290,8 +290,8 @@ class HtmlFragmentSchemaData{
         ValidUtility::validateNoUnexpectedFields(
             $arrRenderDetail,
             self::ELEMENT_DETAIL_FIELDS,
-            'render_detail',
-            $strContext
+            $strContext,
+            'render_detail'
         );
         //tag là field phải có trong render_detail
         if (!array_key_exists('tag', $arrRenderDetail)) {
@@ -328,8 +328,8 @@ class HtmlFragmentSchemaData{
         ValidUtility::validateNoUnexpectedFields(
             $arrRenderDetail,
             self::TEXT_DETAIL_FIELDS,
-            'render_detail',
-            $strContext
+            $strContext,
+            'render_detail'
         );
         self::validateEscapeHtml($arrRenderDetail,$strContext);
     }

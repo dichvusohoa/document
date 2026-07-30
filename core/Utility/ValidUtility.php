@@ -1,5 +1,6 @@
 <?php
 namespace Core\Utility;
+use UnexpectedValueException;
 class ValidUtility{
     /*$arr có dạng ['a','b', 'c']*/
     static public function isStringList(mixed $arr): bool {
@@ -67,51 +68,62 @@ class ValidUtility{
     /*$arrData là array cần kiểm tra. 
      * $arrAllowedFields là template chứa các keys được phép trong
     $arrData. Tức là các key của arrData bắt buộc phải nằm trong $arrAllowedFields
-     * $strBasePath là tên field trỏ vào $arrData ví dụ render_detail
+     * $strParentPath là tên field trỏ vào $arrData ví dụ render_detail
      * $strContext tên đường dẫn kiêủ "HTML fragment schema '{$strFragmentName}'"
      * trong đó $strFragmentName là tên fragment
      */
-    
     public static function validateNoUnexpectedFields(
         array $arrData,
         array $arrAllowedFields,
-        string $strBasePath,
-        string $strContext
+        string $strContext,
+        ?string $strParentPath = null
     ): void {
-        foreach (array_keys($arrData) as $fieldName) {
-            if (!is_string($fieldName)) {
-                $strLocation = $strBasePath === ''
-                    ? 'cấp ngoài cùng'
-                    : "field '{$strBasePath}'";
+        foreach (array_keys($arrData) as $mixFieldName) {
+            if (!is_string($mixFieldName)) {
+                $strParentInfo = $strParentPath === null
+                    ? ''
+                    : " tại '{$strParentPath}'";
 
                 throw new UnexpectedValueException(
-                    "{$strContext} có field name không phải string "
-                    . "tại {$strLocation}."
+                    "{$strContext}{$strParentInfo} có field name "
+                    . 'không phải string; nhận được '
+                    . get_debug_type($mixFieldName)
+                    . '.'
                 );
             }
 
-            if (!in_array($fieldName, $arrAllowedFields, true)) {
-                $strPath = $strBasePath === ''
-                    ? $fieldName
-                    : "{$strBasePath}.{$fieldName}";
+            $strFieldPath = self::buildFieldPath(
+                $mixFieldName,
+                $strParentPath
+            );
 
+            if (!in_array($mixFieldName, $arrAllowedFields, true)) {
                 throw new UnexpectedValueException(
-                    "{$strContext} chứa field không hợp lệ '{$strPath}'."
+                    "{$strContext} chứa field không hợp lệ "
+                    . "'{$strFieldPath}'."
                 );
             }
         }
     }
+
     /*---------------------------------------------------------------------------------------------------------------*/
-    /*Kiểm tra $arrData phải có tồn tại key là $strFieldName. Giá trị tại $arrData[$strFieldName] phải hợp lệ
-     * $strContext và $strFieldPath để thông tin bổ trợ cho báo lỗi
+    /**
+     * Kiểm tra field bắt buộc:
+     * - tồn tại;
+     * - có giá trị string;
+     * - không rỗng;
+     * - không có khoảng trắng ở đầu hoặc cuối.
      */
     public static function validateRequiredNonEmptyStringField(
         array $arrData,
         string $strFieldName,
         string $strContext,
-        ?string $strFieldPath = null
+        ?string $strParentPath = null
     ): void {
-        $strFieldPath ??= $strFieldName;
+        $strFieldPath = self::buildFieldPath(
+            $strFieldName,
+            $strParentPath
+        );
 
         if (!array_key_exists($strFieldName, $arrData)) {
             throw new UnexpectedValueException(
@@ -119,63 +131,88 @@ class ValidUtility{
             );
         }
 
-        if (!is_string($arrData[$strFieldName])) {
+        $mixFieldValue = $arrData[$strFieldName];
+
+        if (!is_string($mixFieldValue)) {
             throw new UnexpectedValueException(
                 "{$strContext} field '{$strFieldPath}' phải là string; "
                 . 'nhận được '
-                . get_debug_type($arrData[$strFieldName])
+                . get_debug_type($mixFieldValue)
                 . '.'
             );
         }
 
-        if (trim($arrData[$strFieldName]) === '') {
+        $strTrimmedValue = trim($mixFieldValue);
+
+        if ($strTrimmedValue === '') {
             throw new UnexpectedValueException(
                 "{$strContext} field '{$strFieldPath}' không được rỗng."
             );
         }
-        if ($arrData[$strFieldName] !== trim($arrData[$strFieldName])) {
+
+        if ($mixFieldValue !== $strTrimmedValue) {
             throw new UnexpectedValueException(
                 "{$strContext} field '{$strFieldPath}' không được có "
-                . "khoảng trắng ở đầu hoặc cuối."
+                . 'khoảng trắng ở đầu hoặc cuối.'
             );
         }
     }
+
     /*---------------------------------------------------------------------------------------------------------------*/
-    /*Kiểm tra xem $arrData có field $strFieldName và giá trị của $arrData[$strFieldName] có nằm trong $arrAllowedValues 
-    không
-    $strContext là thông tin thêm để báo lỗi*/
-    protected static function validateRequiredEnumField(
+    /**
+     * Kiểm tra field bắt buộc là string và thuộc danh sách giá trị cho phép.
+     */
+    public static function validateRequiredEnumField(
         array $arrData,
         string $strFieldName,
         array $arrAllowedValues,
-        string $strContext
+        string $strContext,
+        ?string $strParentPath = null
     ): void {
+        $strFieldPath = self::buildFieldPath(
+            $strFieldName,
+            $strParentPath
+        );
+
         if (!array_key_exists($strFieldName, $arrData)) {
             throw new UnexpectedValueException(
-                "{$strContext} thiếu field '{$strFieldName}'."
+                "{$strContext} thiếu field '{$strFieldPath}'."
             );
         }
 
-        if (!is_string($arrData[$strFieldName])) {
+        $mixFieldValue = $arrData[$strFieldName];
+
+        if (!is_string($mixFieldValue)) {
             throw new UnexpectedValueException(
-                "{$strContext} field '{$strFieldName}' phải là string; "
+                "{$strContext} field '{$strFieldPath}' phải là string; "
                 . 'nhận được '
-                . get_debug_type($arrData[$strFieldName])
+                . get_debug_type($mixFieldValue)
                 . '.'
             );
         }
 
-        if (!in_array($arrData[$strFieldName], $arrAllowedValues, true)) {
+        if (!in_array($mixFieldValue, $arrAllowedValues, true)) {
             $strAllowedValues = implode(
                 "', '",
                 $arrAllowedValues
             );
 
             throw new UnexpectedValueException(
-                "{$strContext} field '{$strFieldName}' có giá trị không hợp lệ "
-                . "'{$arrData[$strFieldName]}'; các giá trị cho phép là "
-                . "'{$strAllowedValues}'."
+                "{$strContext} field '{$strFieldPath}' có giá trị "
+                . "không hợp lệ '{$mixFieldValue}'; "
+                . "các giá trị cho phép là '{$strAllowedValues}'."
             );
         }
     }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    private static function buildFieldPath(
+        string $strFieldName,
+        ?string $strParentPath = null
+    ): string {
+        return $strParentPath === null
+            ? $strFieldName
+            : "{$strParentPath}.{$strFieldName}";
+    }
+    
 }

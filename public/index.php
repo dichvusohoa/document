@@ -76,11 +76,11 @@
     $container->set(MiddlewareFactory::class, function($c){
         return new (MiddlewareFactory::class)($c); 
     });
-    $container->set(LoginPolicy::class, function($c){
+   /* $container->set(LoginPolicy::class, function($c){
         return new (LoginPolicy::class)(
             $c->get(StaticRouter::class)->getStandAloneController()
         );
-    });
+    });*/
     /*$container->set(ControllerFactory::class, function($c){
         return new (ControllerFactory::class)(
             $c    

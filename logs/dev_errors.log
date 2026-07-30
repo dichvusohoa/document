@@ -1630,3 +1630,7 @@ Stack trace:
 [29-Jul-2026 11:42:22 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
 [29-Jul-2026 11:42:22 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
 [29-Jul-2026 11:42:26 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[30-Jul-2026 21:07:59 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[30-Jul-2026 21:07:59 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[30-Jul-2026 21:07:59 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
+[30-Jul-2026 21:08:03 Asia/Saigon] [RouterFactory] Static router cache HIT - reuse cached static router
