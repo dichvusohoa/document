@@ -2,6 +2,7 @@
 
 namespace Core\View\HtmlSchema;
 use UnexpectedValueException;
+use Core\Utility\ValidUtility;
 class HtmlFragmentSchemaData{
     /*---------------------------------------------------------------------------------------------------------------*/
     /*các loại fragment type. Sau này có thể bổ sung sau*/
@@ -109,7 +110,7 @@ class HtmlFragmentSchemaData{
             );
         }
 
-        self::validateNoUnexpectedFields($arrData, self::ALLOWED_FIELDS, '', $strContext);
+        ValidUtility::validateNoUnexpectedFields($arrData, self::ALLOWED_FIELDS, '', $strContext);
         self::validateFragmentType($arrData, $strContext);
         self::validateDataSource($arrData, $strContext);
         self::validateRenderMode($arrData, $strContext);
@@ -131,7 +132,7 @@ class HtmlFragmentSchemaData{
         array $arrData,
         string $strContext
     ): void {
-        self::validateRequiredEnumField(
+        ValidUtility::validateRequiredEnumField(
             $arrData,
             'fragment_type',
             self::FRAGMENT_TYPES,
@@ -144,7 +145,7 @@ class HtmlFragmentSchemaData{
         array $arrData,
         string $strContext
     ): void {
-        self::validateRequiredEnumField(
+        ValidUtility::validateRequiredEnumField(
             $arrData,
             'data_source',
             self::DATA_SOURCES,
@@ -157,7 +158,7 @@ class HtmlFragmentSchemaData{
         array $arrData,
         string $strContext
     ): void {
-        self::validateRequiredEnumField(
+        ValidUtility::validateRequiredEnumField(
             $arrData,
             'render_mode',
             self::RENDER_MODES,
@@ -255,14 +256,14 @@ class HtmlFragmentSchemaData{
             );
         }
 
-        self::validateNoUnexpectedFields(
+        ValidUtility::validateNoUnexpectedFields(
             $arrRenderDetail,
             self::VIEW_DETAIL_FIELDS,
             'render_detail',
             $strContext
         );
 
-        self::validateRequiredNonEmptyStringField(
+        ValidUtility::validateRequiredNonEmptyStringField(
             $arrRenderDetail,
             'file',
             $strContext,
@@ -286,7 +287,7 @@ class HtmlFragmentSchemaData{
             );
         }
 
-        self::validateNoUnexpectedFields(
+        ValidUtility::validateNoUnexpectedFields(
             $arrRenderDetail,
             self::ELEMENT_DETAIL_FIELDS,
             'render_detail',
@@ -324,7 +325,7 @@ class HtmlFragmentSchemaData{
             );
         }
 
-        self::validateNoUnexpectedFields(
+        ValidUtility::validateNoUnexpectedFields(
             $arrRenderDetail,
             self::TEXT_DETAIL_FIELDS,
             'render_detail',
@@ -415,7 +416,7 @@ class HtmlFragmentSchemaData{
             return;
         }
 
-        self::validateRequiredEnumField(
+        ValidUtility::validateRequiredEnumField(
             $arrData,
             'failure',
             self::FAILURE_MODES,
@@ -573,114 +574,5 @@ class HtmlFragmentSchemaData{
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
-    /*$arrData là array cần kiểm tra. 
-     * $arrAllowedFields là template chứa các keys được phép trong
-    $arrData. 
-     * $strBasePath là tên field trỏ vào $arrData ví dụ render_detail
-     * $strContext tên đường dẫn kiêủ "HTML fragment schema '{$strFragmentName}'"
-     * trong đó $strFragmentName là tên fragment
-     */
-    
-    protected static function validateNoUnexpectedFields(
-        array $arrData,
-        array $arrAllowedFields,
-        string $strBasePath,
-        string $strContext
-    ): void {
-        foreach (array_keys($arrData) as $fieldName) {
-            if (!is_string($fieldName)) {
-                $strLocation = $strBasePath === ''
-                    ? 'cấp ngoài cùng'
-                    : "field '{$strBasePath}'";
-
-                throw new UnexpectedValueException(
-                    "{$strContext} có field name không phải string "
-                    . "tại {$strLocation}."
-                );
-            }
-
-            if (!in_array($fieldName, $arrAllowedFields, true)) {
-                $strPath = $strBasePath === ''
-                    ? $fieldName
-                    : "{$strBasePath}.{$fieldName}";
-
-                throw new UnexpectedValueException(
-                    "{$strContext} chứa field không hợp lệ '{$strPath}'."
-                );
-            }
-        }
-    }
-
-    /*---------------------------------------------------------------------------------------------------------------*/
-    protected static function validateRequiredNonEmptyStringField(
-        array $arrData,
-        string $strFieldName,
-        string $strContext,
-        ?string $strFieldPath = null
-    ): void {
-        $strFieldPath ??= $strFieldName;
-
-        if (!array_key_exists($strFieldName, $arrData)) {
-            throw new UnexpectedValueException(
-                "{$strContext} thiếu field '{$strFieldPath}'."
-            );
-        }
-
-        if (!is_string($arrData[$strFieldName])) {
-            throw new UnexpectedValueException(
-                "{$strContext} field '{$strFieldPath}' phải là string; "
-                . 'nhận được '
-                . get_debug_type($arrData[$strFieldName])
-                . '.'
-            );
-        }
-
-        if (trim($arrData[$strFieldName]) === '') {
-            throw new UnexpectedValueException(
-                "{$strContext} field '{$strFieldPath}' không được rỗng."
-            );
-        }
-        if ($arrData[$strFieldName] !== trim($arrData[$strFieldName])) {
-            throw new UnexpectedValueException(
-                "{$strContext} field '{$strFieldPath}' không được có "
-                . "khoảng trắng ở đầu hoặc cuối."
-            );
-        }
-    }
-
-    /*---------------------------------------------------------------------------------------------------------------*/
-    protected static function validateRequiredEnumField(
-        array $arrData,
-        string $strFieldName,
-        array $arrAllowedValues,
-        string $strContext
-    ): void {
-        if (!array_key_exists($strFieldName, $arrData)) {
-            throw new UnexpectedValueException(
-                "{$strContext} thiếu field '{$strFieldName}'."
-            );
-        }
-
-        if (!is_string($arrData[$strFieldName])) {
-            throw new UnexpectedValueException(
-                "{$strContext} field '{$strFieldName}' phải là string; "
-                . 'nhận được '
-                . get_debug_type($arrData[$strFieldName])
-                . '.'
-            );
-        }
-
-        if (!in_array($arrData[$strFieldName], $arrAllowedValues, true)) {
-            $strAllowedValues = implode(
-                "', '",
-                $arrAllowedValues
-            );
-
-            throw new UnexpectedValueException(
-                "{$strContext} field '{$strFieldName}' có giá trị không hợp lệ "
-                . "'{$arrData[$strFieldName]}'; các giá trị cho phép là "
-                . "'{$strAllowedValues}'."
-            );
-        }
-    }
+  
 }

@@ -60,9 +60,17 @@ class StaticRouter {
         $this->arrDefaultRoute = $defaultRouteBuilder->build();
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    public function getMiddleware() {
-        return $this->arrMiddlewareParsed;
+    public function getStandaloneControllers(): array{
+        return $this->arrStC;
     }
+    /*--------------------------------------------------------------------------------------------------------------*/
+    public function getRoles(): array{
+        return $this->arrR;
+    }
+    /*--------------------------------------------------------------------------------------------------------------*/
+    /*public function __getMiddleware() {
+        return $this->arrMiddlewareParsed;
+    }*/
     /*---------------------------------------------------------------------------------------------------------------*/
     public function getRouteInfo(array $path): ?array {
         $data = $this->arrMCAR;
@@ -75,9 +83,9 @@ class StaticRouter {
         return $data;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    public function getDefaultRoute(){
+    /*public function __getDefaultRoute(){
         return $this->arrDefaultRoute;
-    }
+    }*/
     /*---------------------------------------------------------------------------------------------------------------*/
     public function getDefaultModule(): ?string {
         return $this->arrDefaultRoute['default_entry']['type'] === 'module'

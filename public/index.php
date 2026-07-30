@@ -33,7 +33,7 @@
     
     ErrorHandler::register(true);
     $container = new App();
-    //1. set các class bị overriden 
+    //1. set các class bị overriden. các chữ $c sau này do cơ chế của hàm get thì $c sẽ chính là $container
     $container->set(BaseMobileDetectFactory::class, function($c){
         return new (MobileDetectFactory::class)(
             $c->get(RequestAuthContext::class),
@@ -75,6 +75,11 @@
     });
     $container->set(MiddlewareFactory::class, function($c){
         return new (MiddlewareFactory::class)($c); 
+    });
+    $container->set(LoginPolicy::class, function($c){
+        return new (LoginPolicy::class)(
+            $c->get(StaticRouter::class)->getStandAloneController()
+        );
     });
     /*$container->set(ControllerFactory::class, function($c){
         return new (ControllerFactory::class)(
