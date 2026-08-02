@@ -54,7 +54,7 @@ function loadCfgConnection() {
  * Trong đó something-word thường là 1 từ hơi khó đoán. Trong hàm matchUri khi phát hiện
  *chuỗi  something-word sẽ tự thay bằng admin-controller thật 
  */
-const ADMIN_CONTROLLER_RENAME = ['admin-login' => 'cacquak'];
+//const ADMIN_CONTROLLER_RENAME = ['admin-login' => 'cacquak'];
 const ADMIN_ROLE_NAME = 'admin';
 
 

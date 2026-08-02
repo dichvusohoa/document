@@ -5,14 +5,14 @@
   */
 return 
 [
-    'guest' => 'khách', 
-    'cm_admin' => 'admin tài liệu sưu tập', 
-    'it_admin' => 'admin tài liệu tin học', 
-    'pbt_fwk_user' => 'người dùng PBT framework', 
-    'pbt_fwk_admin' => 'admin PBT framework', 
-    'bud_prj_user'=>'người dùng BUD project', 
-    'bud_prj_admin'=>'admin BUD project' ,
-    'admin'=>'quản trị hệ thống'
+    'guest' => ['display_name' => 'khách', 'weight' =>0], 
+    'cm_admin' => ['display_name' => 'admin tài liệu sưu tập', 'weight' =>2], 
+    'it_admin' => ['display_name' => 'admin tài liệu tin học', 'weight' =>2], 
+    'pbt_fwk_user' => ['display_name' => 'người dùng PBT framework', 'weight' =>1], 
+    'pbt_fwk_admin' => ['display_name' => 'admin PBT framework', 'weight' =>2], 
+    'bud_prj_user'=> ['display_name' => 'người dùng BUD project', 'weight' =>1], 
+    'bud_prj_admin'=> ['display_name' => 'admin BUD project', 'weight' =>2] ,
+    'admin'=> ['display_name' => 'quản trị hệ thống', 'weight' =>3]
 ];
             
         

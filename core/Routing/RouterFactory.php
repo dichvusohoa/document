@@ -10,7 +10,11 @@ class RouterFactory{
     protected string    $strRouterFCQN;
     protected array     $arrAuthInfo;
     protected StaticRouterCache     $cache;
-    function __construct(string $strStaticRouterFCQN, string $strRouterFCQN, array $arrAuthInfo, StaticRouterCache $cache){
+    function __construct(
+            string $strStaticRouterFCQN, 
+            string $strRouterFCQN, 
+            array $arrAuthInfo, 
+            StaticRouterCache $cache){
         if($arrAuthInfo['status'] === Response::SERVER_DB_ERR_STATUS){
             throw new RuntimeException('Lỗi cơ sở dữ liệu khi xác thực người dùng');
         }

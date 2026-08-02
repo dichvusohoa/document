@@ -2,7 +2,7 @@
 /*
  */
 namespace Core\Routing;
-use \InvalidArgumentException;
+use InvalidArgumentException;
 class RoutePattern {
     public const EXPR_SINGLE_VALUE     = 1;  // Giá trị đơn lẻ, ví dụ: "admin"
     public const EXPR_INCLUDE_VALUES   = 2;  // [type:a|b|c] → chỉ định danh sách cho phép

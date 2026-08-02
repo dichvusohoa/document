@@ -19,7 +19,8 @@ return [
         'category',
         'document',
         'client-info',
-        'login'
+        'login',
+        'cacquak'
     ],
 ];
         

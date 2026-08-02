@@ -49,7 +49,8 @@ class LoginPageController extends BaseHtmlPageController{
     } 
     protected function uiContextAtFragment(string $strFragmentName): array {
         if($strFragmentName === 'login'){
-            $isAdminLogin = LoginHelper::isAdminLoginRequest($this->requestAuthContext);
+            //$isAdminLogin = LoginHelper::isAdminLoginRequest($this->requestAuthContext);
+            $isAdminLogin  = false;//tạm hard code
             $needTurnstile = $this->loginAttemptService->needTurnstile($isAdminLogin);
             return ['needTurnstile' => $needTurnstile];
         }    

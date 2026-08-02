@@ -1,5 +1,5 @@
 <?php
-/*Cấu trúc dữ liệu ở Leaf của Router*/
+/*Cấu trúc dữ liệu ở Leaf của Router - HIỆN KHÔNG CÓ GIÁ TRỊ GÌ*/
 namespace Core\Routing;
 class RouteInfo{
     public static function isValid(mixed $arrData): bool {

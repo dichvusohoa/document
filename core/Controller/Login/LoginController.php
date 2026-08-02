@@ -12,7 +12,8 @@ class LoginController extends BaseController{
    
     protected function resolveParams(string $strFunctName): array{
         if($strFunctName === 'login'){
-            $isAdminLogin = LoginHelper::isAdminLoginRequest($this->requestAuthContext);
+            //$isAdminLogin = LoginHelper::isAdminLoginRequest($this->requestAuthContext);
+            $isAdminLogin = false;//tạm hard code
             $arrUser = $this->requestAuthContext->request()->post('user');
             //$token là public key
             $strToken = $this->requestAuthContext->request()->post('cf-turnstile-response');

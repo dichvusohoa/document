@@ -10,6 +10,7 @@ class MCARBuilder {
     protected array $arrMC2FQCN;
     protected array $arrFCAction;
     protected array $arrR;
+    protected array $arrAuthRegistry;
     static protected string $strFileName    = 'config.mc2ra.php';
     static protected string $strFileName2   = 'config.mc.php';
     static protected string $strFileName3   = 'config.fc.action.php';
@@ -19,12 +20,15 @@ class MCARBuilder {
         MCRoutePathParser $parser,
         array $arrMC2FQCN,
         array $arrFCAction,
-        array $arrR
+        array $arrR,
+        array $arrAuthRegistry    
     ) {
         $this->parser      = $parser;
         $this->arrMC2FQCN  = $arrMC2FQCN;
         $this->arrFCAction = $arrFCAction;
         $this->arrR        = $arrR;
+        $this->arrAuthRegistry = $arrAuthRegistry;
+        
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     public function build(): array {
@@ -93,17 +97,22 @@ class MCARBuilder {
             $strFQCN = $this->arrMC2FQCN[$str][$strController];
 
             $refTree[$strController] = $this->buildAtRALevel(
+                $strController,    
                 $strFQCN,
                 $arrExprRA,
+                false,      
                 $refTree[$strController]
             );
         } else {
             $strFQCN = $this->arrMC2FQCN[$str];
 
             $refTree = $this->buildAtRALevel(
+                $str,    
                 $strFQCN,
                 $arrExprRA,
-                $refTree
+                isset($this->arrAuthRegistry[$str]),      
+                $refTree,
+                  
             );
         }
 
@@ -111,10 +120,14 @@ class MCARBuilder {
         return $arrTree;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function buildAtRALevel(string $strFQCN, array $arrExprRA, array $arrNode): array {
+    protected function buildAtRALevel(string $strController ,
+            string $strFQCN, 
+            array $arrExprRA, 
+            bool $isAuthenticationRoute,
+            array $arrNode): array {
         $strFileName3 = self::$strFileName3;
         $arrPairRA = $this->parseExprRAList($strFQCN, $arrExprRA);
-
+        $strRouteType = $isAuthenticationRoute ? "authentication" : "business";
         foreach ($arrPairRA as [$strRole, $strAction]) {
             //không cần kiểm tra !isset($this->arrFCAction[$strFQCN]) vì đã kiểm tra trong
             //$arrPairRA = $this->parseExprRAList($strFQCN, $arrExprRA) rồi
@@ -138,6 +151,7 @@ class MCARBuilder {
                     'fqcn'     => $strFQCN,
                     'function' => $arrActionDetail['function'] ?? $strAction,
                     'method'   => strtoupper($arrActionDetail['method']),
+                    'route_type' => $strRouteType
                 ];
             }
             // Bổ sung role
@@ -145,7 +159,20 @@ class MCARBuilder {
                 $arrNode[$strAction]['roles'][] = $strRole;
             }
         }
-
+        if($strRouteType === 'authentication'){
+            $strDefaultBusinessPath  = $this->arrAuthRegistry[$strController][AuthRegistry::FIELD_DEFAULT_BUSINESS_PATH];
+            foreach ($arrNode as $strAction => $value) {
+                $arrNode[$strAction]['default_business_path'] = $strDefaultBusinessPath;
+                $arrNode[$strAction]['authentication_path'] = null;
+            }
+            
+        }
+        else{
+            foreach ($arrNode as $strAction => $value) {
+                $arrNode[$strAction]['default_business_path'] = null;
+                $arrNode[$strAction]['authentication_path'] = $this->findAuthPathByRoles($arrNode[$strAction]['roles']);
+            }
+        }
         return $arrNode;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
@@ -207,5 +234,31 @@ class MCARBuilder {
         }
 
         return $arrPairRA;
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    protected function findAuthPathByRoles(array $arrRoles): ?string{
+        $strCandidateAuthPath = null;
+        $arrCandidateWeights   = null;
+        foreach ($this->arrAuthRegistry as $strAuthPath => $arrAuthEntry) {
+            $arrAcceptedRoles = $arrAuthEntry[AuthRegistry::FIELD_ACCEPTED_ROLES];
+            if (empty(array_intersect($arrRoles, $arrAcceptedRoles))) {
+                continue;
+            }
+            $arrWeights = array_values(
+                $arrAuthEntry[AuthRegistry::FIELD_WEIGHTS]
+            );
+
+            if (
+                $arrCandidateWeights === null
+                || MathUtility::compareNumberArray(
+                    $arrWeights,
+                    $arrCandidateWeights
+                ) < 0
+            ) {
+                $strCandidateAuthPath = $strAuthPath;
+                $arrCandidateWeights   = $arrWeights;
+            }
+        }
+        return $strCandidateAuthPath;
     }
 }

@@ -80,5 +80,47 @@ class MathUtility{
         }
         return $result;
     } 
-    
+    /*---------------------------------------------------------------------------------------------------------------*/
+    /**
+     * So sánh hai mảng số theo thứ tự từ trái sang phải.
+     *
+     * Ví dụ:
+     * [2, 5] < [3, 1]
+     * [2, 5] < [2, 7]
+     * [2, 5] = [2, 5]
+     *
+     * @return int -1 nếu $arr1 nhỏ hơn $arr2,
+     *              0 nếu hai mảng bằng nhau,
+     *              1 nếu $arr1 lớn hơn $arr2.
+     */
+    public static function compareNumberArray(array $arr1, array $arr2): int{
+        if (count($arr1) !== count($arr2)) {
+            throw new InvalidArgumentException(
+                'Hai mảng số dùng để so sánh phải có cùng số phần tử.'
+            );
+        }
+
+        foreach ($arr1 as $iIndex => $number1) {
+            $number2 = $arr2[$iIndex];
+
+            if (
+                (!is_int($number1) && !is_float($number1))
+                || (!is_int($number2) && !is_float($number2))
+            ) {
+                throw new InvalidArgumentException(
+                    "Phần tử tại vị trí {$iIndex} của hai mảng phải là số."
+                );
+            }
+
+            if ($number1 < $number2) {
+                return -1;
+            }
+
+            if ($number1 > $number2) {
+                return 1;
+            }
+        }
+
+        return 0;
+    }
 }

@@ -206,6 +206,142 @@ class ValidUtility{
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
+    /**
+     * Kiểm tra field bắt buộc phải tồn tại.
+     */
+    public static function validateRequiredField(
+        array $arrData,
+        string $strFieldName,
+        string $strContext,
+        ?string $strParentPath = null
+    ): void {
+        $strFieldPath = self::buildFieldPath(
+            $strFieldName,
+            $strParentPath
+        );
+
+        if (!array_key_exists($strFieldName, $arrData)) {
+            throw new UnexpectedValueException(
+                "{$strContext} thiếu field '{$strFieldPath}'."
+            );
+        }
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    /**
+     * Kiểm tra field bắt buộc là boolean.
+     */
+    public static function validateRequiredBoolField(
+        array $arrData,
+        string $strFieldName,
+        string $strContext,
+        ?string $strParentPath = null
+    ): void {
+        self::validateRequiredField(
+            $arrData,
+            $strFieldName,
+            $strContext,
+            $strParentPath
+        );
+
+        $mixFieldValue = $arrData[$strFieldName];
+
+        if (!is_bool($mixFieldValue)) {
+            $strFieldPath = self::buildFieldPath(
+                $strFieldName,
+                $strParentPath
+            );
+
+            throw new UnexpectedValueException(
+                "{$strContext} field '{$strFieldPath}' phải là boolean; "
+                . 'nhận được '
+                . get_debug_type($mixFieldValue)
+                . '.'
+            );
+        }
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    /**
+     * Kiểm tra field bắt buộc là số nguyên dương.
+     */
+    public static function validateRequiredPositiveIntField(
+        array $arrData,
+        string $strFieldName,
+        string $strContext,
+        ?string $strParentPath = null
+    ): void {
+        self::validateRequiredField(
+            $arrData,
+            $strFieldName,
+            $strContext,
+            $strParentPath
+        );
+
+        $mixFieldValue = $arrData[$strFieldName];
+
+        if (!is_int($mixFieldValue) || $mixFieldValue < 1) {
+            $strFieldPath = self::buildFieldPath(
+                $strFieldName,
+                $strParentPath
+            );
+
+            throw new UnexpectedValueException(
+                "{$strContext} field '{$strFieldPath}' "
+                . 'phải là số nguyên dương; nhận được '
+                . get_debug_type($mixFieldValue)
+                . '.'
+            );
+        }
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    /**
+     * Kiểm tra field bắt buộc là string list.
+     *
+     * Khi $allowEmpty = false, danh sách rỗng không hợp lệ.
+     */
+    public static function validateRequiredStringListField(
+        array $arrData,
+        string $strFieldName,
+        string $strContext,
+        ?string $strParentPath = null,
+        bool $allowEmpty = true
+    ): void {
+        self::validateRequiredField(
+            $arrData,
+            $strFieldName,
+            $strContext,
+            $strParentPath
+        );
+
+        $mixFieldValue = $arrData[$strFieldName];
+
+        if (!self::isStringList($mixFieldValue)) {
+            $strFieldPath = self::buildFieldPath(
+                $strFieldName,
+                $strParentPath
+            );
+
+            throw new UnexpectedValueException(
+                "{$strContext} field '{$strFieldPath}' "
+                . 'phải là danh sách string.'
+            );
+        }
+
+        if (!$allowEmpty && $mixFieldValue === []) {
+            $strFieldPath = self::buildFieldPath(
+                $strFieldName,
+                $strParentPath
+            );
+
+            throw new UnexpectedValueException(
+                "{$strContext} field '{$strFieldPath}' "
+                . 'không được là danh sách rỗng.'
+            );
+        }
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
     private static function buildFieldPath(
         string $strFieldName,
         ?string $strParentPath = null

@@ -32,7 +32,7 @@ class ContextRouter{
         $this->arrEnableModule = $arrEnableModule;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    public function securityAdminControllerName(array $arrSegment): array{
+    /*public function securityAdminControllerName(array $arrSegment): array{
         if(empty($arrSegment)){
             return $arrSegment;
         }
@@ -47,7 +47,7 @@ class ContextRouter{
             }
         }
         return $arrSegment;
-    }
+    }*/
     /*---------------------------------------------------------------------------------------------------------------*/
     public function matchUri(Request $request): ?array {
         $arrSegment = $request->segmentUri();
@@ -55,8 +55,6 @@ class ContextRouter{
             throw new HttpException(404, 'Not Found');
         }
 
-        // Xử lý rename admin controller
-        $arrSegment = $this->securityAdminControllerName($arrSegment);
         $path = $this->toMCA($arrSegment);
         $strModule = count($path ?? []) === 3 ? $path[0] : null;
         /*hệ thống không phân tích được url, tình huống thường xảy ra khi gõ sai 

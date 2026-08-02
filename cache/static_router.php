@@ -12,17 +12,92 @@ return array (
     1 => 'document',
     2 => 'client-info',
     3 => 'login',
+    4 => 'cacquak',
   ),
   'arrR' => 
   array (
-    0 => 'guest',
-    1 => 'cm_admin',
-    2 => 'it_admin',
-    3 => 'pbt_fwk_user',
-    4 => 'pbt_fwk_admin',
-    5 => 'bud_prj_user',
-    6 => 'bud_prj_admin',
-    7 => 'admin',
+    'guest' => 
+    array (
+      'display_name' => 'khách',
+      'weight' => 0,
+    ),
+    'cm_admin' => 
+    array (
+      'display_name' => 'admin tài liệu sưu tập',
+      'weight' => 2,
+    ),
+    'it_admin' => 
+    array (
+      'display_name' => 'admin tài liệu tin học',
+      'weight' => 2,
+    ),
+    'pbt_fwk_user' => 
+    array (
+      'display_name' => 'người dùng PBT framework',
+      'weight' => 1,
+    ),
+    'pbt_fwk_admin' => 
+    array (
+      'display_name' => 'admin PBT framework',
+      'weight' => 2,
+    ),
+    'bud_prj_user' => 
+    array (
+      'display_name' => 'người dùng BUD project',
+      'weight' => 1,
+    ),
+    'bud_prj_admin' => 
+    array (
+      'display_name' => 'admin BUD project',
+      'weight' => 2,
+    ),
+    'admin' => 
+    array (
+      'display_name' => 'quản trị hệ thống',
+      'weight' => 3,
+    ),
+  ),
+  'arrAuthRegistry' => 
+  array (
+    'login' => 
+    array (
+      'max_fail_count' => 5,
+      'turnstile' => 3,
+      'remember_cookie' => true,
+      'remember_expire' => 604800,
+      'default_business_path' => '/',
+      'accepted_roles' => 
+      array (
+        0 => 'cm_admin',
+        1 => 'it_admin',
+        2 => 'pbt_fwk_user',
+        3 => 'pbt_fwk_admin',
+        4 => 'bud_prj_user',
+        5 => 'bud_prj_admin',
+      ),
+      'weights' => 
+      array (
+        'max_role_weight' => 2,
+        'accepted_role_count' => 6,
+      ),
+    ),
+    'cacquak' => 
+    array (
+      'max_fail_count' => 3,
+      'turnstile' => 'always',
+      'remember_cookie' => false,
+      'default_business_path' => '/',
+      'remember_expire' => NULL,
+      'accepted_roles' => 
+      array (
+        0 => 'admin',
+      ),
+      'weights' => 
+      array (
+        'max_role_weight' => 3,
+        'accepted_role_count' => 1,
+      ),
+    ),
   ),
   'arrMC2FQCN' => 
   array (
@@ -112,6 +187,9 @@ return array (
         'fqcn' => 'App\\Controller\\Category\\CategoryPageController',
         'function' => 'renderPage',
         'method' => 'GET',
+        'route_type' => 'business',
+        'default_business_path' => NULL,
+        'authentication_path' => 'login',
       ),
       'update' => 
       array (
@@ -126,6 +204,9 @@ return array (
         'fqcn' => 'App\\Controller\\Category\\CategoryPageController',
         'function' => 'update',
         'method' => 'POST',
+        'route_type' => 'business',
+        'default_business_path' => NULL,
+        'authentication_path' => 'login',
       ),
     ),
     'document' => 
@@ -146,6 +227,9 @@ return array (
         'fqcn' => 'App\\Controller\\Document\\DocumentPageController',
         'function' => 'index',
         'method' => 'GET',
+        'route_type' => 'business',
+        'default_business_path' => NULL,
+        'authentication_path' => 'login',
       ),
       'update' => 
       array (
@@ -160,6 +244,9 @@ return array (
         'fqcn' => 'App\\Controller\\Document\\DocumentPageController',
         'function' => 'update',
         'method' => 'POST',
+        'route_type' => 'business',
+        'default_business_path' => NULL,
+        'authentication_path' => 'login',
       ),
     ),
     'login' => 
@@ -173,6 +260,9 @@ return array (
         'fqcn' => 'Core\\Controller\\Login\\LoginPageController',
         'function' => 'renderPage',
         'method' => 'GET',
+        'route_type' => 'authentication',
+        'default_business_path' => '/',
+        'authentication_path' => NULL,
       ),
       'login' => 
       array (
@@ -183,6 +273,9 @@ return array (
         'fqcn' => 'Core\\Controller\\Login\\LoginPageController',
         'function' => 'login',
         'method' => 'POST',
+        'route_type' => 'authentication',
+        'default_business_path' => '/',
+        'authentication_path' => NULL,
       ),
     ),
     'client-info' => 
@@ -203,6 +296,9 @@ return array (
         'fqcn' => 'Core\\Controller\\ClientInfoController',
         'function' => 'index',
         'method' => 'JSON',
+        'route_type' => 'business',
+        'default_business_path' => NULL,
+        'authentication_path' => 'login',
       ),
     ),
   ),

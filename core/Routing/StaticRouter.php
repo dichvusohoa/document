@@ -1,7 +1,6 @@
 <?php
 namespace Core\Routing;
 use UnexpectedValueException;
-use InvalidArgumentException;
 use Core\Utility\ValidUtility;
 use Core\Utility\StringUtility;
 class StaticRouter {
@@ -10,6 +9,7 @@ class StaticRouter {
     protected array $arrMC; //C = danh sách các controller phụ thuộc vào module. tạo từ file /config/config.mc.php
     protected array $arrStC; //StC = standalone controller: danh sách các controller độc lập không có module, tạo từ file /config/config.mc.php
     protected array $arrR; //R = Role, danh sách tất cả các role. load từ file /config/config.role.php
+    protected array $arrAuthRegistry; //load từ file /config/config.login.php
     //MC2FQCN = module-controller-FQCN (fully qualified class name). 
     //xây dựng  từ file /config/config.mc2fc.php. 
     protected array $arrMC2FQCN; 
@@ -30,6 +30,8 @@ class StaticRouter {
         $this->buildModuleController();
         // 2. Load các config nền còn lại
         $this->buildRole();
+        $authRegistry = new AuthRegistry($this->arrStC, $this->arrR);
+        $this->arrAuthRegistry = $authRegistry->getAuthRegistry();
         $this->buildFCAction();
         // 3. buildMiddleware. Có arrM  tạo parser
         $parser = new RouteSegmentPatternParser($this->arrM);
@@ -46,7 +48,8 @@ class StaticRouter {
             $parserMC,
             $this->arrMC2FQCN,
             $this->arrFCAction,
-            $this->arrR
+            array_keys($this->arrR),
+            $this->arrAuthRegistry
         );
         $this->arrMCAR = $mcarBuilder->build();
         //$this->buildMCAR();bỏ
@@ -68,10 +71,6 @@ class StaticRouter {
         return $this->arrR;
     }
     /*--------------------------------------------------------------------------------------------------------------*/
-    /*public function __getMiddleware() {
-        return $this->arrMiddlewareParsed;
-    }*/
-    /*---------------------------------------------------------------------------------------------------------------*/
     public function getRouteInfo(array $path): ?array {
         $data = $this->arrMCAR;
         foreach ($path as $key) {
@@ -82,10 +81,6 @@ class StaticRouter {
         }
         return $data;
     }
-    /*---------------------------------------------------------------------------------------------------------------*/
-    /*public function __getDefaultRoute(){
-        return $this->arrDefaultRoute;
-    }*/
     /*---------------------------------------------------------------------------------------------------------------*/
     public function getDefaultModule(): ?string {
         return $this->arrDefaultRoute['default_entry']['type'] === 'module'
@@ -166,11 +161,59 @@ class StaticRouter {
     /*---------------------------------------------------------------------------------------------------------------*/
     protected function buildRole(){
         $strFileName = 'config.role.php';
-        $arTmp =  require CONFIG_PATH.'/'. $strFileName;
-        if(!ValidUtility::isStringPairMap($arTmp)){
-            throw new UnexpectedValueException("File {$strFileName} phải trả về kết quả là một mảng key/value string"); 
+        $arrTmp = require CONFIG_PATH . '/' . $strFileName;
+        if (!is_array($arrTmp)) {
+            throw new UnexpectedValueException(
+                "File {$strFileName} phải trả về một mảng."
+            );
         }
-        $this->arrR = array_keys($arTmp);
+        foreach ($arrTmp as $strRole => $arrRoleInfo) {
+            if (!is_string($strRole) || trim($strRole) === '') {
+                throw new UnexpectedValueException(
+                    "Tên role trong {$strFileName} phải là chuỗi không rỗng."
+                );
+            }
+
+            if (!is_array($arrRoleInfo)) {
+                throw new UnexpectedValueException(
+                    "Role '{$strRole}' trong {$strFileName} phải là một mảng."
+                );
+            }
+            ValidUtility::validateNoUnexpectedFields(
+                $arrRoleInfo,
+                ['display_name', 'weight'],
+                "Role '{$strRole}'"
+            );
+            ValidUtility::validateRequiredNonEmptyStringField(
+                $arrRoleInfo,
+                'display_name',
+                "Role '{$strRole}'"
+            );
+            ValidUtility::validateRequiredField(
+                $arrRoleInfo,
+                'weight',
+                "Role '{$strRole}'"
+            );
+
+            if (!is_int($arrRoleInfo['weight']) || $arrRoleInfo['weight'] < 0) {
+                throw new UnexpectedValueException(
+                    "Role '{$strRole}': field 'weight' phải là số nguyên không âm."
+                );
+            }
+        }
+
+        // Framework bắt buộc phải có role guest
+        if (!isset($arrTmp['guest'])) {
+            throw new UnexpectedValueException(
+                "File {$strFileName} phải định nghĩa role 'guest'."
+            );
+        }
+        if ($arrTmp['guest']['weight'] !== 0) {
+            throw new UnexpectedValueException(
+                "Role 'guest' phải có weight = 0."
+            );
+        }
+        $this->arrR = $arrTmp;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     protected function buildFCAction(){
@@ -236,7 +279,6 @@ class StaticRouter {
                 'fqcn' => $fqcn// mode aray
             ];
         }
-       //$x = $this->arrMiddlewareParsed;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     //arrMC2FQCN được xây dựng là [module][controller] => $strFQCN
@@ -358,6 +400,7 @@ class StaticRouter {
             'arrMC' => $this->arrMC,
             'arrStC' => $this->arrStC,
             'arrR' => $this->arrR,
+            'arrAuthRegistry' => $this->arrAuthRegistry,
             'arrMC2FQCN' => $this->arrMC2FQCN,
             'arrFCAction' => $this->arrFCAction,
             'arrMiddlewareParsed' => $this->arrMiddlewareParsed,
