@@ -423,10 +423,8 @@ class StaticRouter {
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     public function createAuthRegistry(): AuthRegistry {
-         $ref = new \ReflectionClass(AuthRegistry::class);
-         $obj = $ref->newInstanceWithoutConstructor();
-         $key = 'arrAuthRegistry';
-         $obj->$key = $this->arrAuthRegistry;
-         return $obj;
+        return AuthRegistry::fromArray(
+            $this->arrAuthRegistry
+        );
     }
 }

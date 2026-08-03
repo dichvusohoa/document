@@ -93,8 +93,18 @@ final class AuthRegistry
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function loadConfig(): array
-    {
+    public static function fromArray(array $arrAuthRegistry): self{
+        $ref = new \ReflectionClass(self::class);
+
+        /** @var self $obj */
+        $obj = $ref->newInstanceWithoutConstructor();
+
+        $obj->arrAuthRegistry = $arrAuthRegistry;
+
+        return $obj;
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    protected function loadConfig(): array{
         $strConfigFilePath =
             CONFIG_PATH . '/config.login.php';
 
@@ -497,11 +507,15 @@ final class AuthRegistry
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     public function getDefaultBusinessPath(string $strControllerName) {
-        $value = $this->arrAuthRegistry[$strController][AuthRegistry::FIELD_DEFAULT_BUSINESS_PATH] ?? null;
+        $value = $this->arrAuthRegistry[$strControllerName][AuthRegistry::FIELD_DEFAULT_BUSINESS_PATH] ?? null;
         return $value;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     public function getAuthRegistry(): array{
         return $this->arrAuthRegistry;
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    public function hasAuthController(string $strControllerName): bool{
+        return isset($this->arrAuthRegistry[$strControllerName]);
     }
 }

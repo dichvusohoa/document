@@ -110,7 +110,7 @@ class MCARBuilder {
                 $str,    
                 $strFQCN,
                 $arrExprRA,
-                isset($this->arrAuthRegistry[$str]),      
+                $this->authRegistry->hasAuthController($str),    
                 $refTree,
                   
             );
