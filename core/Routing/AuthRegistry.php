@@ -247,7 +247,7 @@ final class AuthRegistry
             $strContext
         );
 
-        $this->validateDefaultRedirect(
+        $this->validateDefaultBusinessPath(
             $mixAuthConfig,
             $strContext
         );
@@ -430,7 +430,7 @@ final class AuthRegistry
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function validateDefaultRedirect(
+    protected function validateDefaultBusinessPath(
         array $arrRegistryEntry,
         string $strContext
     ): void {
@@ -503,7 +503,9 @@ final class AuthRegistry
                 $arrCandidateWeights   = $arrWeights;
             }
         }
-        return $strCandidateAuthPath;
+        return  $strCandidateAuthPath === null
+                ? null
+                : '/' . ltrim($strCandidateAuthPath, '/');
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     public function getDefaultBusinessPath(string $strControllerName) {

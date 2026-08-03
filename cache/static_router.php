@@ -189,7 +189,7 @@ return array (
         'method' => 'GET',
         'route_type' => 'business',
         'default_business_path' => NULL,
-        'authentication_path' => 'login',
+        'authentication_path' => '/login',
       ),
       'update' => 
       array (
@@ -206,7 +206,7 @@ return array (
         'method' => 'POST',
         'route_type' => 'business',
         'default_business_path' => NULL,
-        'authentication_path' => 'login',
+        'authentication_path' => '/login',
       ),
     ),
     'document' => 
@@ -229,7 +229,7 @@ return array (
         'method' => 'GET',
         'route_type' => 'business',
         'default_business_path' => NULL,
-        'authentication_path' => 'login',
+        'authentication_path' => '/login',
       ),
       'update' => 
       array (
@@ -246,7 +246,7 @@ return array (
         'method' => 'POST',
         'route_type' => 'business',
         'default_business_path' => NULL,
-        'authentication_path' => 'login',
+        'authentication_path' => '/login',
       ),
     ),
     'login' => 
@@ -298,7 +298,7 @@ return array (
         'method' => 'JSON',
         'route_type' => 'business',
         'default_business_path' => NULL,
-        'authentication_path' => 'login',
+        'authentication_path' => '/login',
       ),
     ),
   ),

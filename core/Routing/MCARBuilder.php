@@ -8,7 +8,6 @@ class MCARBuilder {
     protected array $arrMC2FQCN;
     protected array $arrFCAction;
     protected array $arrR;
-    //protected array $arrAuthRegistry;
     protected AuthRegistry $authRegistry;
     
     static protected string $strFileName    = 'config.mc2ra.php';
@@ -27,7 +26,6 @@ class MCARBuilder {
         $this->arrMC2FQCN  = $arrMC2FQCN;
         $this->arrFCAction = $arrFCAction;
         $this->arrR        = $arrR;
-        //$this->arrAuthRegistry = $arrAuthRegistry;
         $this->authRegistry = $authRegistry;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
