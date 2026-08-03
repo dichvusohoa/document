@@ -49,7 +49,7 @@ class StaticRouter {
             $this->arrMC2FQCN,
             $this->arrFCAction,
             array_keys($this->arrR),
-            $this->arrAuthRegistry
+            $authRegistry
         );
         $this->arrMCAR = $mcarBuilder->build();
         //$this->buildMCAR();bỏ
@@ -420,5 +420,13 @@ class StaticRouter {
         }
 
         return $obj;
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    public function createAuthRegistry(): AuthRegistry {
+         $ref = new \ReflectionClass(AuthRegistry::class);
+         $obj = $ref->newInstanceWithoutConstructor();
+         $key = 'arrAuthRegistry';
+         $obj->$key = $this->arrAuthRegistry;
+         return $obj;
     }
 }

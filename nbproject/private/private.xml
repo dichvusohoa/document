@@ -3,14 +3,21 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/Projects/PHP/document/core/Utility/ValidUtility.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Routing/MCRoutePathParser.php</file>
             <file>file:/D:/Projects/PHP/document/cache/static_router.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Routing/AuthRegistry.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Foundation/ErrorInfoData.php</file>
+            <file>file:/D:/Projects/PHP/document/public/index.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Routing/StaticRouter.php</file>
+            <file>file:/D:/Projects/PHP/document/readme_về%20sử%20dụng%20nhanh%20git</file>
+            <file>file:/D:/Projects/PHP/document/core/Http/RequestAuthContext.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Routing/MCARBuilder.php</file>
             <file>file:/D:/Projects/PHP/document/core/Utility/MathUtility.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Controller/Login/LoginPageController.php</file>
+            <file>file:/D:/Projects/PHP/document/config/config.login.php</file>
             <file>file:/D:/Projects/PHP/document/core/Routing/ContextRouter.php</file>
             <file>file:/D:/Projects/PHP/document/core/Routing/RouteInfo.php</file>
-            <file>file:/D:/Projects/PHP/document/core/Routing/LoginRegistry.php</file>
-            <file>file:/D:/Projects/PHP/document/core/Routing/StaticRouter.php</file>
-            <file>file:/D:/Projects/PHP/document/core/Routing/LoginRegistry_1.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Foundation/HttpKernel.php</file>
         </group>
     </open-files>
 </project-private>

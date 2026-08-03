@@ -1,8 +1,6 @@
 <?php
 namespace Core\Routing;
-
 use UnexpectedValueException;
-use InvalidArgumentException;
 use Core\Utility\MathUtility;
 
 class MCARBuilder {
@@ -10,7 +8,9 @@ class MCARBuilder {
     protected array $arrMC2FQCN;
     protected array $arrFCAction;
     protected array $arrR;
-    protected array $arrAuthRegistry;
+    //protected array $arrAuthRegistry;
+    protected AuthRegistry $authRegistry;
+    
     static protected string $strFileName    = 'config.mc2ra.php';
     static protected string $strFileName2   = 'config.mc.php';
     static protected string $strFileName3   = 'config.fc.action.php';
@@ -21,14 +21,14 @@ class MCARBuilder {
         array $arrMC2FQCN,
         array $arrFCAction,
         array $arrR,
-        array $arrAuthRegistry    
+        AuthRegistry $authRegistry    
     ) {
         $this->parser      = $parser;
         $this->arrMC2FQCN  = $arrMC2FQCN;
         $this->arrFCAction = $arrFCAction;
         $this->arrR        = $arrR;
-        $this->arrAuthRegistry = $arrAuthRegistry;
-        
+        //$this->arrAuthRegistry = $arrAuthRegistry;
+        $this->authRegistry = $authRegistry;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     public function build(): array {
@@ -160,7 +160,8 @@ class MCARBuilder {
             }
         }
         if($strRouteType === 'authentication'){
-            $strDefaultBusinessPath  = $this->arrAuthRegistry[$strController][AuthRegistry::FIELD_DEFAULT_BUSINESS_PATH];
+            //$strDefaultBusinessPath  = $this->arrAuthRegistry[$strController][AuthRegistry::FIELD_DEFAULT_BUSINESS_PATH];
+            $strDefaultBusinessPath = $this->authRegistry->getDefaultBusinessPath($strController);
             foreach ($arrNode as $strAction => $value) {
                 $arrNode[$strAction]['default_business_path'] = $strDefaultBusinessPath;
                 $arrNode[$strAction]['authentication_path'] = null;
@@ -170,7 +171,7 @@ class MCARBuilder {
         else{
             foreach ($arrNode as $strAction => $value) {
                 $arrNode[$strAction]['default_business_path'] = null;
-                $arrNode[$strAction]['authentication_path'] = $this->findAuthPathByRoles($arrNode[$strAction]['roles']);
+                $arrNode[$strAction]['authentication_path'] = $this->authRegistry->findAuthPathByRoles($arrNode[$strAction]['roles']);
             }
         }
         return $arrNode;
@@ -236,29 +237,5 @@ class MCARBuilder {
         return $arrPairRA;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function findAuthPathByRoles(array $arrRoles): ?string{
-        $strCandidateAuthPath = null;
-        $arrCandidateWeights   = null;
-        foreach ($this->arrAuthRegistry as $strAuthPath => $arrAuthEntry) {
-            $arrAcceptedRoles = $arrAuthEntry[AuthRegistry::FIELD_ACCEPTED_ROLES];
-            if (empty(array_intersect($arrRoles, $arrAcceptedRoles))) {
-                continue;
-            }
-            $arrWeights = array_values(
-                $arrAuthEntry[AuthRegistry::FIELD_WEIGHTS]
-            );
-
-            if (
-                $arrCandidateWeights === null
-                || MathUtility::compareNumberArray(
-                    $arrWeights,
-                    $arrCandidateWeights
-                ) < 0
-            ) {
-                $strCandidateAuthPath = $strAuthPath;
-                $arrCandidateWeights   = $arrWeights;
-            }
-        }
-        return $strCandidateAuthPath;
-    }
+   
 }

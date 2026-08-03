@@ -1,11 +1,10 @@
 <?php
 
 namespace Core\Routing;
-
 use Core\Utility\StringUtility;
 use Core\Utility\ValidUtility;
 use UnexpectedValueException;
-
+use Core\Utility\MathUtility;
 final class AuthRegistry
 {
     public const TURNSTILE_NEVER  = 'never';
@@ -470,7 +469,37 @@ final class AuthRegistry
                 count($arrAcceptedRole),
         ];
     }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    public function findAuthPathByRoles(array $arrRoles): ?string{
+        $strCandidateAuthPath = null;
+        $arrCandidateWeights   = null;
+        foreach ($this->arrAuthRegistry as $strAuthPath => $arrAuthEntry) {
+            $arrAcceptedRoles = $arrAuthEntry[AuthRegistry::FIELD_ACCEPTED_ROLES];
+            if (empty(array_intersect($arrRoles, $arrAcceptedRoles))) {
+                continue;
+            }
+            $arrWeights = array_values(
+                $arrAuthEntry[AuthRegistry::FIELD_WEIGHTS]
+            );
 
+            if (
+                $arrCandidateWeights === null
+                || MathUtility::compareNumberArray(
+                    $arrWeights,
+                    $arrCandidateWeights
+                ) < 0
+            ) {
+                $strCandidateAuthPath = $strAuthPath;
+                $arrCandidateWeights   = $arrWeights;
+            }
+        }
+        return $strCandidateAuthPath;
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    public function getDefaultBusinessPath(string $strControllerName) {
+        $value = $this->arrAuthRegistry[$strController][AuthRegistry::FIELD_DEFAULT_BUSINESS_PATH] ?? null;
+        return $value;
+    }
     /*---------------------------------------------------------------------------------------------------------------*/
     public function getAuthRegistry(): array{
         return $this->arrAuthRegistry;
