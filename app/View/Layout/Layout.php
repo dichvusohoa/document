@@ -4,8 +4,8 @@ use Core\View\Layout\BaseLayout;
 //use Core\Http\RequestAuthContext;
 class Layout extends BaseLayout{
     public function mapToLayoutFile():string{
-        $arrRouteMCA = $this->requestAuthContext->routePath();
-        if($arrRouteMCA && ($arrRouteMCA[0] === 'login' || $arrRouteMCA[0] === 'admin-login')){
+        $arrMCA = $this->requestAuthContext->routePath();
+        if($arrMCA && ($arrMCA['controller'] === 'login' || $arrMCA['controller'] === 'cacquak')){
             return 
             CORE_PATH.'/resources/views/layouts/simple_layout.phtml';
         }

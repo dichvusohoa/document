@@ -350,5 +350,94 @@ class ValidUtility{
             ? $strFieldName
             : "{$strParentPath}.{$strFieldName}";
     }
-    
+    /*---------------------------------------------------------------------------------------------------------------*/
+    /**
+     * Kiểm tra một giá trị là string không rỗng và không có khoảng trắng
+     * ở đầu hoặc cuối.
+     */
+    public static function isNonEmptyString(mixed $value): bool
+    {
+        return is_string($value)
+            && $value !== ''
+            && $value === trim($value);
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    /**
+     * Kiểm tra một giá trị là list gồm các string không rỗng.
+     *
+     * Mảng rỗng được xem là không hợp lệ.
+     */
+    public static function isNonEmptyStringList(mixed $arrData): bool
+    {
+        if (!is_array($arrData) || $arrData === []) {
+            return false;
+        }
+
+        foreach ($arrData as $value) {
+            if (!self::isNonEmptyString($value)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    /**
+     * Kiểm tra mảng có đúng tập field yêu cầu:
+     * - không thiếu field;
+     * - không có field ngoài dự kiến;
+     * - field name phải là string.
+     *
+     * Thứ tự các field không quan trọng.
+     */
+    public static function hasExactFields(
+        mixed $arrData,
+        array $arrExpectedFields
+    ): bool {
+
+        if (!is_array($arrData) || !is_array($arrExpectedFields)) {
+            return false;
+        }
+
+        if (count($arrData) !== count($arrExpectedFields)) {
+            return false;
+        }
+
+        $arrExpected = [];
+
+        foreach ($arrExpectedFields as $strField) {
+            if (!self::isNonEmptyString($strField)) {
+                return false;
+            }
+
+            $arrExpected[$strField] = true;
+        }
+
+        foreach ($arrData as $strField => $_) {
+            if (
+                !is_string($strField)
+                || !isset($arrExpected[$strField])
+            ) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    /**
+     * Kiểm tra đường dẫn tuyệt đối nội bộ:
+     * - là string không rỗng;
+     * - bắt đầu bằng một dấu "/";
+     * - không bắt đầu bằng "//".
+     */
+    public static function isInternalAbsolutePath(mixed $value): bool
+    {
+        return self::isNonEmptyString($value)
+            && $value[0] === '/'
+            && !str_starts_with($value, '//');
+    }
 }

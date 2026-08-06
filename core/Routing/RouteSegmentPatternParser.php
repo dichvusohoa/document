@@ -91,7 +91,7 @@ class RouteSegmentPatternParser {
     /*---------------------------------------------------------------------------------------------------------------*/
     //Chú ý $strRoutePath giờ đã là 1 đầu vào được chuẩn hóa
     protected function buildFromRoutePath(string $strRoutePath): array {
-        $result = MCARMeInfo::buildEmpty();
+        $result = MCARMeInfo::createEmpty();
         foreach (explode('/', $strRoutePath) as $segment) {
             if (!preg_match('/^\[(\w+):(.+)\]$/', $segment, $matches)) {
                 throw new InvalidArgumentException(
@@ -208,7 +208,7 @@ class RouteSegmentPatternParser {
         return preg_match('/^\[\w+:.+\]$/', $segment) === 1;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected static function buildEmpty(): array {
+    protected static function createEmpty(): array {
         return [
             'module'     => null,
             'controller' => null,

@@ -18,8 +18,8 @@ final class AuthRegistry
     public const FIELD_MAX_FAIL_COUNT         = 'max_fail_count';
     public const FIELD_TURNSTILE               = 'turnstile';
     public const FIELD_REMEMBER_COOKIE         = 'remember_cookie';
-    public const FIELD_REMEMBER_EXPIRE         = 'remember_expire';
-    public const FIELD_DEFAULT_BUSINESS_PATH        = 'default_business_path';
+    public const FIELD_REMEMBER_EXPIRE  = 'remember_expire';
+    public const FIELD_DEFAULT_BUSINESS_PATH    = 'default_business_path';
     public const FIELD_WEIGHTS                 = 'weights';
 
     protected const WEIGHT_MAX_ROLE = 'max_role_weight';
@@ -440,12 +440,12 @@ final class AuthRegistry
             $strContext
         );
 
-        $strDefaultRedirect =
+        $strDefaultBusinessPath =
             $arrRegistryEntry[self::FIELD_DEFAULT_BUSINESS_PATH];
 
         if (
-            $strDefaultRedirect[0] !== '/'
-            || str_starts_with($strDefaultRedirect, '//')
+            $strDefaultBusinessPath[0] !== '/'
+            || str_starts_with($strDefaultBusinessPath, '//')
         ) {
             throw new UnexpectedValueException(
                 "{$strContext} field '"
@@ -508,13 +508,17 @@ final class AuthRegistry
                 : '/' . ltrim($strCandidateAuthPath, '/');
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    public function getDefaultBusinessPath(string $strControllerName) {
-        $value = $this->arrAuthRegistry[$strControllerName][AuthRegistry::FIELD_DEFAULT_BUSINESS_PATH] ?? null;
-        return $value;
+    public function getDefaultBusinessPath(string $strControllerName): ?string {
+        return $this->arrAuthRegistry[$strControllerName]
+        [self::FIELD_DEFAULT_BUSINESS_PATH] ?? null;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     public function getAuthRegistry(): array{
         return $this->arrAuthRegistry;
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    public function getAuthPolicy(string $strControllerName): array{
+        return $this->arrAuthRegistry[$strControllerName] ?? null;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     public function hasAuthController(string $strControllerName): bool{

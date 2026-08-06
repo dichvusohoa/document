@@ -31,8 +31,7 @@ class MCARBuilder {
     /*---------------------------------------------------------------------------------------------------------------*/
     public function build(): array {
         $strFileName = self::$strFileName;
-        $strFileName2 = self::$strFileName2;
-
+        //$strFileName2 = self::$strFileName2;
         $arrTree = [];
         $arrData = require CONFIG_PATH . '/' . $strFileName;
 
@@ -109,8 +108,7 @@ class MCARBuilder {
                 $strFQCN,
                 $arrExprRA,
                 $this->authRegistry->hasAuthController($str),    
-                $refTree,
-                  
+                $refTree
             );
         }
 
@@ -125,7 +123,9 @@ class MCARBuilder {
             array $arrNode): array {
         $strFileName3 = self::$strFileName3;
         $arrPairRA = $this->parseExprRAList($strFQCN, $arrExprRA);
-        $strRouteType = $isAuthenticationRoute ? "authentication" : "business";
+        $strRouteType = $isAuthenticationRoute ? 
+                RouteInfo::ROUTE_TYPE_AUTHENTICATION : 
+                RouteInfo::ROUTE_TYPE_BUSINESS;
         foreach ($arrPairRA as [$strRole, $strAction]) {
             //không cần kiểm tra !isset($this->arrFCAction[$strFQCN]) vì đã kiểm tra trong
             //$arrPairRA = $this->parseExprRAList($strFQCN, $arrExprRA) rồi
@@ -145,31 +145,42 @@ class MCARBuilder {
                 }
 
                 $arrNode[$strAction] = [
-                    'roles'    => [],
-                    'fqcn'     => $strFQCN,
-                    'function' => $arrActionDetail['function'] ?? $strAction,
-                    'method'   => strtoupper($arrActionDetail['method']),
-                    'route_type' => $strRouteType
+                    RouteInfo::FIELD_ROLES    => [],
+                    RouteInfo::FIELD_FQCN     => $strFQCN,
+                    RouteInfo::FIELD_FUNCTION => $arrActionDetail['function'] ?? $strAction,
+                    RouteInfo::FIELD_METHOD   => strtoupper($arrActionDetail['method']),
+                    RouteInfo::FIELD_ROUTE_TYPE => $strRouteType,
+                    RouteInfo::FIELD_AUTHENTICATION_PATH    => null,
+                    RouteInfo::FIELD_DEFAULT_BUSINESS_PATH  => null
+                ];
+                $arrNode[$strAction] = [
+                    RouteInfo::FIELD_ROLES    => [],
+                    RouteInfo::FIELD_FQCN     => $strFQCN,
+                    RouteInfo::FIELD_FUNCTION => $arrActionDetail['function'] ?? $strAction,
+                    RouteInfo::FIELD_METHOD   => strtoupper($arrActionDetail['method']),
+                    RouteInfo::FIELD_ROUTE_TYPE => $strRouteType,
+                    RouteInfo::FIELD_AUTHENTICATION_PATH    => null,
+                    RouteInfo::FIELD_DEFAULT_BUSINESS_PATH  => null
                 ];
             }
             // Bổ sung role
-            if (!in_array($strRole, $arrNode[$strAction]['roles'], true)) {
-                $arrNode[$strAction]['roles'][] = $strRole;
+            if (!in_array($strRole, $arrNode[$strAction][RouteInfo::FIELD_ROLES], true)) {
+                $arrNode[$strAction][RouteInfo::FIELD_ROLES][] = $strRole;
             }
         }
-        if($strRouteType === 'authentication'){
-            //$strDefaultBusinessPath  = $this->arrAuthRegistry[$strController][AuthRegistry::FIELD_DEFAULT_BUSINESS_PATH];
+        if($strRouteType === RouteInfo::ROUTE_TYPE_AUTHENTICATION){
             $strDefaultBusinessPath = $this->authRegistry->getDefaultBusinessPath($strController);
             foreach ($arrNode as $strAction => $value) {
-                $arrNode[$strAction]['default_business_path'] = $strDefaultBusinessPath;
-                $arrNode[$strAction]['authentication_path'] = null;
+                $arrNode[$strAction][RouteInfo::FIELD_DEFAULT_BUSINESS_PATH] = $strDefaultBusinessPath;
+                $arrNode[$strAction][RouteInfo::FIELD_AUTHENTICATION_PATH] = null;
             }
             
         }
         else{
             foreach ($arrNode as $strAction => $value) {
-                $arrNode[$strAction]['default_business_path'] = null;
-                $arrNode[$strAction]['authentication_path'] = $this->authRegistry->findAuthPathByRoles($arrNode[$strAction]['roles']);
+                $arrNode[$strAction][RouteInfo::FIELD_DEFAULT_BUSINESS_PATH] = null;
+                $arrNode[$strAction][RouteInfo::FIELD_AUTHENTICATION_PATH] = 
+                        $this->authRegistry->findAuthPathByRoles($arrNode[$strAction][RouteInfo::FIELD_ROLES]);
             }
         }
         return $arrNode;

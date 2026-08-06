@@ -3,12 +3,12 @@ namespace Core\Foundation;
 use Core\Http\Response;
 class ErrorInfo{
     /*---------------------------------------------------------------------------------------------------------------*/
-    public static function buildEmpty(string $status = Response::SERVER_ERR_STATUS,
+    public static function createEmpty(string $status = Response::SERVER_ERR_STATUS,
         string $message = ''): array  {
         return 
         [    
             'status' => $status,
-            'data' => ErrorInfoData::buildEmpty($message),
+            'data' => ErrorInfoData::createEmpty($message),
             'extra' => null
         ];
     }

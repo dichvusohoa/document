@@ -188,8 +188,8 @@ return array (
         'function' => 'renderPage',
         'method' => 'GET',
         'route_type' => 'business',
-        'default_business_path' => NULL,
         'authentication_path' => '/login',
+        'default_business_path' => NULL,
       ),
       'update' => 
       array (
@@ -205,8 +205,8 @@ return array (
         'function' => 'update',
         'method' => 'POST',
         'route_type' => 'business',
-        'default_business_path' => NULL,
         'authentication_path' => '/login',
+        'default_business_path' => NULL,
       ),
     ),
     'document' => 
@@ -228,8 +228,8 @@ return array (
         'function' => 'index',
         'method' => 'GET',
         'route_type' => 'business',
-        'default_business_path' => NULL,
         'authentication_path' => '/login',
+        'default_business_path' => NULL,
       ),
       'update' => 
       array (
@@ -245,8 +245,8 @@ return array (
         'function' => 'update',
         'method' => 'POST',
         'route_type' => 'business',
-        'default_business_path' => NULL,
         'authentication_path' => '/login',
+        'default_business_path' => NULL,
       ),
     ),
     'login' => 
@@ -261,8 +261,8 @@ return array (
         'function' => 'renderPage',
         'method' => 'GET',
         'route_type' => 'authentication',
-        'default_business_path' => '/',
         'authentication_path' => NULL,
+        'default_business_path' => '/',
       ),
       'login' => 
       array (
@@ -274,8 +274,8 @@ return array (
         'function' => 'login',
         'method' => 'POST',
         'route_type' => 'authentication',
-        'default_business_path' => '/',
         'authentication_path' => NULL,
+        'default_business_path' => '/',
       ),
     ),
     'client-info' => 
@@ -297,8 +297,8 @@ return array (
         'function' => 'index',
         'method' => 'JSON',
         'route_type' => 'business',
-        'default_business_path' => NULL,
         'authentication_path' => '/login',
+        'default_business_path' => NULL,
       ),
     ),
   ),

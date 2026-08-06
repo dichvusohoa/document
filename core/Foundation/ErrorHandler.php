@@ -46,7 +46,7 @@ class ErrorHandler {
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     protected static function toErrorInfoData(Throwable $e): array {
-        $arr = ErrorInfoData::buildEmpty();
+        $arr = ErrorInfoData::createEmpty();
 
         $arr['message'] = $e->getMessage();
         $arr['code']    = $e->getCode();
@@ -75,7 +75,7 @@ class ErrorHandler {
     public static function toResponseFormat(Throwable|array $e, ?string $strRespStatus = null): array {
         $serverStatus =  $strRespStatus ?? self::toResponseStatus($e);
         $httpStatus   =  self::toHttpStatus($e);
-        $resp = ErrorInfo::buildEmpty();
+        $resp = ErrorInfo::createEmpty();
         $resp['status'] = $serverStatus;
         $resp['extra']  = $httpStatus;
         if ($e instanceof Throwable) {

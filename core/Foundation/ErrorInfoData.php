@@ -20,7 +20,7 @@ class ErrorInfoData{
             && ($arrData['previous'] === null || self::isValid($arrData['previous']));
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    public static function buildEmpty(string $message = ''): array  {
+    public static function createEmpty(string $message = ''): array  {
         return [    
             'message'   => $message,
             'code'      => null,

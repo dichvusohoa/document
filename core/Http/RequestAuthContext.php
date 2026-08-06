@@ -7,7 +7,8 @@ class RequestAuthContext{
     protected Request $request;
     protected array $arrAuthInfo;
     //đến bước contextRouter->matchUri thì mới tính ra được 3 thành phần dưới này
-    protected ?array $arrRouteMCA;
+    protected ?array $arrMCA;
+    protected ?array $arrRouteInfo;
     protected ?bool $isProhibitedModule;
     protected ?bool $isProhibitedRole;
     public function __construct(Request $request, array $arrAuthInfo) {
@@ -16,7 +17,8 @@ class RequestAuthContext{
             throw new InvalidArgumentException('arrAuthInfo có format không chính xác');
         }
         $this->arrAuthInfo  = $arrAuthInfo;
-        $this->arrRouteMCA =  null;
+        $this->arrMCA =  null;
+        $this->arrRouteInfo =  null;
         $this->isProhibitedModule =  null;
         $this->isProhibitedRole =  null;
     }
@@ -30,7 +32,11 @@ class RequestAuthContext{
     }
     // ----------------------------------------------------------------
     public function routePath(): ?array {
-        return $this->arrRouteMCA;
+        return $this->arrMCA;
+    }
+    // ----------------------------------------------------------------
+    public function routeInfo(): ?array {
+        return $this->arrRouteInfo;
     }
     // ----------------------------------------------------------------
     public function prohibitedModule(): ?bool {
@@ -41,9 +47,13 @@ class RequestAuthContext{
         return $this->isProhibitedRole;
     }
     // ----------------------------------------------------------------
-    //khi chạy contextRouter->matchUri thì lưu thông tin kết của của match['path'] vào $this->arrRouteMCA
+    //khi chạy contextRouter->matchUri thì lưu thông tin kết của của match['mca'] vào $this->arrMCA
     public function setRoutePath(?array $routePath) {
-        $this->arrRouteMCA = $routePath;
+        $this->arrMCA = $routePath;
+    }
+    // ----------------------------------------------------------------
+    public function setRouteInfo(?array $routeInfo) {
+        $this->arrRouteInfo = $routeInfo;
     }
     // ----------------------------------------------------------------
     public function setProhibitedModule(?bool $isProhibitedModule) {
@@ -55,7 +65,7 @@ class RequestAuthContext{
     }
     // ----------------------------------------------------------------
     public function isSetRoutePath() {
-        return is_array($this->arrRouteMCA);
+        return is_array($this->arrMCA);
     }
 
     
