@@ -30,7 +30,7 @@ return [
     'category'      => \App\Controller\Category\CategoryPageController::class,
     'document'      => \App\Controller\Document\DocumentPageController::class,
     'login'         => \Core\Controller\Login\LoginPageController::class,
-   // 'admin-login'   => \Core\Controller\Login\LoginPageController::class,
+    'cacquak'   => \Core\Controller\Login\LoginPageController::class,
     'client-info'   => \Core\Controller\ClientInfoController::class
 ];
             

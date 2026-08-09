@@ -3,18 +3,45 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/Projects/PHP/document/core/Routing/MCARBuilder.php</file>
-            <file>file:/D:/Projects/PHP/document/core/Http/RequestAuthContext.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Middleware/MiddlewareFactory.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Routing/MCRoutePathParser.php</file>
             <file>file:/D:/Projects/PHP/document/core/Routing/AuthRegistry.php</file>
-            <file>file:/D:/Projects/PHP/document/config/config.login.php</file>
             <file>file:/D:/Projects/PHP/document/core/Routing/MCARMeInfo.php</file>
-            <file>file:/D:/Projects/PHP/document/core/Routing/DefaultRouteBuilder.php</file>
-            <file>file:/D:/Projects/PHP/document/core/Routing/ContextRouter.php</file>
-            <file>file:/D:/Projects/PHP/document/core/Foundation/ErrorInfoData.php</file>
-            <file>file:/D:/Projects/PHP/document/core/Foundation/ErrorHandler.php</file>
-            <file>file:/D:/Projects/PHP/document/core/Foundation/HttpKernel.php</file>
+            <file>file:/D:/Projects/PHP/document/core/View/Layout/BaseLayout.php</file>
+            <file>file:/D:/Projects/PHP/document/config/config.mc2ra.php</file>
+            <file>file:/D:/Projects/PHP/document/core/View/Layout/BaseMobileDetectFactory.php</file>
+            <file>file:/D:/Projects/PHP/document/public/index.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Middleware/AuthMiddleware.php</file>
             <file>file:/D:/Projects/PHP/document/core/Routing/StaticRouter.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Routing/ContextRouter_3.php</file>
+            <file>file:/D:/Projects/PHP/document/config/config.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Http/RequestAuthContext.php</file>
+            <file>file:/D:/Projects/PHP/document/core/View/Layout/BaseDeviceScreenFactory.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Http/RequestAuthContext_1.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Foundation/App.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Controller/Login/LoginControllerFactory.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Controller/Login/LoginHelper.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Controller/Login/LoginPageController.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Routing/RouteInfo.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Routing/ContextRouteInfo.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Controller/Login/LoginController.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Foundation/HttpKernel.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Middleware/MiddlewareChain.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Controller/ControllerResolver.php</file>
+            <file>file:/D:/Projects/PHP/document/config/config.role.php</file>
+            <file>file:/D:/Projects/PHP/document/cache/static_router.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Http/Request.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Routing/RouterFactory.php</file>
             <file>file:/D:/Projects/PHP/document/app/View/Layout/Layout.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Controller/BaseControllerFactory.php</file>
+            <file>file:/D:/Projects/PHP/document/readme_về%20sử%20dụng%20nhanh%20git</file>
+            <file>file:/D:/Projects/PHP/document/logs/dev_errors.log</file>
+            <file>file:/D:/Projects/PHP/document/core/Routing/MCARBuilder.php</file>
+            <file>file:/D:/Projects/PHP/document/config/config.login.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Routing/ContextRouter.php</file>
+            <file>file:/D:/Projects/PHP/document/config/config.mc2fc.php</file>
+            <file>file:/D:/Projects/PHP/document/app/Controller/Category/CategoryController.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Auth/AuthService.php</file>
         </group>
     </open-files>
 </project-private>

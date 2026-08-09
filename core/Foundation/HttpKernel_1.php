@@ -24,51 +24,52 @@ class HttpKernel  {
         $this->middlewareFactory    = $middlewareFactory;
         $this->controllerResolver    = $controllerResolver;
     }
-    public function dispatch(): void{
-        $arrFQCN = require CONFIG_PATH.'/middleware.glb.php';
+    public function dispatch(){
+        $arrFQCN = require_once CONFIG_PATH.'/middleware.glb.php';
         $arrGlobalMiddleware = $this->middlewareFactory->createList($arrFQCN);
-        $middlewareChain = new MiddlewareChain($arrGlobalMiddleware,[$this, 'handler']);
+        $middlewareChain = new MiddlewareChain($arrGlobalMiddleware,[$this, 'buildHandler']);
         $middlewareChain->handleChain($this->requestAuthContext);        
     }
-    public function handler(): void {
-        $contextRouter = $this->routerFactory->create();
-        $match = $contextRouter->matchUri($this->requestAuthContext->request()); 
-        /*if($match[ContextRouteInfo::FIELD_MCAO] === null || 
-            $match[ContextRouteInfo::FIELD_ROUTE_INFO] === null){
+    public function buildHandler() {
+        $match = $this->route();
+        if($match[ContextRouteInfo::FIELD_MCAO] === null || 
+                $match[ContextRouteInfo::FIELD_ROUTE_INFO] === null){
             //redirect ra file báo lỗi 404
             throw new HttpException(404, 'ContextRouter chạy định tuyến (matchUri) trả về kết quả null');
-        }*/
-        $this->updateRequestAuthContext($match);
+        }
         $arrRouteInfo =    $match[ContextRouteInfo::FIELD_ROUTE_INFO];
         $strFQCN    = $arrRouteInfo[RouteInfo::FIELD_FQCN];
         $strFunction = $arrRouteInfo[RouteInfo::FIELD_FUNCTION];
         $controller = $this->controllerResolver->create($strFQCN, $this->requestAuthContext);
         $handler = function() use ($controller, $strFunction){
+            //call_user_func([$controller, 'doAction'], $strFunction);
             $controller->doAction($strFunction);
         };
         $arrMiddleware = $this->middlewareFactory->createList($match[ContextRouteInfo::FIELD_MIDDLEWARES]);
         $middlewareChain = new MiddlewareChain($arrMiddleware,$handler);
         $middlewareChain->handleChain($this->requestAuthContext);     
     }
- 
-    
-    protected function updateRequestAuthContext(
-        array $arrContextRouteInfo
-    ): void {
-        $arrFullRouteInfo =
-            $arrContextRouteInfo[ContextRouteInfo::FIELD_ROUTE_INFO];
-        //lọc ra dùng các fields cần thiết để truyền sang cho requestAuthContext
-        $arrRouteInfo = [
-            RouteInfo::FIELD_ROUTE_TYPE =>
-                $arrFullRouteInfo[RouteInfo::FIELD_ROUTE_TYPE]
-        ];
-
+    protected function route(): array{
+        $contextRouter = $this->routerFactory->create();
+        $arrContextRouteInfo= $contextRouter->matchUri($this->requestAuthContext->request()); 
+        
+        // truyền cho requestAuthContext thông tin route_info chỉ bao gồm route_type,authentication_path,default_business_path
+        $arrRouteInfo = [];
+        $arrRouteInfo[RouteInfo::FIELD_ROUTE_TYPE] =
+        $arrContextRouteInfo[ContextRouteInfo::FIELD_ROUTE_INFO][RouteInfo::FIELD_ROUTE_TYPE];
+        $arrRouteInfo[RouteInfo::FIELD_AUTHENTICATION_PATH] =
+        $arrContextRouteInfo[ContextRouteInfo::FIELD_ROUTE_INFO][RouteInfo::FIELD_AUTHENTICATION_PATH];
+        $arrRouteInfo[RouteInfo::FIELD_DEFAULT_BUSINESS_PATH] =
+        $arrContextRouteInfo[ContextRouteInfo::FIELD_ROUTE_INFO][RouteInfo::FIELD_DEFAULT_BUSINESS_PATH];
+        
+        //Bổ sung thông tin cho requestAuthContext
         $this->requestAuthContext->setRouteMatchResult(
-            $arrContextRouteInfo[ContextRouteInfo::FIELD_MCAO],
-            $arrRouteInfo,
-            $arrContextRouteInfo[ContextRouteInfo::FIELD_AUTH_POLICY],
-            $arrContextRouteInfo[ContextRouteInfo::FIELD_PROHIBITED_MODULE],
-            $arrContextRouteInfo[ContextRouteInfo::FIELD_PROHIBITED_ROLE]
-        );
+                $arrContextRouteInfo[ContextRouteInfo::FIELD_MCAO], 
+                $arrRouteInfo, 
+                $arrContextRouteInfo[ContextRouteInfo::FIELD_AUTH_POLICY], 
+                $arrContextRouteInfo[ContextRouteInfo::FIELD_PROHIBITED_MODULE], 
+                $arrContextRouteInfo[ContextRouteInfo::FIELD_PROHIBITED_ROLE]);
+        return $arrContextRouteInfo;
     }
+    
 }

@@ -9,8 +9,8 @@ abstract class BaseDeviceScreenFactory {
     protected  RequestAuthContext $requestAuthContext;
     //protected  ContainerInterface $container; chưa biết có dùng không
     public function __construct(RequestAuthContext $requestAuthContext){
-        if(!$requestAuthContext->isSetRoutePath()){
-            throw new InvalidArgumentException('requestAuthContext chưa có route path');
+        if(!$requestAuthContext->hasRouteMatchResult()){
+            throw new InvalidArgumentException('ContextRouter chưa chạy matchUri');
         }
         $this->requestAuthContext = $requestAuthContext;
         //$this->container = $container;

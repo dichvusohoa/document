@@ -19,7 +19,6 @@ final class AuthRegistry
     public const FIELD_TURNSTILE               = 'turnstile';
     public const FIELD_REMEMBER_COOKIE         = 'remember_cookie';
     public const FIELD_REMEMBER_EXPIRE  = 'remember_expire';
-    public const FIELD_DEFAULT_BUSINESS_PATH    = 'default_business_path';
     public const FIELD_WEIGHTS                 = 'weights';
 
     protected const WEIGHT_MAX_ROLE = 'max_role_weight';
@@ -36,16 +35,14 @@ final class AuthRegistry
         self::FIELD_MAX_FAIL_COUNT,
         self::FIELD_TURNSTILE,
         self::FIELD_REMEMBER_COOKIE,
-        self::FIELD_REMEMBER_EXPIRE,
-        self::FIELD_DEFAULT_BUSINESS_PATH,
+        self::FIELD_REMEMBER_EXPIRE
     ];
 
     protected const REQUIRED_CONFIG_FIELDS = [
         self::FIELD_ACCEPTED_ROLES_PATTERN,
         self::FIELD_MAX_FAIL_COUNT,
         self::FIELD_TURNSTILE,
-        self::FIELD_REMEMBER_COOKIE,
-        self::FIELD_DEFAULT_BUSINESS_PATH,
+        self::FIELD_REMEMBER_COOKIE
     ];
 
     /*
@@ -246,12 +243,6 @@ final class AuthRegistry
             $mixAuthConfig,
             $strContext
         );
-
-        $this->validateDefaultBusinessPath(
-            $mixAuthConfig,
-            $strContext
-        );
-
         /*
          * Chuyển pattern đầu vào thành dữ liệu runtime.
          */
@@ -430,32 +421,6 @@ final class AuthRegistry
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function validateDefaultBusinessPath(
-        array $arrRegistryEntry,
-        string $strContext
-    ): void {
-        ValidUtility::validateRequiredNonEmptyStringField(
-            $arrRegistryEntry,
-            self::FIELD_DEFAULT_BUSINESS_PATH,
-            $strContext
-        );
-
-        $strDefaultBusinessPath =
-            $arrRegistryEntry[self::FIELD_DEFAULT_BUSINESS_PATH];
-
-        if (
-            $strDefaultBusinessPath[0] !== '/'
-            || str_starts_with($strDefaultBusinessPath, '//')
-        ) {
-            throw new UnexpectedValueException(
-                "{$strContext} field '"
-                . self::FIELD_DEFAULT_BUSINESS_PATH
-                . "' phải là đường dẫn tuyệt đối nội bộ."
-            );
-        }
-    }
-
-    /*---------------------------------------------------------------------------------------------------------------*/
     protected function calculateWeights(
         array $arrAcceptedRole,
         array $arrDefinedRole
@@ -508,17 +473,17 @@ final class AuthRegistry
                 : '/' . ltrim($strCandidateAuthPath, '/');
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    public function getDefaultBusinessPath(string $strControllerName): ?string {
-        return $this->arrAuthRegistry[$strControllerName]
-        [self::FIELD_DEFAULT_BUSINESS_PATH] ?? null;
-    }
-    /*---------------------------------------------------------------------------------------------------------------*/
     public function getAuthRegistry(): array{
         return $this->arrAuthRegistry;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     public function getAuthPolicy(string $strControllerName): array{
         return $this->arrAuthRegistry[$strControllerName] ?? null;
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    public function getAuthControllers(): array
+    {
+        return array_keys($this->arrAuthRegistry);
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     public function hasAuthController(string $strControllerName): bool{

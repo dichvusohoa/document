@@ -37,7 +37,7 @@ class RouterFactory{
             return new ($this->strRouterFCQN)($arrEnableModule, $arrUserRole, $staticRouter); 
         }
         
-        error_log('[RouterFactory] Static router cache HIT - reuse cached static router');
+        //error_log('[RouterFactory] Static router cache HIT - reuse cached static router');
         return new ($this->strRouterFCQN)($arrEnableModule, $arrUserRole, $staticRouterFC); 
     }
     

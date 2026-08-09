@@ -11,8 +11,8 @@ class LoginHelper {
     protected RequestAuthContext $requestAuthContext;
         
     public static  function isAdminLoginRequest(RequestAuthContext $requestAuthContext): bool{
-        $arrMCA = $requestAuthContext->routePath();
-        $strController = $arrMCA[0] ?? '';
+        $arrMCAO = $requestAuthContext->getMCAO();
+        $strController = $arrMCAO[0] ?? '';
         return array_key_exists($strController, ADMIN_CONTROLLER_RENAME);
     }
     public static  function loginRequiredRole(RequestAuthContext $requestAuthContext): ?string{

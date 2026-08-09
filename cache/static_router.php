@@ -19,41 +19,49 @@ return array (
     'guest' => 
     array (
       'display_name' => 'khách',
+      'default_url' => '/document',
       'weight' => 0,
     ),
     'cm_admin' => 
     array (
       'display_name' => 'admin tài liệu sưu tập',
+      'default_url' => '/document',
       'weight' => 2,
     ),
     'it_admin' => 
     array (
       'display_name' => 'admin tài liệu tin học',
+      'default_url' => '/document',
       'weight' => 2,
     ),
     'pbt_fwk_user' => 
     array (
       'display_name' => 'người dùng PBT framework',
+      'default_url' => '/document',
       'weight' => 1,
     ),
     'pbt_fwk_admin' => 
     array (
       'display_name' => 'admin PBT framework',
+      'default_url' => '/document',
       'weight' => 2,
     ),
     'bud_prj_user' => 
     array (
       'display_name' => 'người dùng BUD project',
+      'default_url' => '/document',
       'weight' => 1,
     ),
     'bud_prj_admin' => 
     array (
       'display_name' => 'admin BUD project',
+      'default_url' => '/document',
       'weight' => 2,
     ),
     'admin' => 
     array (
       'display_name' => 'quản trị hệ thống',
+      'default_url' => '/document',
       'weight' => 3,
     ),
   ),
@@ -65,7 +73,6 @@ return array (
       'turnstile' => 3,
       'remember_cookie' => true,
       'remember_expire' => 604800,
-      'default_business_path' => '/',
       'accepted_roles' => 
       array (
         0 => 'cm_admin',
@@ -86,7 +93,6 @@ return array (
       'max_fail_count' => 3,
       'turnstile' => 'always',
       'remember_cookie' => false,
-      'default_business_path' => '/',
       'remember_expire' => NULL,
       'accepted_roles' => 
       array (
@@ -104,6 +110,7 @@ return array (
     'category' => 'App\\Controller\\Category\\CategoryPageController',
     'document' => 'App\\Controller\\Document\\DocumentPageController',
     'login' => 'Core\\Controller\\Login\\LoginPageController',
+    'cacquak' => 'Core\\Controller\\Login\\LoginPageController',
     'client-info' => 'Core\\Controller\\ClientInfoController',
   ),
   'arrFCAction' => 
@@ -189,7 +196,6 @@ return array (
         'method' => 'GET',
         'route_type' => 'business',
         'authentication_path' => '/login',
-        'default_business_path' => NULL,
       ),
       'update' => 
       array (
@@ -206,7 +212,6 @@ return array (
         'method' => 'POST',
         'route_type' => 'business',
         'authentication_path' => '/login',
-        'default_business_path' => NULL,
       ),
     ),
     'document' => 
@@ -229,7 +234,6 @@ return array (
         'method' => 'GET',
         'route_type' => 'business',
         'authentication_path' => '/login',
-        'default_business_path' => NULL,
       ),
       'update' => 
       array (
@@ -246,7 +250,6 @@ return array (
         'method' => 'POST',
         'route_type' => 'business',
         'authentication_path' => '/login',
-        'default_business_path' => NULL,
       ),
     ),
     'login' => 
@@ -262,7 +265,6 @@ return array (
         'method' => 'GET',
         'route_type' => 'authentication',
         'authentication_path' => NULL,
-        'default_business_path' => '/',
       ),
       'login' => 
       array (
@@ -275,7 +277,45 @@ return array (
         'method' => 'POST',
         'route_type' => 'authentication',
         'authentication_path' => NULL,
-        'default_business_path' => '/',
+      ),
+    ),
+    'cacquak' => 
+    array (
+      'index' => 
+      array (
+        'roles' => 
+        array (
+          0 => 'guest',
+          1 => 'cm_admin',
+          2 => 'it_admin',
+          3 => 'pbt_fwk_user',
+          4 => 'pbt_fwk_admin',
+          5 => 'bud_prj_user',
+          6 => 'bud_prj_admin',
+        ),
+        'fqcn' => 'Core\\Controller\\Login\\LoginPageController',
+        'function' => 'renderPage',
+        'method' => 'GET',
+        'route_type' => 'authentication',
+        'authentication_path' => NULL,
+      ),
+      'login' => 
+      array (
+        'roles' => 
+        array (
+          0 => 'guest',
+          1 => 'cm_admin',
+          2 => 'it_admin',
+          3 => 'pbt_fwk_user',
+          4 => 'pbt_fwk_admin',
+          5 => 'bud_prj_user',
+          6 => 'bud_prj_admin',
+        ),
+        'fqcn' => 'Core\\Controller\\Login\\LoginPageController',
+        'function' => 'login',
+        'method' => 'POST',
+        'route_type' => 'authentication',
+        'authentication_path' => NULL,
       ),
     ),
     'client-info' => 
@@ -298,7 +338,6 @@ return array (
         'method' => 'JSON',
         'route_type' => 'business',
         'authentication_path' => '/login',
-        'default_business_path' => NULL,
       ),
     ),
   ),
@@ -311,6 +350,7 @@ return array (
     ),
     'routes' => 
     array (
+      'document' => 'index',
       'category' => 'index',
       'login' => 'index',
       'client-info' => 'index',

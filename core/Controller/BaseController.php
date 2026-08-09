@@ -18,7 +18,7 @@ abstract class BaseController{
      * cách xác định parameters cho các action của nó.
      * resolveParam căn cứ vảo $this->requestAuthContext, $strFunctName mà tính ra giá trị các parameter
      */
-    abstract protected function resolveParams(string $strFunctName): array;
+    abstract protected function buildParams(string $strFunctName): array;
     /*---------------------------------------------------------------------------------------------------------------*/
     /**
      * Hàm tiện ích chung: 
@@ -28,7 +28,7 @@ abstract class BaseController{
         if (!method_exists($this, $strFunctionName)) {
             throw new \BadMethodCallException("Action '$strFunctionName' không tồn tại trong " . static::class);
         }
-        $params = $this->resolveParams($strFunctionName);
+        $params = $this->buildParams($strFunctionName);
         return call_user_func_array([$this, $strFunctionName], $params);
     }
 }

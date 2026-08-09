@@ -30,5 +30,6 @@ class ContextRouteInfo
     public static function isValid(mixed $arrData): bool
     {
         // Sẽ bổ sung validation sau khi chốt đầy đủ cấu trúc.
+        return false;
     }
 }

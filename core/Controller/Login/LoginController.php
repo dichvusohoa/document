@@ -10,7 +10,7 @@ class LoginController extends BaseController{
         $this->authService = $authService;
     }
    
-    protected function resolveParams(string $strFunctName): array{
+    protected function buildParams(string $strFunctName): array{
         if($strFunctName === 'login'){
             //$isAdminLogin = LoginHelper::isAdminLoginRequest($this->requestAuthContext);
             $isAdminLogin = false;//tạm hard code

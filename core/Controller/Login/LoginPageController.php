@@ -18,7 +18,7 @@ class LoginPageController extends BaseHtmlPageController{
         $this->loginAttemptService = $loginAttemptService;
     }
     
-    protected function resolveParams(string $strFunctName): array{
+    protected function buildParams(string $strFunctName): array{
         return [];
     }
     protected function dataAtFragment(string $strFragmentName):array{

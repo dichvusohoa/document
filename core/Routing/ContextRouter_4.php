@@ -6,18 +6,7 @@ use Core\Http\Request;
 
 class ContextRouter
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Match-result fields
-    |--------------------------------------------------------------------------
-    */
-    protected const FIELD_MCAO               = 'mcao';
-    protected const FIELD_ROUTE_INFO         = 'route_info';
-    protected const FIELD_AUTH_POLICY        = 'auth_policy';
-    protected const FIELD_MIDDLEWARES         = 'middlewares';
-    protected const FIELD_PROHIBITED_MODULE  = 'prohibited_module';
-    protected const FIELD_PROHIBITED_ROLE    = 'prohibited_role';
-
+   
     /*
     |--------------------------------------------------------------------------
     | MCAO fields
@@ -27,32 +16,23 @@ class ContextRouter
     protected const FIELD_CONTROLLER   = 'controller';
     protected const FIELD_ACTION       = 'action';
     protected const FIELD_OTHER_PARAMS = 'other_params';
-
-    /*
-    |--------------------------------------------------------------------------
-    | Middleware matching fields
-    |--------------------------------------------------------------------------
-    */
-    protected const FIELD_ROLE   = 'role';
-    protected const FIELD_METHOD = 'method';
-
+   
     /*
     |--------------------------------------------------------------------------
     | Runtime context
     |--------------------------------------------------------------------------
     */
-    protected array $arrEnableModule;
+    protected array $arrEnabledModule;
     protected array $arrUserRole;
-
     protected StaticRouter $staticRouter;
 
     /*---------------------------------------------------------------------------------------------------------------*/
     public function __construct(
-        array $arrEnableModule,
+        array $arrEnabledModule,
         array $arrUserRole,
         StaticRouter $staticRouter
     ) {
-        $this->arrEnableModule = $arrEnableModule;
+        $this->arrEnableModule = $arrEnabledModule;
         $this->arrUserRole     = $arrUserRole;
         $this->staticRouter    = $staticRouter;
     }
@@ -64,7 +44,7 @@ class ContextRouter
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
-    public function getEnableModules(): array
+    public function getEnabledModules(): array
     {
         return $this->arrEnableModule;
     }
@@ -76,9 +56,9 @@ class ContextRouter
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
-    public function setEnableModules(array $arrEnableModule): void
+    public function setEnabledModules(array $arrEnabledModule): void
     {
-        $this->arrEnableModule = $arrEnableModule;
+        $this->arrEnableModule = $arrEnabledModule;
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
@@ -90,93 +70,67 @@ class ContextRouter
             throw new HttpException(404, 'Not Found');
         }
 
-        $arrMCAO = $this->resolveMCAO($arrSegment);
+        $arrMCAO = $this->toMCAO($arrSegment);
 
         /*
          * Không nhận diện được prefix route.
          */
+        $arrContextRouteInfo = ContextRouteInfo::createEmpty();
         if ($arrMCAO === null) {
-            return $this->buildMatchResult();
+            //Tới đây nghĩa là $arrContextRouteInfo['mcao'] === null
+            return $arrContextRouteInfo;
         }
 
-        $arrStaticPath = $this->buildStaticPath($arrMCAO);
-        $arrRouteInfo  = $this->staticRouter->getRouteInfo($arrStaticPath);
+        $arrMCA = $this->toMCA($arrMCAO);
+        $arrRouteInfo  = $this->staticRouter->getRouteInfo($arrMCA);
 
         /*
          * Nhánh phòng thủ: MCA đã nhận diện được nhưng không tìm thấy RouteInfo.
          */
+        $arrContextRouteInfo[ContextRouteInfo::FIELD_MCAO] = $arrMCAO;
         if ($arrRouteInfo === null) {
-            return $this->buildMatchResult($arrMCAO);
+            //Tới đây nghĩa là $arrContextRouteInfo['route_info'] === null
+            return $arrContextRouteInfo;
         }
-
+        //Từ đây trở đi thì $arrContextRouteInfo['mcao'] và $arrContextRouteInfo['route_info'] mới khác null
         $arrAccessibleRole = $this->calculateAccessibleRole($arrRouteInfo);
 
-        $arrMiddleware = $this->resolveMiddlewares(
-            $arrStaticPath,
-            $arrRouteInfo,
+        $arrMiddleware = $this->buildMiddlewares(
+            $arrMCA,
+            $arrRouteInfo[RouteInfo::FIELD_METHOD],
             $arrAccessibleRole
         );
 
-        $arrAuthPolicy = $this->resolveAuthPolicy(
-            $arrMCAO,
-            $arrRouteInfo
+        $arrAuthPolicy = $this->buildAuthPolicy(
+            $arrMCAO[self::FIELD_CONTROLLER],
+            $arrRouteInfo[RouteInfo::FIELD_ROUTE_TYPE]
         );
 
         $strModule = $arrMCAO[self::FIELD_MODULE];
-
+        
+        $arrContextRouteInfo[ContextRouteInfo::FIELD_ROUTE_INFO] = $arrRouteInfo;
+        $arrContextRouteInfo[ContextRouteInfo::FIELD_AUTH_POLICY] = $arrAuthPolicy;
+        $arrContextRouteInfo[ContextRouteInfo::FIELD_MIDDLEWARES] = $arrMiddleware;
+        
         if ($this->isModuleProhibited($strModule)) {
-            return $this->buildMatchResult(
-                $arrMCAO,
-                $arrRouteInfo,
-                $arrAuthPolicy,
-                $arrMiddleware,
-                true,
-                null
-            );
+            $arrContextRouteInfo[ContextRouteInfo::FIELD_PROHIBITED_MODULE] = true;
+            $arrContextRouteInfo[ContextRouteInfo::FIELD_PROHIBITED_ROLE] = null;
+            return $arrContextRouteInfo;
         }
-
+        $arrContextRouteInfo[ContextRouteInfo::FIELD_PROHIBITED_MODULE] = false;
         if (empty($arrAccessibleRole)) {
-            return $this->buildMatchResult(
-                $arrMCAO,
-                $arrRouteInfo,
-                $arrAuthPolicy,
-                $arrMiddleware,
-                false,
-                true
-            );
+            $arrContextRouteInfo[ContextRouteInfo::FIELD_PROHIBITED_ROLE] = true;
+            return $arrContextRouteInfo;
         }
-
-        return $this->buildMatchResult(
-            $arrMCAO,
-            $arrRouteInfo,
-            $arrAuthPolicy,
-            $arrMiddleware,
-            false,
-            false
-        );
+        $arrContextRouteInfo[ContextRouteInfo::FIELD_PROHIBITED_ROLE] = false;
+        return $arrContextRouteInfo;
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function buildMatchResult(
-        ?array $arrMCAO = null,
-        ?array $arrRouteInfo = null,
-        ?array $arrAuthPolicy = null,
-        ?array $arrMiddleware = null,
-        ?bool $isProhibitedModule = null,
-        ?bool $isProhibitedRole = null
-    ): array {
-        return [
-            self::FIELD_MCAO              => $arrMCAO,
-            self::FIELD_ROUTE_INFO        => $arrRouteInfo,
-            self::FIELD_AUTH_POLICY       => $arrAuthPolicy,
-            self::FIELD_MIDDLEWARES        => $arrMiddleware,
-            self::FIELD_PROHIBITED_MODULE => $isProhibitedModule,
-            self::FIELD_PROHIBITED_ROLE   => $isProhibitedRole
-        ];
-    }
-
-    /*---------------------------------------------------------------------------------------------------------------*/
-    protected function buildStaticPath(array $arrMCAO): array
+    //chuyển định dạng $arrMCAO sang định dạng [$strModule, $strController, $strAction]
+    //hoặc định dạng [$strController, $strAction] khi khuyết module. Định dạng simple này thường dùng
+    //thường dùng cho truy xuất StaticRouter
+    protected function toMCA(array $arrMCAO): array
     {
         $strModule     = $arrMCAO[self::FIELD_MODULE];
         $strController = $arrMCAO[self::FIELD_CONTROLLER];
@@ -206,48 +160,45 @@ class ContextRouter
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function resolveMiddlewares(
-        array $arrStaticPath,
-        array $arrRouteInfo,
+    protected function buildMiddlewares(
+        array $arrMCA,
+        string $strMethod,
         array $arrAccessibleRole
     ): array {
+        //$arrMCA cung cấp MCA, $arrAccessibleRole cung cấp R
         $arrMCARMe = MCARMeInfo::createEmpty();
+        $arrMCARMe[MCARMeInfo::FIELD_METHOD] = $strMethod;
+        $arrMCARMe[MCARMeInfo::FIELD_ROLE] = $arrAccessibleRole;
 
-        $arrMCARMe[self::FIELD_ROLE] =
-            $arrAccessibleRole;
-
-        $arrMCARMe[self::FIELD_METHOD] =
-            $arrRouteInfo[RouteInfo::FIELD_METHOD];
-
-        if (count($arrStaticPath) === 3) {
+        if (count($arrMCA) === 3) {
             [
-                $arrMCARMe[self::FIELD_MODULE],
-                $arrMCARMe[self::FIELD_CONTROLLER],
-                $arrMCARMe[self::FIELD_ACTION]
-            ] = $arrStaticPath;
+                $arrMCARMe[MCARMeInfo::FIELD_MODULE],
+                $arrMCARMe[MCARMeInfo::FIELD_CONTROLLER],
+                $arrMCARMe[MCARMeInfo::FIELD_ACTION]
+            ] = $arrMCA;
         } else {
             [
-                $arrMCARMe[self::FIELD_CONTROLLER],
-                $arrMCARMe[self::FIELD_ACTION]
-            ] = $arrStaticPath;
+                $arrMCARMe[MCARMeInfo::FIELD_CONTROLLER],
+                $arrMCARMe[MCARMeInfo::FIELD_ACTION]
+            ] = $arrMCA;
         }
 
         return $this->staticRouter->matchMiddlewares($arrMCARMe);
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function resolveAuthPolicy(
-        array $arrMCAO,
-        array $arrRouteInfo
+    protected function buildAuthPolicy(
+        string $strController,
+        string $strRouteType
     ): ?array {
         if (
-            $arrRouteInfo[RouteInfo::FIELD_ROUTE_TYPE]
+            $strRouteType
             !== RouteInfo::ROUTE_TYPE_AUTHENTICATION
         ) {
             return null;
         }
 
-        $strController = $arrMCAO[self::FIELD_CONTROLLER];
+        
 
         /*
          * Theo invariant của StaticRouter:
@@ -273,16 +224,16 @@ class ContextRouter
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function resolveMCAO(array $arrSegment): ?array
+    protected function toMCAO(array $arrSegment): ?array
     {
         if (empty($arrSegment)) {
-            return $this->resolveDefaultMCAO();
+            return $this->buildDefaultMCAO();
         }
 
         $strFirstSegment = $arrSegment[0];
 
         if ($this->staticRouter->moduleExists($strFirstSegment)) {
-            return $this->resolveModuleMCAO(
+            return $this->toMCAOWithM(
                 $strFirstSegment,
                 $arrSegment
             );
@@ -292,7 +243,7 @@ class ContextRouter
             $this->staticRouter
                 ->standaloneControllerExists($strFirstSegment)
         ) {
-            return $this->resolveStandaloneMCAO(
+            return $this->toStCAOWithC(
                 $strFirstSegment,
                 $arrSegment
             );
@@ -302,19 +253,21 @@ class ContextRouter
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function resolveDefaultMCAO(): ?array
+    protected function buildDefaultMCAO(): ?array
     {
         $strModule = $this->staticRouter->getDefaultModule();
 
         if ($strModule !== null) {
-            return $this->resolveDefaultModuleMCAO($strModule);
+            return $this->buildDefaultMCAOWithM($strModule);
         }
 
-        return $this->resolveDefaultStandaloneMCAO();
+        return $this->buildDefaultStCAO();
+        
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function resolveDefaultModuleMCAO(
+    //là step trung gian để buildDefaultMCAO khi đã có module
+    protected function buildDefaultMCAOWithM(
         string $strModule,
         array $arrOtherParam = []
     ): ?array {
@@ -325,7 +278,7 @@ class ContextRouter
             return null;
         }
 
-        return $this->buildMCAOWithDefaultAction(
+        return $this->buildDefaultMCAOWithMC(
             $strModule,
             $strController,
             $arrOtherParam
@@ -333,7 +286,8 @@ class ContextRouter
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function resolveDefaultStandaloneMCAO(): ?array
+    //là buildDefaultMCAO trong trường hợp đặc biệt khi không có module
+    protected function buildDefaultStCAO(): ?array
     {
         $strController = $this->staticRouter
             ->getDefaultStandaloneController();
@@ -342,14 +296,14 @@ class ContextRouter
             return null;
         }
 
-        return $this->buildMCAOWithDefaultAction(
+        return $this->buildDefaultMCAOWithMC(
             null,
             $strController
         );
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function resolveModuleMCAO(
+    protected function toMCAOWithM(
         string $strModule,
         array $arrSegment
     ): ?array {
@@ -358,7 +312,7 @@ class ContextRouter
          * dùng default controller và default action.
          */
         if (!isset($arrSegment[1])) {
-            return $this->resolveDefaultModuleMCAO($strModule);
+            return $this->buildDefaultMCAOWithM($strModule);
         }
 
         $strControllerCandidate = $arrSegment[1];
@@ -374,13 +328,13 @@ class ContextRouter
                 $strControllerCandidate
             )
         ) {
-            return $this->resolveDefaultModuleMCAO(
+            return $this->buildDefaultMCAOWithM(
                 $strModule,
                 array_slice($arrSegment, 1)
             );
         }
 
-        return $this->resolveActionMCAO(
+        return $this->toMCAOWithMC(
             $strModule,
             $strControllerCandidate,
             $arrSegment,
@@ -389,11 +343,11 @@ class ContextRouter
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function resolveStandaloneMCAO(
+    protected function toStCAOWithC(
         string $strController,
         array $arrSegment
     ): ?array {
-        return $this->resolveActionMCAO(
+        return $this->toMCAOWithMC(
             null,
             $strController,
             $arrSegment,
@@ -402,7 +356,7 @@ class ContextRouter
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function resolveActionMCAO(
+    protected function toMCAOWithMC(
         ?string $strModule,
         string $strController,
         array $arrSegment,
@@ -413,7 +367,7 @@ class ContextRouter
          * dùng default action.
          */
         if (!isset($arrSegment[$intActionPos])) {
-            return $this->buildMCAOWithDefaultAction(
+            return $this->buildDefaultMCAOWithMC(
                 $strModule,
                 $strController
             );
@@ -433,7 +387,7 @@ class ContextRouter
                 $strActionCandidate
             )
         ) {
-            return $this->buildMCAOWithDefaultAction(
+            return $this->buildDefaultMCAOWithMC(
                 $strModule,
                 $strController,
                 array_slice($arrSegment, $intActionPos)
@@ -453,7 +407,7 @@ class ContextRouter
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function buildMCAOWithDefaultAction(
+    protected function buildDefaultMCAOWithMC(
         ?string $strModule,
         string $strController,
         array $arrOtherParam = []

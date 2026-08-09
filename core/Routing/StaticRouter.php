@@ -29,7 +29,9 @@ class StaticRouter {
          // 1. Load metadata nền
         $this->buildModuleController();
         // 2. Load các config nền còn lại
-        $this->buildRole();
+        //$this->buildRole();
+        $roleRegistry = new RoleRegistry();
+        $this->arrR = $roleRegistry->getRoleRegistry();
         $authRegistry = new AuthRegistry($this->arrStC, $this->arrR);
         $this->arrAuthRegistry = $authRegistry->getAuthRegistry();
         $this->buildFCAction();
@@ -52,7 +54,6 @@ class StaticRouter {
             $authRegistry
         );
         $this->arrMCAR = $mcarBuilder->build();
-        //$this->buildMCAR();bỏ
         //6. Build defaultRoute
         $defaultRouteBuilder = new DefaultRouteBuilder(
             $this->arrM,
@@ -61,6 +62,12 @@ class StaticRouter {
             $this->arrMCAR
         );
         $this->arrDefaultRoute = $defaultRouteBuilder->build();
+        //7. hoàn thiện dữ liệu của StaticRouter rồi mới có thể valid lại 
+        //dữ liệu default_url trong config.role.php
+        $mcaBasic = $this->createMCABasic();
+        $parserUrl = new UrlToMCAOParser($mcaBasic);
+        $roleRegistry->validadeDefaultUrl($parserUrl, $this->arrMCAR);
+        
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     public function getStandaloneControllers(): array{
@@ -71,8 +78,8 @@ class StaticRouter {
         return $this->arrR;
     }
     /*--------------------------------------------------------------------------------------------------------------*/
-    public function getRouteInfo(array $path): ?array {
-        $data = $this->arrMCAR;
+    static public function routeInfo(array $arrMCAR, array $path): ?array {
+        $data = $arrMCAR;
         foreach ($path as $key) {
             if (!isset($data[$key])) {
                 return null;
@@ -81,31 +88,27 @@ class StaticRouter {
         }
         return $data;
     }
-    /*---------------------------------------------------------------------------------------------------------------*/
-    public function getDefaultModule(): ?string {
-        return $this->arrDefaultRoute['default_entry']['type'] === 'module'
-                ? $this->arrDefaultRoute['default_entry']['value']
-                : null;
-    }
-    /*---------------------------------------------------------------------------------------------------------------*/
-    public function getDefaultControllerInModule(string $module): ?string {
-        return array_key_first($this->arrDefaultRoute['routes'][$module] ?? []);
-    }
-    /*---------------------------------------------------------------------------------------------------------------*/
-    public function getDefaultStandaloneController(): ?string {
-        return $this->arrDefaultRoute['default_entry']['type'] === 'controller'
-                ? $this->arrDefaultRoute['default_entry']['value']
-                : null;
-    }
-    /*---------------------------------------------------------------------------------------------------------------*/
-    public function getDefaultAction(?string $module, string $controller): ?string {
-        $routes = $this->arrDefaultRoute['routes'];
-
-        if ($module !== null) {
-            return $routes[$module][$controller] ?? null;
+    /*--------------------------------------------------------------------------------------------------------------*/
+    public function getRouteInfo(array $path): ?array {
+        /*$data = $this->arrMCAR;
+        foreach ($path as $key) {
+            if (!isset($data[$key])) {
+                return null;
+            }
+            $data = $data[$key];
         }
-
-        return $routes[$controller] ?? null;
+        return $data;*/
+        return self::routeInfo($this->arrMCAR, $path);
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    public function createMCABasic(): MCABasic{
+        return new MCABasic(
+            $this->arrM,
+            $this->arrMC,
+            $this->arrStC,
+            $this->arrMCAR,
+            $this->arrDefaultRoute    
+        );
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     protected function buildModuleController(): void {
@@ -157,63 +160,6 @@ class StaticRouter {
                 . implode(', ', $conflicted)
             );
         }
-    }
-    /*---------------------------------------------------------------------------------------------------------------*/
-    protected function buildRole(){
-        $strFileName = 'config.role.php';
-        $arrTmp = require CONFIG_PATH . '/' . $strFileName;
-        if (!is_array($arrTmp)) {
-            throw new UnexpectedValueException(
-                "File {$strFileName} phải trả về một mảng."
-            );
-        }
-        foreach ($arrTmp as $strRole => $arrRoleInfo) {
-            if (!is_string($strRole) || trim($strRole) === '') {
-                throw new UnexpectedValueException(
-                    "Tên role trong {$strFileName} phải là chuỗi không rỗng."
-                );
-            }
-
-            if (!is_array($arrRoleInfo)) {
-                throw new UnexpectedValueException(
-                    "Role '{$strRole}' trong {$strFileName} phải là một mảng."
-                );
-            }
-            ValidUtility::validateNoUnexpectedFields(
-                $arrRoleInfo,
-                ['display_name', 'weight'],
-                "Role '{$strRole}'"
-            );
-            ValidUtility::validateRequiredNonEmptyStringField(
-                $arrRoleInfo,
-                'display_name',
-                "Role '{$strRole}'"
-            );
-            ValidUtility::validateRequiredField(
-                $arrRoleInfo,
-                'weight',
-                "Role '{$strRole}'"
-            );
-
-            if (!is_int($arrRoleInfo['weight']) || $arrRoleInfo['weight'] < 0) {
-                throw new UnexpectedValueException(
-                    "Role '{$strRole}': field 'weight' phải là số nguyên không âm."
-                );
-            }
-        }
-
-        // Framework bắt buộc phải có role guest
-        if (!isset($arrTmp['guest'])) {
-            throw new UnexpectedValueException(
-                "File {$strFileName} phải định nghĩa role 'guest'."
-            );
-        }
-        if ($arrTmp['guest']['weight'] !== 0) {
-            throw new UnexpectedValueException(
-                "Role 'guest' phải có weight = 0."
-            );
-        }
-        $this->arrR = $arrTmp;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     protected function buildFCAction(){
@@ -346,27 +292,6 @@ class StaticRouter {
 
             }
         }
-    }
-    /*---------------------------------------------------------------------------------------------------------------*/
-    public function moduleExists(string $module): bool {
-        return in_array($module, $this->arrM, true);
-    }
-    /*---------------------------------------------------------------------------------------------------------------*/
-    public function controllerExistsInModule(string $module, string $controller): bool {
-        return isset($this->arrMC[$module])
-        && in_array($controller, $this->arrMC[$module], true);
-    }
-    /*---------------------------------------------------------------------------------------------------------------*/
-    public function standaloneControllerExists(string $controller): bool {
-        return in_array($controller, $this->arrStC, true);
-    }
-    /*---------------------------------------------------------------------------------------------------------------*/
-    public function actionExists(?string $module, string $controller, string $action): bool {
-        if ($module !== null) {
-            return isset($this->arrMCAR[$module][$controller][$action]);
-        }
-
-        return isset($this->arrMCAR[$controller][$action]);
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     /*$arrSegment có format 

@@ -113,7 +113,7 @@ class Request {
     public function method(): string {
         return strtoupper($this->serverData['REQUEST_METHOD'] ?? 'GET');
     }
-
+    //loại bỏ hoàn toàn các tham số truy vấn (query string) đi kèm.    
     public function uri(): string {
         return parse_url($this->serverData['REQUEST_URI'] ?? '/', PHP_URL_PATH);
     }

@@ -3,7 +3,8 @@
 return [
     'default_entry' =>["type"=> 'controller', 'value'=>'category'],
     'routes' =>
-    ['category' => 'index',
+    ['document'=> 'index',
+    'category' => 'index',
     'login' => 'index',
     'client-info' => 'index']
 ];

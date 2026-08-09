@@ -16,7 +16,7 @@ class ControllerResolver {
             return $this->container->get($strFQCN);
         }
         /*module/controller trỏ BaseControllerFactory, rồi thông qua ControllerFactory
-        mà tạo ra controller cuối. Trường hợp này áp dụng cho các  */
+        mà tạo ra controller cuối. Dự kiến sẽ bỏ  */
         else if (is_subclass_of($strFQCN, BaseControllerFactory::class)){
             return $this->container->get($strFQCN)->create($requestAuthContext);
         } 

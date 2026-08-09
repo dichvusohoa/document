@@ -3,7 +3,7 @@ namespace Core\Controller;
 use Core\Http\Response;
 use Core\Http\Session;
 class ClientInfoController extends BaseController {
-    protected function resolveParams(string $strFunctionName): array {
+    protected function buildParams(string $strFunctionName): array {
         switch ($strFunctionName) {
             case 'index':
                 return [];//không có tham số

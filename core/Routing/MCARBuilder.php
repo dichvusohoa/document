@@ -54,10 +54,11 @@ class MCARBuilder {
             $arrMC = $this->parser->parse($strExprMC);
             $arrTree = $this->buildForOneRule($arrTree, $arrMC, $arrExprRA);
         }
-
+        $this->validateAuthRouteRoleRules($arrTree);
         return $arrTree;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
+    //ứng với 1 dòng config
     protected function buildForOneRule(array $arrTree, array $arrMC, array $arrExprRA): array {
         foreach ($arrMC as $pairMC) {
             $arrTree = $this->buildForOnePairMC($arrTree, $pairMC, $arrExprRA);
@@ -66,6 +67,7 @@ class MCARBuilder {
         return $arrTree;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
+    //$pairMC: 1 cặp [module, controller] (module có thể khuyết  của 1 dòng config
     protected function buildForOnePairMC(array $arrTree, array $pairMC, array $arrExprRA): array {
         $strFileName = self::$strFileName;
         $strFileName5 = self::$strFileName5;
@@ -149,18 +151,7 @@ class MCARBuilder {
                     RouteInfo::FIELD_FQCN     => $strFQCN,
                     RouteInfo::FIELD_FUNCTION => $arrActionDetail['function'] ?? $strAction,
                     RouteInfo::FIELD_METHOD   => strtoupper($arrActionDetail['method']),
-                    RouteInfo::FIELD_ROUTE_TYPE => $strRouteType,
-                    RouteInfo::FIELD_AUTHENTICATION_PATH    => null,
-                    RouteInfo::FIELD_DEFAULT_BUSINESS_PATH  => null
-                ];
-                $arrNode[$strAction] = [
-                    RouteInfo::FIELD_ROLES    => [],
-                    RouteInfo::FIELD_FQCN     => $strFQCN,
-                    RouteInfo::FIELD_FUNCTION => $arrActionDetail['function'] ?? $strAction,
-                    RouteInfo::FIELD_METHOD   => strtoupper($arrActionDetail['method']),
-                    RouteInfo::FIELD_ROUTE_TYPE => $strRouteType,
-                    RouteInfo::FIELD_AUTHENTICATION_PATH    => null,
-                    RouteInfo::FIELD_DEFAULT_BUSINESS_PATH  => null
+                    RouteInfo::FIELD_ROUTE_TYPE => $strRouteType
                 ];
             }
             // Bổ sung role
@@ -169,16 +160,13 @@ class MCARBuilder {
             }
         }
         if($strRouteType === RouteInfo::ROUTE_TYPE_AUTHENTICATION){
-            $strDefaultBusinessPath = $this->authRegistry->getDefaultBusinessPath($strController);
             foreach ($arrNode as $strAction => $value) {
-                $arrNode[$strAction][RouteInfo::FIELD_DEFAULT_BUSINESS_PATH] = $strDefaultBusinessPath;
                 $arrNode[$strAction][RouteInfo::FIELD_AUTHENTICATION_PATH] = null;
             }
             
         }
         else{
             foreach ($arrNode as $strAction => $value) {
-                $arrNode[$strAction][RouteInfo::FIELD_DEFAULT_BUSINESS_PATH] = null;
                 $arrNode[$strAction][RouteInfo::FIELD_AUTHENTICATION_PATH] = 
                         $this->authRegistry->findAuthPathByRoles($arrNode[$strAction][RouteInfo::FIELD_ROLES]);
             }
@@ -246,5 +234,37 @@ class MCARBuilder {
         return $arrPairRA;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-   
+    //kiểm tra các nhánh đặc biệt authentication route để đảm bảo rằng
+    // A = tập hợp các roles đầu vào của route
+    // B = tập hợp các roles cho phép đầu ra sau khi xác thực của route
+    // phải đảm bảo A giao B = empty
+    protected function validateAuthRouteRoleRules(array $arrMCAR): void
+    {
+        foreach (
+            $this->authRegistry->getAuthControllers()
+            as $strController
+        ) {
+            $arrAuthPolicy =  $this->authRegistry->getAuthPolicy($strController);
+            $arrAcceptedRoles = $arrAuthPolicy[AuthRegistry::FIELD_ACCEPTED_ROLES];
+            foreach (
+                $arrMCAR[$strController]
+                as $strAction => $arrRouteInfo
+            ) {
+                $arrEntryRoles =
+                    $arrRouteInfo[RouteInfo::FIELD_ROLES];
+                $arrConflictedRoles = array_intersect(
+                    $arrEntryRoles,
+                    $arrAcceptedRoles
+                );
+                if (!empty($arrConflictedRoles)) {
+                    throw new UnexpectedValueException(
+                        "Authentication route '{$strController}/{$strAction}': "
+                        . "entry roles và accepted roles không được giao nhau. "
+                        . "Role bị trùng: "
+                        . implode(', ', $arrConflictedRoles)
+                    );
+                }
+            }
+        }
+    }
 }

@@ -9,7 +9,7 @@ class CategoryPageController extends BaseHtmlPageController{
         parent::__construct($schema);
         $this->apiController = $apiController;
     }
-    protected function resolveParams(string $strFunctName):array{
+    protected function buildParams(string $strFunctName):array{
         if($strFunctName === 'renderPage'){
             return [];
         }

@@ -20,7 +20,7 @@ mcr2a meaning module + controller + role  to action
  * ví dụ route path tính đến 2 thành phần là cân đối giữa các thiết kế
  *  1 + 1 ( dạng array) vì nó khó đưa regex vào và làm array bị lồng sâu
  *  thiết kế dạng chuỗi module/controller/action vì nó tạo chuỗi lặp quá dài
- *  việc chỉ đưa regex vào 2 vị trí module và action cũng là cân nhắc
+ 
  
   */
 return [
@@ -35,7 +35,7 @@ return [
 'category' => ['[role:cm_admin|it_admin|pbt_fwk_admin|bud_prj_admin|admin]' => '[action:*]'],
 'document' => ['[role:guest|pbt_fwk_user|bud_prj_user]'=>'index','[role:cm_admin|it_admin|pbt_fwk_admin|bud_prj_admin|admin]' => '[action:*]'],
 'login' => ['guest'=>'[action:index|login]'],
-//'admin-login' => ['guest'=>'[action:index|login]'],
+'cacquak' => ['[role:!admin]'=>'[action:index|login]'],
 'client-info' => ['[role:*]'=>'index']    
 ];
 

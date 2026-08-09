@@ -1,5 +1,6 @@
 <?php
 namespace Core\Routing;
+use Core\Utility\ValidUtility;
 class MCARMeInfo {
     public const FIELD_MODULE                 = 'module';
     public const FIELD_CONTROLLER             = 'controller';

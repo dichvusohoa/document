@@ -62,8 +62,8 @@ abstract class BaseLayout {
     /*---------------------------------------------------------------------------------------------------------------*/
     public function __construct(RequestAuthContext $requestAuthContext, 
             BaseMobileDetectFactory $mobileDetectFactory, BaseDeviceScreenFactory $deviceScreenFactory) {
-        if(!$requestAuthContext->isSetRoutePath()){
-            throw new InvalidArgumentException('requestAuthContext chưa có route path');
+        if(!$requestAuthContext->hasRouteMatchResult()){
+            throw new InvalidArgumentException('ContextRouter chưa chạy matchUri');
         }
         $this->requestAuthContext   = $requestAuthContext;
         $this->mobileDetect = $mobileDetectFactory->create();

@@ -1,72 +1,118 @@
 <?php
+
 namespace Core\Http;
-use Core\Http\Request;
+
 use Core\Auth\AuthInfo;
-use \InvalidArgumentException;
-class RequestAuthContext{
+use Core\Routing\RouteInfo;
+use InvalidArgumentException;
+
+class RequestAuthContext
+{
     protected Request $request;
+
     protected array $arrAuthInfo;
-    //đến bước contextRouter->matchUri thì mới tính ra được 3 thành phần dưới này
-    protected ?array $arrMCA;
-    protected ?array $arrRouteInfo;
-    protected ?bool $isProhibitedModule;
-    protected ?bool $isProhibitedRole;
-    public function __construct(Request $request, array $arrAuthInfo) {
-        $this->request    = $request;
-        if(!AuthInfo::isValid($arrAuthInfo)){
-            throw new InvalidArgumentException('arrAuthInfo có format không chính xác');
+
+    /*
+     * Các property dưới đây chỉ có giá trị
+     * sau khi ContextRouter hoàn thành việc match request.
+     */
+    protected ?array $arrMCAO = null;
+
+    protected ?array $arrRouteInfo = null;
+
+    protected ?array $arrAuthPolicy = null;
+
+    protected ?bool $isProhibitedModule = null;
+
+    protected ?bool $isProhibitedRole = null;
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+
+    public function __construct(
+        Request $request,
+        array $arrAuthInfo
+    ) {
+        if (!AuthInfo::isValid($arrAuthInfo)) {
+            throw new InvalidArgumentException(
+                'arrAuthInfo có format không chính xác.'
+            );
         }
-        $this->arrAuthInfo  = $arrAuthInfo;
-        $this->arrMCA =  null;
-        $this->arrRouteInfo =  null;
-        $this->isProhibitedModule =  null;
-        $this->isProhibitedRole =  null;
-    }
-    // ----------------------------------------------------------------
-    public function request() {
-        return $this->request;
-    }
-    // ----------------------------------------------------------------
-    public function authInfo() {
-        return $this->arrAuthInfo;
-    }
-    // ----------------------------------------------------------------
-    public function routePath(): ?array {
-        return $this->arrMCA;
-    }
-    // ----------------------------------------------------------------
-    public function routeInfo(): ?array {
-        return $this->arrRouteInfo;
-    }
-    // ----------------------------------------------------------------
-    public function prohibitedModule(): ?bool {
-        return $this->isProhibitedModule;
-    }
-    // ----------------------------------------------------------------
-    public function prohibitedRole(): ?bool {
-        return $this->isProhibitedRole;
-    }
-    // ----------------------------------------------------------------
-    //khi chạy contextRouter->matchUri thì lưu thông tin kết của của match['mca'] vào $this->arrMCA
-    public function setRoutePath(?array $routePath) {
-        $this->arrMCA = $routePath;
-    }
-    // ----------------------------------------------------------------
-    public function setRouteInfo(?array $routeInfo) {
-        $this->arrRouteInfo = $routeInfo;
-    }
-    // ----------------------------------------------------------------
-    public function setProhibitedModule(?bool $isProhibitedModule) {
-        $this->isProhibitedModule = $isProhibitedModule;
-    }
-    // ----------------------------------------------------------------
-    public function setProhibitedRole(?bool $isProhibitedRole) {
-        $this->isProhibitedRole = $isProhibitedRole;
-    }
-    // ----------------------------------------------------------------
-    public function isSetRoutePath() {
-        return is_array($this->arrMCA);
+
+        $this->request = $request;
+        $this->arrAuthInfo = $arrAuthInfo;
     }
 
-    
+    /*---------------------------------------------------------------------------------------------------------------*/
+
+    public function request(): Request
+    {
+        return $this->request;
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+
+    public function authInfo(): array
+    {
+        return $this->arrAuthInfo;
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+
+    public function mcao(): ?array
+    {
+        return $this->arrMCAO;
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+
+    public function routeInfo(): ?array
+    {
+        return $this->arrRouteInfo;
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+
+    public function authPolicy(): ?array
+    {
+        return $this->arrAuthPolicy;
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+
+    public function prohibitedModule(): ?bool
+    {
+        return $this->isProhibitedModule;
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+
+    public function prohibitedRole(): ?bool
+    {
+        return $this->isProhibitedRole;
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    /*$arrAuthPolicy === null khi $arrRouteInfo['route_type'] === 'business'
+     * $arrAuthPolicy !== null khi $arrRouteInfo['route_type'] === 'authentication'
+     */
+    public function setRouteMatchResult(
+        array $arrMCAO,
+        array $arrRouteInfo,
+        ?array $arrAuthPolicy,
+        bool $isProhibitedModule,
+        bool $isProhibitedRole
+    ): void {
+        $this->arrMCAO = $arrMCAO;
+        $this->arrRouteInfo = $arrRouteInfo;
+        $this->arrAuthPolicy = $arrAuthPolicy;
+        $this->isProhibitedModule = $isProhibitedModule;
+        $this->isProhibitedRole = $isProhibitedRole;
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+
+    public function hasRouteMatchResult(): bool
+    {
+        return $this->arrRouteInfo !== null;
+    }
 }
