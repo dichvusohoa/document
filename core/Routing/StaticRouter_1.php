@@ -17,7 +17,7 @@ class StaticRouter {
     //FCQNA2F = FCQN (fully qualified class name)+ A (action) => Function
     //load từ file /config/config.fc.action.php
     protected array $arrFCAction;
-    protected array $arrMiddleware; //load từ file config.middleware.php và phân tích
+    protected array $arrMiddlewareParsed; //load từ file config.middleware.php và phân tích
 
     //kết quả cần tính ra  array
     // $arrMCAR: cấu trúc gốm các phần từ [strModule(có thể thiếu)][strController][strAction]=>route info
@@ -39,7 +39,7 @@ class StaticRouter {
         $parser = new RouteSegmentPatternParser($this->arrM);
         //$this->buildMiddleware($parser); 
         $middlewareRegistry = new MiddlewareRegistry($parser);
-        $this->arrMiddleware = $middlewareRegistry->getMiddlewareRegistry();
+        $this->arrMiddlewareParsed = $middlewareRegistry->getMiddlewareRegistry();
         // 4. buildMC2FQCN, có arrM,arrMC,arrStC rồi mới tạo được  $parserMC 
         $parserMC = new MCRoutePathParser(
             $this->arrM,
@@ -182,6 +182,32 @@ class StaticRouter {
         $this->arrFCAction = $arrConfig;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
+    protected function buildMiddleware(RouteSegmentPatternParser $parser){
+        $this->arrMiddlewareParsed = [];
+        $strFileName = 'config.middleware.php';
+        $arrTmp = require CONFIG_PATH.'/'.$strFileName;
+        if(!ValidUtility::isStringListMap($arrTmp, false)){
+            throw new UnexpectedValueException("File {$strFileName} có format không phù hợp"); 
+        }
+        foreach ($arrTmp as $routePath => $fqcn) {
+            if(is_string($fqcn)){
+                $fqcn = [$fqcn];
+            }
+            foreach ($fqcn as $strFQCN){
+                if (!class_exists($strFQCN)) {
+                    throw new UnexpectedValueException("File {$strFileName}: class middleware '{$strFQCN}' không tồn tại");
+                }
+            }
+            $expr = $parser->parse($routePath);
+            $this->arrMiddlewareParsed[] = [
+                //'expr' chuyển định dạng biểu thức của $strRoutePath ra dạng 
+                //array['module'=> strExprModule, 'controller' => strExprController, 'action' => strExprAction 'method' => strExprMethod ,'role' => strExprRole
+                'expr' => $expr,
+                'fqcn' => $fqcn// mode aray
+            ];
+        }
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
     //arrMC2FQCN được xây dựng là [module][controller] => $strFQCN
    protected function buildMC2FQCN(MCRoutePathParser $parser): void {
         $strFileName = 'config.mc2fc.php';
@@ -249,6 +275,30 @@ class StaticRouter {
         }
     }
     /*---------------------------------------------------------------------------------------------------------------*/
+    /*$arrSegment có format 
+     [
+        'module' => strModuleValue,
+        'controller' => strControllerValue,
+        'action' => strActionValue,
+        'method' => strMethodValue,
+        'role'=> roles . Chú ý là roles có thể là single value hoặc là 1 array
+    ]*/
+    public function matchMiddlewares(array $arrSegment): array {
+        $result = [];
+        foreach ($this->arrMiddlewareParsed as $element) {
+            if (!RouteSegmentPatternParser::match($element['expr'], $arrSegment)) {
+                //$result[] = $element['fqcn'];
+                continue;
+            }
+            foreach ($element['fqcn'] as $strFQCN) {
+                // dùng $strFQCN làm key để lọc các $strFQCN trùng, tránh chạy một middleware 2 lần
+                $result[$strFQCN] = true; 
+            }
+        }
+        return array_keys($result);
+        //return $result;
+    } 
+    /*---------------------------------------------------------------------------------------------------------------*/
     /*phục vụ cho cache StaticRouter*/
     public function toArray(): array {
         return[
@@ -259,7 +309,7 @@ class StaticRouter {
             'arrAuthRegistry' => $this->arrAuthRegistry,
             'arrMC2FQCN' => $this->arrMC2FQCN,
             'arrFCAction' => $this->arrFCAction,
-            'arrMiddleware' => $this->arrMiddleware,
+            'arrMiddlewareParsed' => $this->arrMiddlewareParsed,
             'arrMCAR' => $this->arrMCAR,
             'arrDefaultRoute' => $this->arrDefaultRoute
         ];
@@ -292,7 +342,7 @@ class StaticRouter {
     /*---------------------------------------------------------------------------------------------------------------*/
     public function createMiddlewareRegistry(): MiddlewareRegistry{
         return MiddlewareRegistry::fromArray(
-            $this->arrMiddleware
+            $this->arrMiddlewareParsed
         );
     }
     /*---------------------------------------------------------------------------------------------------------------*/

@@ -1,5 +1,6 @@
 <?php
 namespace Core\Routing;
+use InvalidArgumentException;
 class UrlToMCAOParser{
     protected MCABasic $mcaBasic;
     public function __construct(MCABasic $mcaBasic)
@@ -11,8 +12,9 @@ class UrlToMCAOParser{
         $strUri = parse_url($strUrl, PHP_URL_PATH) ?? '';
         if ($strUri === false  //lỗi cú pháp nghiêm trọng
         ) {
-            //return null;
-            throw new HttpException(404, "UrlToMCAOParser phân tích url: '{$strUrl}' thấy lỗi nghiêm trọng");
+            throw new InvalidArgumentException(
+            "UrlToMCAOParser phân tích url '{$strUrl}' thấy không hợp lệ."
+        );
         }
         //trim($strUri, '/'): xóa dấu / ở đầu và cuối chuỗi
         $arrSegment = array_values(array_filter(explode('/', trim($strUri, '/')), 'strlen'));

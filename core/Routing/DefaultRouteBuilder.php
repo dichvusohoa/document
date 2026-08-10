@@ -3,7 +3,8 @@ namespace Core\Routing;
 use UnexpectedValueException;
 use Core\Utility\ValidUtility;
 use Core\Utility\StringUtility;
-
+/*DefaultRouteBuilder sử dụng như 1 class trung gian trong quá trình tạo StaticRoute. Sau này không
+dùng để tạo object độc lập */
 class DefaultRouteBuilder {
     protected array $arrM;
     protected array $arrMC;

@@ -146,8 +146,9 @@ class ContextRouter
                 $arrMCARMe[MCARMeInfo::FIELD_ACTION]
             ] = $arrMCA;
         }
-
-        return $this->staticRouter->matchMiddlewares($arrMCARMe);
+        $middlewareRegistry = $this->staticRouter->createMiddlewareRegistry();
+        return $middlewareRegistry->matchMiddlewares($arrMCARMe);
+        //return $this->staticRouter->matchMiddlewares($arrMCARMe);
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/

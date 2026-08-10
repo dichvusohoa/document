@@ -158,7 +158,7 @@ return array (
       ),
     ),
   ),
-  'arrMiddleware' => 
+  'arrMiddlewareParsed' => 
   array (
     0 => 
     array (

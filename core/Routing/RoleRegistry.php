@@ -18,35 +18,15 @@ final class RoleRegistry
         //dự kiến có các hàm sau này, hiện nay chỉ có 1 dòng loadConfig
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    public function getRoleRegistry(){
+    public function getRoleRegistry(): array{
         return $this->arrR;
-    }
-    /*---------------------------------------------------------------------------------------------------------------*/
-    public function validadeDefaultUrl(UrlToMCAOParser $parser, array $arrMCAR){
-        foreach ($this->arrR as $strRole => $arrRoleEntry){
-            $arrMCAO = $parser->parse($arrRoleEntry['default_url']);
-            if ($arrMCAO === null) {
-                throw new HttpException(404, '....');
-            }
-            $arrMCA = MCAOInfo::toMCAPath($arrMCAO);
-            $arrRouteInfo  = StaticRouter::routeInfo($arrMCAR, $arrMCA);
-            if ($arrRouteInfo === null) {
-                throw new HttpException(404, '....');
-            }
-            if(!in_array($strRole, $arrRouteInfo['roles'], true)){
-                throw new HttpException(500, '....');
-            }
-        }
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     public static function fromArray(array $arrRoleRegistry): self{
         $ref = new \ReflectionClass(self::class);
-
         /** @var self $obj */
         $obj = $ref->newInstanceWithoutConstructor();
-
-        $obj->arrRoleRegistry = $arrRoleRegistry;
-
+        $obj->arrR = $arrRoleRegistry;
         return $obj;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
@@ -76,48 +56,48 @@ final class RoleRegistry
             ValidUtility::validateNoUnexpectedFields(
                 $arrRoleInfo,
                 [
-                    'display_name',
-                    'default_url',
-                    'weight'
+                    self::FIELD_DISPLAY_NAME,
+                    self::FIELD_DEFAULT_URL,
+                    self::FIELD_WEIGHT
                 ],
                 "Role '{$strRole}'"
             );
 
             ValidUtility::validateRequiredNonEmptyStringField(
                 $arrRoleInfo,
-                'display_name',
+                self::FIELD_DISPLAY_NAME,
                 "Role '{$strRole}'"
             );
 
             ValidUtility::validateRequiredNonEmptyStringField(
                 $arrRoleInfo,
-                'default_url',
+                self::FIELD_DEFAULT_URL,
                 "Role '{$strRole}'"
             );
 
             ValidUtility::validateRequiredField(
                 $arrRoleInfo,
-                'weight',
+                self::FIELD_WEIGHT,
                 "Role '{$strRole}'"
             );
 
             if (
                 !ValidUtility::isInternalAbsolutePath(
-                    $arrRoleInfo['default_url']
+                    $arrRoleInfo[self::FIELD_DEFAULT_URL]
                 )
             ) {
                 throw new UnexpectedValueException(
-                    "Role '{$strRole}': field 'default_url' "
+                    "Role '{$strRole}': field '".self::FIELD_DEFAULT_URL."' "
                     . "phải là đường dẫn tuyệt đối nội bộ hợp lệ."
                 );
             }
 
             if (
-                !is_int($arrRoleInfo['weight'])
-                || $arrRoleInfo['weight'] < 0
+                !is_int($arrRoleInfo[self::FIELD_WEIGHT])
+                || $arrRoleInfo[self::FIELD_WEIGHT] < 0
             ) {
                 throw new UnexpectedValueException(
-                    "Role '{$strRole}': field 'weight' "
+                    "Role '{$strRole}': field '".self::FIELD_WEIGHT."' "
                     . "phải là số nguyên không âm."
                 );
             }

@@ -2,7 +2,8 @@
 namespace Core\Routing;
 use UnexpectedValueException;
 use Core\Utility\MathUtility;
-
+/*MCARBuilder sử dụng như 1 class trung gian trong quá trình tạo StaticRoute. Sau này không
+dùng để tạo object độc lập*/
 class MCARBuilder {
     protected MCRoutePathParser $parser;
     protected array $arrMC2FQCN;

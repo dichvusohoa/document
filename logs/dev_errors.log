@@ -42,3 +42,12 @@
 [09-Aug-2026 22:04:57 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
 [09-Aug-2026 22:08:12 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
 [09-Aug-2026 22:08:13 Asia/Saigon] Xdebug: [Step Debug] Time-out connecting to debugging client, waited: 200 ms. Tried: localhost:9003 (through xdebug.client_host/xdebug.client_port) :-(
+[10-Aug-2026 07:36:19 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[10-Aug-2026 07:48:40 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[10-Aug-2026 10:01:39 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[10-Aug-2026 10:02:21 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[10-Aug-2026 10:03:19 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[10-Aug-2026 10:06:19 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[10-Aug-2026 10:08:30 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[10-Aug-2026 10:09:20 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router
+[10-Aug-2026 10:12:32 Asia/Saigon] [RouterFactory] Static router cache MISS - build new static router

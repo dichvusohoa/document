@@ -171,7 +171,6 @@ final class AuthRegistry
 
         return $arrNormalizedAuthConfig;
     }
-
     /*---------------------------------------------------------------------------------------------------------------*/
     protected function validateControllerName(
         string $strControllerName,

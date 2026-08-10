@@ -17,7 +17,7 @@ class StaticRouter {
     //FCQNA2F = FCQN (fully qualified class name)+ A (action) => Function
     //load từ file /config/config.fc.action.php
     protected array $arrFCAction;
-    protected array $arrMiddlewareParsed; //load từ file config.middleware.php và phân tích
+    protected array $arrMiddleware; //load từ file config.middleware.php và phân tích
 
     //kết quả cần tính ra  array
     // $arrMCAR: cấu trúc gốm các phần từ [strModule(có thể thiếu)][strController][strAction]=>route info
@@ -37,7 +37,9 @@ class StaticRouter {
         $this->buildFCAction();
         // 3. buildMiddleware. Có arrM  tạo parser
         $parser = new RouteSegmentPatternParser($this->arrM);
-        $this->buildMiddleware($parser); 
+        //$this->buildMiddleware($parser); 
+        $middlewareRegistry = new MiddlewareRegistry($parser);
+        $this->arrMiddleware = $middlewareRegistry->getMiddlewareRegistry();
         // 4. buildMC2FQCN, có arrM,arrMC,arrStC rồi mới tạo được  $parserMC 
         $parserMC = new MCRoutePathParser(
             $this->arrM,
@@ -66,7 +68,7 @@ class StaticRouter {
         //dữ liệu default_url trong config.role.php
         $mcaBasic = $this->createMCABasic();
         $parserUrl = new UrlToMCAOParser($mcaBasic);
-        $roleRegistry->validadeDefaultUrl($parserUrl, $this->arrMCAR);
+        $this->validateDefaultUrlOfRoles($parserUrl);
         
     }
     /*---------------------------------------------------------------------------------------------------------------*/
@@ -78,8 +80,8 @@ class StaticRouter {
         return $this->arrR;
     }
     /*--------------------------------------------------------------------------------------------------------------*/
-    static public function routeInfo(array $arrMCAR, array $path): ?array {
-        $data = $arrMCAR;
+    public function getRouteInfo(array $path): ?array {
+        $data = $this->arrMCAR;
         foreach ($path as $key) {
             if (!isset($data[$key])) {
                 return null;
@@ -87,18 +89,7 @@ class StaticRouter {
             $data = $data[$key];
         }
         return $data;
-    }
-    /*--------------------------------------------------------------------------------------------------------------*/
-    public function getRouteInfo(array $path): ?array {
-        /*$data = $this->arrMCAR;
-        foreach ($path as $key) {
-            if (!isset($data[$key])) {
-                return null;
-            }
-            $data = $data[$key];
-        }
-        return $data;*/
-        return self::routeInfo($this->arrMCAR, $path);
+        //return self::routeInfo($this->arrMCAR, $path);
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     public function createMCABasic(): MCABasic{
@@ -191,42 +182,6 @@ class StaticRouter {
         $this->arrFCAction = $arrConfig;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function buildMiddleware(RouteSegmentPatternParser $parser){
-        $this->arrMiddlewareParsed = [];
-        $strFileName = 'config.middleware.php';
-        $arrTmp = require CONFIG_PATH.'/'.$strFileName;
-        if(!ValidUtility::isStringListMap($arrTmp, false)){
-            throw new UnexpectedValueException("File {$strFileName} có format không phù hợp"); 
-        }
-        foreach ($arrTmp as $routePath => $fqcn) {
-            if(is_string($fqcn)){
-                $fqcn = [$fqcn];
-            }
-            foreach ($fqcn as $strFQCN){
-                if (!class_exists($strFQCN)) {
-                    throw new UnexpectedValueException("File {$strFileName}: class middleware '{$strFQCN}' không tồn tại");
-                }
-            }
-            $expr = $parser->parse($routePath);
-            /*Sử dụng kỹ thuật đổi hướng báo lỗi - Tạm thời chưa dùng, chưa thấy ích lợi rõ ràng gì
-            Sử dụng try/catch để báo lỗi có ngữ cảnh rõ ràng hơn. Nếu không có try/catch
-            báo lỗi sẽ do Core\Routing\RouterPattern tung ra
-            try {
-                 $expr = $parser->parse($routePath);
-            } catch (InvalidArgumentException $e) {
-                throw new UnexpectedValueException(
-                    "File {$strFileName}: route path middleware '{$routePath}' không hợp lệ", 0, $e
-                );
-            }*/
-            $this->arrMiddlewareParsed[] = [
-                //'expr' chuyển định dạng biểu thức của $strRoutePath ra dạng 
-                //array['module'=> strExprModule, 'controller' => strExprController, 'action' => strExprAction 'method' => strExprMethod ,'role' => strExprRole
-                'expr' => $expr,
-                'fqcn' => $fqcn// mode aray
-            ];
-        }
-    }
-    /*---------------------------------------------------------------------------------------------------------------*/
     //arrMC2FQCN được xây dựng là [module][controller] => $strFQCN
    protected function buildMC2FQCN(MCRoutePathParser $parser): void {
         $strFileName = 'config.mc2fc.php';
@@ -294,30 +249,6 @@ class StaticRouter {
         }
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    /*$arrSegment có format 
-     [
-        'module' => strModuleValue,
-        'controller' => strControllerValue,
-        'action' => strActionValue,
-        'method' => strMethodValue,
-        'role'=> roles . Chú ý là roles có thể là single value hoặc là 1 array
-    ]*/
-    public function matchMiddlewares(array $arrSegment): array {
-        $result = [];
-        foreach ($this->arrMiddlewareParsed as $element) {
-            if (!RouteSegmentPatternParser::match($element['expr'], $arrSegment)) {
-                //$result[] = $element['fqcn'];
-                continue;
-            }
-            foreach ($element['fqcn'] as $strFQCN) {
-                // dùng $strFQCN làm key để lọc các $strFQCN trùng, tránh chạy một middleware 2 lần
-                $result[$strFQCN] = true; 
-            }
-        }
-        return array_keys($result);
-        //return $result;
-    } 
-    /*---------------------------------------------------------------------------------------------------------------*/
     /*phục vụ cho cache StaticRouter*/
     public function toArray(): array {
         return[
@@ -328,7 +259,7 @@ class StaticRouter {
             'arrAuthRegistry' => $this->arrAuthRegistry,
             'arrMC2FQCN' => $this->arrMC2FQCN,
             'arrFCAction' => $this->arrFCAction,
-            'arrMiddlewareParsed' => $this->arrMiddlewareParsed,
+            'arrMiddleware' => $this->arrMiddleware,
             'arrMCAR' => $this->arrMCAR,
             'arrDefaultRoute' => $this->arrDefaultRoute
         ];
@@ -351,5 +282,45 @@ class StaticRouter {
         return AuthRegistry::fromArray(
             $this->arrAuthRegistry
         );
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    public function createRoleRegistry(): RoleRegistry{
+        return RoleRegistry::fromArray(
+            $this->arrR
+        );
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    public function createMiddlewareRegistry(): MiddlewareRegistry{
+        return MiddlewareRegistry::fromArray(
+            $this->arrMiddleware
+        );
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    public function validateDefaultUrlOfRoles(UrlToMCAOParser $parser){
+        foreach ($this->arrR as $strRole => $arrRoleEntry){
+            $strDefaultUrl = $arrRoleEntry[RoleRegistry::FIELD_DEFAULT_URL];
+            $arrMCAO = $parser->parse($arrRoleEntry['default_url']);
+            if ($arrMCAO === null) {
+                throw new UnexpectedValueException(
+                   "Role '{$strRole}': default_url '{$strDefaultUrl}' "
+                   . "không thể ánh xạ thành format route (mcao) hợp lệ."
+                );
+            }
+            
+            $arrMCA = MCAOInfo::toMCAPath($arrMCAO);
+            $arrRouteInfo  = $this->getRouteInfo($arrMCA);
+            if ($arrRouteInfo === null) {
+                throw new UnexpectedValueException(
+                    "Role '{$strRole}': default_url '{$strDefaultUrl}' "
+                    . "không trỏ tới một RouteInfo tồn tại."
+                );
+            }
+            if(!in_array($strRole, $arrRouteInfo[RouteInfo::FIELD_ROLES], true)){
+                throw new UnexpectedValueException(
+                    "Role '{$strRole}': default_url '{$strDefaultUrl}' "
+                    . "trỏ tới một RouteInfo không chứa quyền truy cập của '{$strRole}'."
+                );
+            }
+        }
     }
 }
