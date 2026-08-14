@@ -296,17 +296,11 @@ class ValidUtility{
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
-    /**
-     * Kiểm tra field bắt buộc là string list.
-     *
-     * Khi $allowEmpty = false, danh sách rỗng không hợp lệ.
-     */
-    public static function validateRequiredStringListField(
+    public static function validateRequiredNonEmptyStringListField(
         array $arrData,
         string $strFieldName,
         string $strContext,
-        ?string $strParentPath = null,
-        bool $allowEmpty = true
+        ?string $strParentPath = null
     ): void {
         self::validateRequiredField(
             $arrData,
@@ -317,7 +311,7 @@ class ValidUtility{
 
         $mixFieldValue = $arrData[$strFieldName];
 
-        if (!self::isStringList($mixFieldValue)) {
+        if (!self::isNonEmptyStringList($mixFieldValue)) {
             $strFieldPath = self::buildFieldPath(
                 $strFieldName,
                 $strParentPath
@@ -325,19 +319,41 @@ class ValidUtility{
 
             throw new UnexpectedValueException(
                 "{$strContext} field '{$strFieldPath}' "
-                . 'phải là danh sách string.'
+                . 'phải là danh sách không rỗng gồm các string không rỗng.'
             );
         }
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    public static function validateUniqueListField(
+        array $arrData,
+        string $strFieldName,
+        string $strContext,
+        ?string $strParentPath = null
+    ): void {
+        self::validateRequiredField(
+            $arrData,
+            $strFieldName,
+            $strContext,
+            $strParentPath
+        );
 
-        if (!$allowEmpty && $mixFieldValue === []) {
-            $strFieldPath = self::buildFieldPath(
+        $arrFieldValue = $arrData[$strFieldName];
+        $strFieldPath = self::buildFieldPath(
                 $strFieldName,
                 $strParentPath
             );
-
+        if (!is_array($arrFieldValue)) {
+            throw new UnexpectedValueException(
+                "{$strContext} field '{$strFieldPath}' phải là array."
+            );
+        }
+        if (
+            count($arrFieldValue)
+            !== count(array_unique($arrFieldValue))
+        ) {
             throw new UnexpectedValueException(
                 "{$strContext} field '{$strFieldPath}' "
-                . 'không được là danh sách rỗng.'
+                . 'không được chứa giá trị trùng nhau.'
             );
         }
     }
@@ -374,10 +390,19 @@ class ValidUtility{
             return false;
         }
 
-        foreach ($arrData as $value) {
-            if (!self::isNonEmptyString($value)) {
+        $i = 0;
+
+        foreach ($arrData as $key => $value) {
+            if (
+                $key !== $i
+                || !is_string($value)
+                || $value === ''
+                || $value !== trim($value)
+            ) {
                 return false;
             }
+
+            $i++;
         }
 
         return true;
@@ -440,4 +465,6 @@ class ValidUtility{
             && $value[0] === '/'
             && !str_starts_with($value, '//');
     }
+    
+    
 }

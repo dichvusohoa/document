@@ -12,35 +12,37 @@ final class AuthRegistry
 
     protected const ROLE_PATTERN_TYPE = 'role';
     protected const GUEST_ROLE_NAME   = 'guest';
-    
-    public const FIELD_INPUT_ACTIONS          = 'input_actions';
-    public const FIELD_DEFAULT_INPUT_ACTION   = 'default_input_action';
-    public const FIELD_DEFAULT_INPUT_ROLES    = 'default_input_roles'; /*field calculate*/
+
     public const FIELD_ACCEPTED_ROLES_PATTERN = 'accepted_roles_pattern';
-    public const FIELD_ACCEPTED_ROLES         = 'accepted_roles'; /*field calculate*/
+    public const FIELD_ACCEPTED_ROLES         = 'accepted_roles';
     public const FIELD_MAX_FAIL_COUNT         = 'max_fail_count';
     public const FIELD_TURNSTILE               = 'turnstile';
     public const FIELD_REMEMBER_COOKIE         = 'remember_cookie';
     public const FIELD_REMEMBER_EXPIRE  = 'remember_expire';
-    public const FIELD_WEIGHTS                 = 'weights'; /*field calculate*/
+    public const FIELD_WEIGHTS                 = 'weights';
 
     protected const WEIGHT_MAX_ROLE = 'max_role_weight';
     protected const WEIGHT_ACCEPTED_ROLE_COUNT = 'accepted_role_count';
 
     /*
-     * Các field được phép khai báo trực tiếp trong config.login.php.
+     * Đây chỉ là các field được phép xuất hiện trong config.login.php.
      *
-     * accepted_roles, default_input_roles, weights không nằm ở đây vì chúng là
-     * calculated fields do framework bổ sung vào registry.
+     * Không đưa accepted_roles và weights vào đây vì hai field đó
+     * do framework sinh ra sau khi normalize.
      */
     protected const CONFIG_FIELDS = [
-        self::FIELD_INPUT_ACTIONS,
-        self::FIELD_DEFAULT_INPUT_ACTION,
         self::FIELD_ACCEPTED_ROLES_PATTERN,
         self::FIELD_MAX_FAIL_COUNT,
         self::FIELD_TURNSTILE,
         self::FIELD_REMEMBER_COOKIE,
         self::FIELD_REMEMBER_EXPIRE
+    ];
+
+    protected const REQUIRED_CONFIG_FIELDS = [
+        self::FIELD_ACCEPTED_ROLES_PATTERN,
+        self::FIELD_MAX_FAIL_COUNT,
+        self::FIELD_TURNSTILE,
+        self::FIELD_REMEMBER_COOKIE
     ];
 
     /*
@@ -205,25 +207,26 @@ final class AuthRegistry
                 . '.'
             );
         }
-        /*
-        * Chỉ cho phép các field được định nghĩa trong config.login.php.
-        */
+
         ValidUtility::validateNoUnexpectedFields(
             $mixAuthConfig,
             self::CONFIG_FIELDS,
             $strContext
         );
 
-        
+        foreach (
+            self::REQUIRED_CONFIG_FIELDS as $strFieldName
+        ) {
+            ValidUtility::validateRequiredField(
+                $mixAuthConfig,
+                $strFieldName,
+                $strContext
+            );
+        }
 
         /*
          * Validate các field trực tiếp từ config trước.
          */
-        $this->validateInputActions(
-            $mixAuthConfig,
-            $strContext
-        );
-
         ValidUtility::validateRequiredPositiveIntField(
             $mixAuthConfig,
             self::FIELD_MAX_FAIL_COUNT,
@@ -239,7 +242,6 @@ final class AuthRegistry
             $mixAuthConfig,
             $strContext
         );
-
         /*
          * Chuyển pattern đầu vào thành dữ liệu runtime.
          */
@@ -260,6 +262,7 @@ final class AuthRegistry
 
         return $arrRegistryEntry;
     }
+
     /*---------------------------------------------------------------------------------------------------------------*/
     protected function calculateAcceptedRoles(
         array $arrRegistryEntry,
@@ -337,11 +340,6 @@ final class AuthRegistry
         array $arrRegistryEntry,
         string $strContext
     ): void {
-        ValidUtility::validateRequiredField(
-            $arrRegistryEntry,
-            self::FIELD_TURNSTILE,
-            $strContext
-        );
         $mixTurnstileRule =
             $arrRegistryEntry[self::FIELD_TURNSTILE];
 
@@ -430,7 +428,7 @@ final class AuthRegistry
 
         foreach ($arrAcceptedRole as $strRoleName) {
             $iRoleWeight =
-                $arrDefinedRole[$strRoleName][RoleRegistry::FIELD_WEIGHT];
+                $arrDefinedRole[$strRoleName]['weight'];
 
             if ($iRoleWeight > $iMaxRoleWeight) {
                 $iMaxRoleWeight = $iRoleWeight;
@@ -446,75 +444,18 @@ final class AuthRegistry
         ];
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function validateInputActions(
-        array $arrRegistryEntry,
-        string $strContext
-    ): void {
-        ValidUtility::validateRequiredNonEmptyStringListField(
-            $arrRegistryEntry,
-            self::FIELD_INPUT_ACTIONS,
-            $strContext
-        );
-
-        ValidUtility::validateUniqueListField(
-            $arrRegistryEntry,
-            self::FIELD_INPUT_ACTIONS,
-            $strContext
-        );
-
-        ValidUtility::validateRequiredEnumField(
-            $arrRegistryEntry,
-            self::FIELD_DEFAULT_INPUT_ACTION,
-            $arrRegistryEntry[self::FIELD_INPUT_ACTIONS],
-            $strContext
-        );
-    }
-    /*---------------------------------------------------------------------------------------------------------------*/
-    public function findAuthPathByRoles(
-        array $arrUserRoles,    
-        array $arrIntendedRoles
-    ): ?string {
+    public function findAuthPathByRoles(array $arrRoles): ?string{
         $strCandidateAuthPath = null;
-        $arrCandidateWeights  = null;
-
-        foreach (
-            $this->arrAuthRegistry as
-            $strControllerName => $arrAuthEntry
-        ) {
-            $arrDefaultInputRoles =
-                $arrAuthEntry[self::FIELD_DEFAULT_INPUT_ROLES];
-            //phải đảm bảo rằng $arrAuthEntry này có các roles đầu vào giao nhau với $arrUserRoles
-            //là khác rỗng thì $arrAuthEntry mới được chọn
-            if (
-                empty(
-                    array_intersect(
-                        $arrUserRoles,
-                        $arrDefaultInputRoles
-                    )
-                )
-            ) {
+        $arrCandidateWeights   = null;
+        foreach ($this->arrAuthRegistry as $strAuthPath => $arrAuthEntry) {
+            $arrAcceptedRoles = $arrAuthEntry[AuthRegistry::FIELD_ACCEPTED_ROLES];
+            if (empty(array_intersect($arrRoles, $arrAcceptedRoles))) {
                 continue;
             }
-            
-            $arrAcceptedRoles =
-                $arrAuthEntry[self::FIELD_ACCEPTED_ROLES];
-            //phải đảm bảo rằng $arrAuthEntry này cung cấp các roles sau khi xác thực thành công giao nhau với
-            //tập các roles kỳ vọng ($arrIntendedRoles) khác rỗng thì $arrAuthEntry mới được chọn
-            if (
-                empty(
-                    array_intersect(
-                        $arrIntendedRoles,
-                        $arrAcceptedRoles
-                    )
-                )
-            ) {
-                continue;
-            }
-
             $arrWeights = array_values(
-                $arrAuthEntry[self::FIELD_WEIGHTS]
+                $arrAuthEntry[AuthRegistry::FIELD_WEIGHTS]
             );
-            //khi có nhiều $arrAuthEntry thì bắt đầu thuật toán tìm $arrAuthEntry có weight là min
+
             if (
                 $arrCandidateWeights === null
                 || MathUtility::compareNumberArray(
@@ -522,25 +463,20 @@ final class AuthRegistry
                     $arrCandidateWeights
                 ) < 0
             ) {
-                $strCandidateAuthPath =
-                    $strControllerName
-                    . '/'
-                    . $arrAuthEntry[self::FIELD_DEFAULT_INPUT_ACTION];
-
-                $arrCandidateWeights = $arrWeights;
+                $strCandidateAuthPath = $strAuthPath;
+                $arrCandidateWeights   = $arrWeights;
             }
         }
-
-        return $strCandidateAuthPath === null
-            ? null
-            : '/' . ltrim($strCandidateAuthPath, '/');
+        return  $strCandidateAuthPath === null
+                ? null
+                : '/' . ltrim($strCandidateAuthPath, '/');
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     public function getAuthRegistry(): array{
         return $this->arrAuthRegistry;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    public function getAuthPolicy(string $strControllerName): ?array{
+    public function getAuthPolicy(string $strControllerName): array{
         return $this->arrAuthRegistry[$strControllerName] ?? null;
     }
     /*---------------------------------------------------------------------------------------------------------------*/

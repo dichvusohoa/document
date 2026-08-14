@@ -33,7 +33,7 @@ class StaticRouter {
         $roleRegistry = new RoleRegistry();
         $this->arrR = $roleRegistry->getRoleRegistry();
         $authRegistry = new AuthRegistry($this->arrStC, $this->arrR);
-        $this->arrAuthRegistry = $authRegistry->getAuthRegistry();
+        $arrAuthRegistry = $authRegistry->getAuthRegistry();
         $this->buildFCAction();
         // 3. buildMiddleware. Có arrM  tạo parser
         $parser = new RouteSegmentPatternParser($this->arrM);
@@ -55,7 +55,10 @@ class StaticRouter {
             array_keys($this->arrR),
             $authRegistry
         );
-        $this->arrMCAR = $mcarBuilder->build();
+        $arrMCAR = $mcarBuilder->build();
+        $arrAuthRegistry = $mcarBuilder->normalizeAuthRegistry($arrAuthRegistry, $arrMCAR);
+        $this->arrMCAR = $arrMCAR;
+        $this->arrAuthRegistry = $arrAuthRegistry;
         //6. Build defaultRoute
         $defaultRouteBuilder = new DefaultRouteBuilder(
             $this->arrM,
@@ -65,19 +68,15 @@ class StaticRouter {
         );
         $this->arrDefaultRoute = $defaultRouteBuilder->build();
         //7. hoàn thiện dữ liệu của StaticRouter rồi mới có thể valid lại 
-        //dữ liệu default_url trong config.role.php
+        //dữ liệu default_business_url trong config.role.php
         $mcaBasic = $this->createMCABasic();
         $parserUrl = new UrlToMCAOParser($mcaBasic);
-        $this->validateDefaultUrlOfRoles($parserUrl);
+        $this->validateRoleDefaultBusinessUrl($parserUrl);
         
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     public function getStandaloneControllers(): array{
         return $this->arrStC;
-    }
-    /*--------------------------------------------------------------------------------------------------------------*/
-    public function getRoles(): array{
-        return $this->arrR;
     }
     /*--------------------------------------------------------------------------------------------------------------*/
     public function getRouteInfo(array $path): ?array {
@@ -296,13 +295,17 @@ class StaticRouter {
         );
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    public function validateDefaultUrlOfRoles(UrlToMCAOParser $parser){
+    protected function validateRoleDefaultBusinessUrl(UrlToMCAOParser $parser){
         foreach ($this->arrR as $strRole => $arrRoleEntry){
-            $strDefaultUrl = $arrRoleEntry[RoleRegistry::FIELD_DEFAULT_URL];
-            $arrMCAO = $parser->parse($arrRoleEntry['default_url']);
+            $strDefaultBusinessUrl = $arrRoleEntry[RoleRegistry::FIELD_DEFAULT_BUSINESS_URL];
+            // Role có thể không có business URL mặc định => không cần kiểm tra gì
+            if ($strDefaultBusinessUrl === null) {
+                continue;
+            }
+            $arrMCAO = $parser->parse($strDefaultBusinessUrl);
             if ($arrMCAO === null) {
                 throw new UnexpectedValueException(
-                   "Role '{$strRole}': default_url '{$strDefaultUrl}' "
+                   "Role '{$strRole}': default_business_url '{$strDefaultBusinessUrl}' "
                    . "không thể ánh xạ thành format route (mcao) hợp lệ."
                 );
             }
@@ -311,13 +314,19 @@ class StaticRouter {
             $arrRouteInfo  = $this->getRouteInfo($arrMCA);
             if ($arrRouteInfo === null) {
                 throw new UnexpectedValueException(
-                    "Role '{$strRole}': default_url '{$strDefaultUrl}' "
-                    . "không trỏ tới một RouteInfo tồn tại."
+                    "Role '{$strRole}': default_business_url '{$strDefaultBusinessUrl}' "
+                    . "không trỏ tới một đường dẫn tồn tại."
+                );
+            }
+            if($arrRouteInfo[RouteInfo::FIELD_ROUTE_TYPE] !== RouteInfo::ROUTE_TYPE_BUSINESS){
+                throw new UnexpectedValueException(
+                    "Role '{$strRole}': default_business_url '{$strDefaultBusinessUrl}' "
+                    . "không trỏ tới một đường dẫn nghiệp vụ."
                 );
             }
             if(!in_array($strRole, $arrRouteInfo[RouteInfo::FIELD_ROLES], true)){
                 throw new UnexpectedValueException(
-                    "Role '{$strRole}': default_url '{$strDefaultUrl}' "
+                    "Role '{$strRole}': default_business_url '{$strDefaultBusinessUrl}' "
                     . "trỏ tới một RouteInfo không chứa quyền truy cập của '{$strRole}'."
                 );
             }

@@ -1,6 +1,8 @@
 <?php
 namespace Core\Routing;
 use Core\Http\Request;
+use Core\Http\Session;
+use Core\Http\HttpException;
 class ContextRouter
 {
    
@@ -14,7 +16,7 @@ class ContextRouter
         array $arrUserRole,
         StaticRouter $staticRouter
     ) {
-        $this->arrEnableModule = $arrEnabledModule;
+        $this->arrEnabledModule = $arrEnabledModule;
         $this->arrUserRole     = $arrUserRole;
         $this->staticRouter    = $staticRouter;
     }
@@ -28,7 +30,7 @@ class ContextRouter
     /*---------------------------------------------------------------------------------------------------------------*/
     public function getEnabledModules(): array
     {
-        return $this->arrEnableModule;
+        return $this->arrEnabledModule;
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
@@ -40,9 +42,47 @@ class ContextRouter
     /*---------------------------------------------------------------------------------------------------------------*/
     public function setEnabledModules(array $arrEnabledModule): void
     {
-        $this->arrEnableModule = $arrEnabledModule;
+        $this->arrEnabledModule = $arrEnabledModule;
     }
 
+    /*---------------------------------------------------------------------------------------------------------------*/
+    protected function calculateContextAcceptedRoles(
+        array $arrMCAO,
+        array $arrRouteInfo
+    ): ?array {
+        if (
+            $arrRouteInfo[RouteInfo::FIELD_ROUTE_TYPE]
+            === RouteInfo::ROUTE_TYPE_BUSINESS
+        ) {
+            return null;
+        }
+
+        $authRegistry = $this->staticRouter->createAuthRegistry();
+
+        $strController =
+            $arrMCAO[MCAOInfo::FIELD_CONTROLLER];
+
+        $arrAuthPolicy =
+            $authRegistry->getAuthPolicy($strController);
+
+        $arrIntendedRole = Session::get('intended_roles');
+
+        if (
+            Session::get('intended_url')
+            && is_array($arrIntendedRole)
+        ) {
+            return array_values(
+                array_intersect(
+                    $arrAuthPolicy[AuthRegistry::FIELD_ACCEPTED_ROLES],
+                    $arrIntendedRole
+                )
+            );
+        }
+
+        return $arrAuthPolicy[
+            AuthRegistry::FIELD_ACCEPTED_ROLES
+        ];
+    }
     /*---------------------------------------------------------------------------------------------------------------*/
     public function matchUri(Request $request): array
     {
@@ -54,8 +94,6 @@ class ContextRouter
          * Không nhận diện được prefix route.
          */
         if ($arrMCAO === null) {
-            //Tới đây nghĩa là $arrContextRouteInfo['mcao'] === null
-            //return $arrContextRouteInfo;
             throw new HttpException(404, 'ContextRouter chạy định tuyến (matchUri) trả về kết quả đường dẫn không hợp lệ');
         }
 
@@ -67,28 +105,21 @@ class ContextRouter
          */
         $arrContextRouteInfo[ContextRouteInfo::FIELD_MCAO] = $arrMCAO;
         if ($arrRouteInfo === null) {
-            //Tới đây nghĩa là $arrContextRouteInfo['route_info'] === null
-            //return $arrContextRouteInfo;
             throw new HttpException(404, 'ContextRouter chạy định tuyến (matchUri) trả về dữ liệu null');
         }
         //Từ đây trở đi thì $arrContextRouteInfo['mcao'] và $arrContextRouteInfo['route_info'] mới khác null
-        $arrAccessibleRole = $this->calculateAccessibleRole($arrRouteInfo);
-
+        $arrEffectiveUserRolesAtRoute = $this->effectiveUserRolesAtRoute($arrRouteInfo);
         $arrMiddleware = $this->buildMiddlewares(
             $arrMCA,
             $arrRouteInfo[RouteInfo::FIELD_METHOD],
-            $arrAccessibleRole
-        );
-
-        $arrAuthPolicy = $this->buildAuthPolicy(
-            $arrMCAO[MCAOInfo::FIELD_CONTROLLER],
-            $arrRouteInfo[RouteInfo::FIELD_ROUTE_TYPE]
+            $arrEffectiveUserRolesAtRoute
         );
 
         $strModule = $arrMCAO[MCAOInfo::FIELD_MODULE];
         
         $arrContextRouteInfo[ContextRouteInfo::FIELD_ROUTE_INFO] = $arrRouteInfo;
-        $arrContextRouteInfo[ContextRouteInfo::FIELD_AUTH_POLICY] = $arrAuthPolicy;
+        $arrContextRouteInfo[ContextRouteInfo::FIELD_CONTEXT_ACCEPTED_ROLES] =
+        $this->calculateContextAcceptedRoles($arrMCAO, $arrRouteInfo);        
         $arrContextRouteInfo[ContextRouteInfo::FIELD_MIDDLEWARES] = $arrMiddleware;
         
         if ($this->isModuleProhibited($strModule)) {
@@ -97,7 +128,7 @@ class ContextRouter
             return $arrContextRouteInfo;
         }
         $arrContextRouteInfo[ContextRouteInfo::FIELD_PROHIBITED_MODULE] = false;
-        if (empty($arrAccessibleRole)) {
+        if (empty($arrEffectiveUserRolesAtRoute)) {
             $arrContextRouteInfo[ContextRouteInfo::FIELD_PROHIBITED_ROLE] = true;
             return $arrContextRouteInfo;
         }
@@ -106,7 +137,7 @@ class ContextRouter
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function calculateAccessibleRole(array $arrRouteInfo): array
+    protected function effectiveUserRolesAtRoute(array $arrRouteInfo): array
     {
         return array_values(
             array_intersect(
@@ -120,19 +151,18 @@ class ContextRouter
     protected function isModuleProhibited(?string $strModule): bool
     {
         return $strModule !== null
-            && !in_array($strModule, $this->arrEnableModule, true);
+            && !in_array($strModule, $this->arrEnabledModule, true);
     }
-
     /*---------------------------------------------------------------------------------------------------------------*/
     protected function buildMiddlewares(
         array $arrMCA,
         string $strMethod,
-        array $arrAccessibleRole
+        array $arrEffectiveUserRolesAtRoute
     ): array {
-        //$arrMCA cung cấp MCA, $arrAccessibleRole cung cấp R
+        //$arrMCA cung cấp MCA, $arrEffectiveUserRolesAtRoute cung cấp R
         $arrMCARMe = MCARMeInfo::createEmpty();
         $arrMCARMe[MCARMeInfo::FIELD_METHOD] = $strMethod;
-        $arrMCARMe[MCARMeInfo::FIELD_ROLE] = $arrAccessibleRole;
+        $arrMCARMe[MCARMeInfo::FIELD_ROLE] = $arrEffectiveUserRolesAtRoute;
 
         if (count($arrMCA) === 3) {
             [
@@ -148,44 +178,6 @@ class ContextRouter
         }
         $middlewareRegistry = $this->staticRouter->createMiddlewareRegistry();
         return $middlewareRegistry->matchMiddlewares($arrMCARMe);
-        //return $this->staticRouter->matchMiddlewares($arrMCARMe);
-    }
-
-    /*---------------------------------------------------------------------------------------------------------------*/
-    protected function buildAuthPolicy(
-        string $strController,
-        string $strRouteType
-    ): ?array {
-        if (
-            $strRouteType
-            !== RouteInfo::ROUTE_TYPE_AUTHENTICATION
-        ) {
-            return null;
-        }
-
-        
-
-        /*
-         * Theo invariant của StaticRouter:
-         * authentication controller hợp lệ luôn có AuthRegistry entry tương ứng.
-         */
-        $arrAuthTemplate = $this->staticRouter
-            ->createAuthRegistry()
-            ->getAuthPolicy($strController);
-
-        return [
-            AuthRegistry::FIELD_MAX_FAIL_COUNT =>
-                $arrAuthTemplate[AuthRegistry::FIELD_MAX_FAIL_COUNT],
-
-            AuthRegistry::FIELD_TURNSTILE =>
-                $arrAuthTemplate[AuthRegistry::FIELD_TURNSTILE],
-
-            AuthRegistry::FIELD_REMEMBER_COOKIE =>
-                $arrAuthTemplate[AuthRegistry::FIELD_REMEMBER_COOKIE],
-
-            AuthRegistry::FIELD_REMEMBER_EXPIRE =>
-                $arrAuthTemplate[AuthRegistry::FIELD_REMEMBER_EXPIRE]
-        ];
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/

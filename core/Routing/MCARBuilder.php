@@ -55,7 +55,6 @@ class MCARBuilder {
             $arrMC = $this->parser->parse($strExprMC);
             $arrTree = $this->buildForOneRule($arrTree, $arrMC, $arrExprRA);
         }
-        $this->validateAuthRouteRoleRules($arrTree);
         return $arrTree;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
@@ -160,18 +159,6 @@ class MCARBuilder {
                 $arrNode[$strAction][RouteInfo::FIELD_ROLES][] = $strRole;
             }
         }
-        if($strRouteType === RouteInfo::ROUTE_TYPE_AUTHENTICATION){
-            foreach ($arrNode as $strAction => $value) {
-                $arrNode[$strAction][RouteInfo::FIELD_AUTHENTICATION_PATH] = null;
-            }
-            
-        }
-        else{
-            foreach ($arrNode as $strAction => $value) {
-                $arrNode[$strAction][RouteInfo::FIELD_AUTHENTICATION_PATH] = 
-                        $this->authRegistry->findAuthPathByRoles($arrNode[$strAction][RouteInfo::FIELD_ROLES]);
-            }
-        }
         return $arrNode;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
@@ -239,33 +226,58 @@ class MCARBuilder {
     // A = tập hợp các roles đầu vào của route
     // B = tập hợp các roles cho phép đầu ra sau khi xác thực của route
     // phải đảm bảo A giao B = empty
-    protected function validateAuthRouteRoleRules(array $arrMCAR): void
+    
+    
+    public function normalizeAuthRegistry(array $arrAuthRegistry, array $arrMCAR): array
     {
-        foreach (
-            $this->authRegistry->getAuthControllers()
-            as $strController
-        ) {
-            $arrAuthPolicy =  $this->authRegistry->getAuthPolicy($strController);
-            $arrAcceptedRoles = $arrAuthPolicy[AuthRegistry::FIELD_ACCEPTED_ROLES];
-            foreach (
-                $arrMCAR[$strController]
-                as $strAction => $arrRouteInfo
-            ) {
-                $arrEntryRoles =
-                    $arrRouteInfo[RouteInfo::FIELD_ROLES];
+        foreach ($arrAuthRegistry as $strController => $arrAuthEntry) {
+
+            $arrInputActions =
+                $arrAuthEntry[AuthRegistry::FIELD_INPUT_ACTIONS];
+
+            $strDefaultInputAction =
+                $arrAuthEntry[AuthRegistry::FIELD_DEFAULT_INPUT_ACTION];
+
+            $arrAcceptedRoles =
+                $arrAuthEntry[AuthRegistry::FIELD_ACCEPTED_ROLES];
+
+            foreach ($arrInputActions as $strInputAction) {
+
+                // input action phải thực sự tồn tại trong MCAR.
+                if (!isset($arrMCAR[$strController][$strInputAction])) {
+                    throw new UnexpectedValueException(
+                        "Authentication input action "
+                        . "'{$strController}/{$strInputAction}' "
+                        . "không tồn tại trong MCAR."
+                    );
+                }
+
+                $arrInputActionRoles =
+                    $arrMCAR[$strController][$strInputAction]
+                        [RouteInfo::FIELD_ROLES];
+
+                // roles(input action) ∩ accepted_roles = ∅
                 $arrConflictedRoles = array_intersect(
-                    $arrEntryRoles,
+                    $arrInputActionRoles,
                     $arrAcceptedRoles
                 );
+
                 if (!empty($arrConflictedRoles)) {
                     throw new UnexpectedValueException(
-                        "Authentication route '{$strController}/{$strAction}': "
-                        . "entry roles và accepted roles không được giao nhau. "
+                        "Authentication input action "
+                        . "'{$strController}/{$strInputAction}': "
+                        . "input roles và accepted roles "
+                        . "không được giao nhau. "
                         . "Role bị trùng: "
                         . implode(', ', $arrConflictedRoles)
                     );
                 }
             }
+            // default_input_action chắc chắn thuộc input_actions
+            // nếu AuthRegistry constructor đã validate invariant này.
+            $arrAuthRegistry[$strController][AuthRegistry::FIELD_DEFAULT_INPUT_ROLES] =
+            $arrMCAR[$strController][$strDefaultInputAction][RouteInfo::FIELD_ROLES];
         }
+        return $arrAuthRegistry;
     }
 }

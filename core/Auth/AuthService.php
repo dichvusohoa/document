@@ -3,25 +3,46 @@ namespace Core\Auth;
 use Core\Http\Response;
 use Core\Http\Session;
 use Core\Http\Cookie;
+use Core\Http\RequestAuthContext;
+use Core\Routing\AuthRegistry;
+use Core\Routing\MCAOInfo;
 use Core\Auth\AuthToken;
 use Core\Database\DbService;
 use Core\Controller\Login\LoginAttemptService;
-use \RuntimeException;
+use RuntimeException;
+
 /*prefix authSrvc*/
 class AuthService{
+    protected RequestAuthContext $requestAuthContext;
     protected DbService $dbService;
     protected AuthTokenService    $tokenService;
     protected LoginAttemptService $loginAttemptService;
-    function __construct(DbService $dbService, AuthTokenService $tokenService, LoginAttemptService $loginAttemptService){
+    function __construct(
+            RequestAuthContext $requestAuthContext,
+            AuthRegistry $authRegistry,
+            DbService $dbService, 
+            AuthTokenService $tokenService, 
+            LoginAttemptService $loginAttemptService){
+        $this->requestAuthContext = $requestAuthContext;
+        $this->authRegistry = $authRegistry;
         $this->dbService    = $dbService;
         $this->tokenService = $tokenService;
         $this->loginAttemptService = $loginAttemptService;
     }
-    public function login(string $strUser, 
+    protected function rememberCookiePolicy(){
+        $arrMCAO = $this->requestAuthContext->mcao();
+        $strControllerName = $arrMCAO[MCAOInfo::FIELD_CONTROLLER];
+        $arrAuthPolicy = $this->authRegistry->getAuthPolicy($strControllerName);
+        if($arrAuthPolicy === null){
+            throw new UnexpectedValueException('...');
+        }
+        return $arrAuthPolicy[AuthRegistry::FIELD_REMEMBER_COOKIE];
+    }
+    public function login(
+            string $strUser, 
             string $strPassword, 
-            bool $isAdminLogin = false, 
             string $strToken = null){
-        if($this->loginAttemptService->needTurnstile($isAdminLogin)){
+        if($this->loginAttemptService->needTurnstile()){
             if(!self::verifyTurnstile($strToken)){
                 return [
                     'status' => Response::SERVER_UNAUTHENTICATED_STATUS,
@@ -32,7 +53,7 @@ class AuthService{
         }
 
        
-        $arrResp = $this->verifyCredentials($strUser, $strPassword, $isAdminLogin);
+        $arrResp = $this->verifyCredentials($strUser, $strPassword);
         if($arrResp['status'] !==Response::SERVER_AUTHENTICATED_STATUS){
             return $arrResp;
         } 
@@ -42,7 +63,7 @@ class AuthService{
         $authData = $arrResp['data'];
         unset($authData['password']);//lọc bỏ password không lưu vào auth
         Session::set('auth', $authData);*/
-        if(!$isAdminLogin){//ghi vào cookie
+        if($this->rememberCookiePolicy()){//ghi vào cookie
             $authToken = new AuthToken();
             $strUserId = $arrResp['data']['id'];
             $exec =  $this->tokenService->tokenToDB($authToken, $strUserId);
@@ -90,12 +111,17 @@ class AuthService{
 
         return !empty($response['success']);
     }
-    protected function verifyCredentials(string $strUser, string $strPassword, $isAdminLogin = false) {
-        $strRequiredRole = $isAdminLogin ? ADMIN_ROLE_NAME : null;
-        $arrResp = $this->dbService->fetchOne("lib_spGetUserByNameAndRole",
-            ["pName" => $strUser, "pRole" => $strRequiredRole]);
+    protected function verifyCredentials(string $strUser, string $strPassword) {
+        //$strRequiredRole = $isAdminLogin ? ADMIN_ROLE_NAME : null;
+        $arrContextAcceptedRole = $this->requestAuthContext->contextAcceptedRoles();
+        $strContextAcceptedRoleJson = json_encode(
+            $arrContextAcceptedRole,
+            JSON_THROW_ON_ERROR
+        );
+        $arrResp = $this->dbService->fetchOne("lib_spGetUserByNameAndRoles",
+            ["pName" => $strUser, "pRole" => $strContextAcceptedRoleJson]);
         if (Response::isResponseError($arrResp)) {
-            throw new \RuntimeException('Database error while authenticating user');
+            throw new RuntimeException('Database error while authenticating user');
         }
         
         if(Response::isResponseEmpty($arrResp)){

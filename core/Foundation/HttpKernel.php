@@ -33,11 +33,6 @@ class HttpKernel  {
     public function handler(): void {
         $contextRouter = $this->routerFactory->create();
         $match = $contextRouter->matchUri($this->requestAuthContext->request()); 
-        /*if($match[ContextRouteInfo::FIELD_MCAO] === null || 
-            $match[ContextRouteInfo::FIELD_ROUTE_INFO] === null){
-            //redirect ra file báo lỗi 404
-            throw new HttpException(404, 'ContextRouter chạy định tuyến (matchUri) trả về kết quả null');
-        }*/
         $this->updateRequestAuthContext($match);
         $arrRouteInfo =    $match[ContextRouteInfo::FIELD_ROUTE_INFO];
         $strFQCN    = $arrRouteInfo[RouteInfo::FIELD_FQCN];
@@ -59,6 +54,8 @@ class HttpKernel  {
             $arrContextRouteInfo[ContextRouteInfo::FIELD_ROUTE_INFO];
         //lọc ra dùng các fields cần thiết để truyền sang cho requestAuthContext
         $arrRouteInfo = [
+            RouteInfo::FIELD_ROLES =>
+                $arrFullRouteInfo[RouteInfo::FIELD_ROLES],
             RouteInfo::FIELD_ROUTE_TYPE =>
                 $arrFullRouteInfo[RouteInfo::FIELD_ROUTE_TYPE]
         ];
@@ -66,7 +63,7 @@ class HttpKernel  {
         $this->requestAuthContext->setRouteMatchResult(
             $arrContextRouteInfo[ContextRouteInfo::FIELD_MCAO],
             $arrRouteInfo,
-            $arrContextRouteInfo[ContextRouteInfo::FIELD_AUTH_POLICY],
+            $arrContextRouteInfo[ContextRouteInfo::FIELD_CONTEXT_ACCEPTED_ROLES],    
             $arrContextRouteInfo[ContextRouteInfo::FIELD_PROHIBITED_MODULE],
             $arrContextRouteInfo[ContextRouteInfo::FIELD_PROHIBITED_ROLE]
         );

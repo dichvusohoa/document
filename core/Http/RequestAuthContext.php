@@ -3,7 +3,6 @@
 namespace Core\Http;
 
 use Core\Auth\AuthInfo;
-use Core\Routing\RouteInfo;
 use InvalidArgumentException;
 
 class RequestAuthContext
@@ -17,13 +16,9 @@ class RequestAuthContext
      * sau khi ContextRouter hoàn thành việc match request.
      */
     protected ?array $arrMCAO = null;
-
     protected ?array $arrRouteInfo = null;
-
-    protected ?array $arrAuthPolicy = null;
-
+    protected ?array $arrContextAcceptedRole = null;//
     protected ?bool $isProhibitedModule = null;
-
     protected ?bool $isProhibitedRole = null;
 
     /*---------------------------------------------------------------------------------------------------------------*/
@@ -43,74 +38,61 @@ class RequestAuthContext
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
-
     public function request(): Request
     {
         return $this->request;
     }
-
     /*---------------------------------------------------------------------------------------------------------------*/
-
     public function authInfo(): array
     {
         return $this->arrAuthInfo;
     }
-
     /*---------------------------------------------------------------------------------------------------------------*/
-
     public function mcao(): ?array
     {
         return $this->arrMCAO;
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
-
     public function routeInfo(): ?array
     {
         return $this->arrRouteInfo;
     }
-
     /*---------------------------------------------------------------------------------------------------------------*/
-
-    public function authPolicy(): ?array
-    {
-        return $this->arrAuthPolicy;
-    }
-
+    /*chú ý kêt quả trả về có định dạng [strRoleCode => strDisplayName, ....]*/
+    public function userRoles(): array{
+        return $this->arrAuthInfo['data']['roles'];
+    }    
     /*---------------------------------------------------------------------------------------------------------------*/
-
+    public function contextAcceptedRoles(): ?array{
+        return $this->arrContextAcceptedRole;
+    } 
+    /*---------------------------------------------------------------------------------------------------------------*/
     public function prohibitedModule(): ?bool
     {
         return $this->isProhibitedModule;
     }
-
     /*---------------------------------------------------------------------------------------------------------------*/
-
     public function prohibitedRole(): ?bool
     {
         return $this->isProhibitedRole;
     }
-
     /*---------------------------------------------------------------------------------------------------------------*/
-    /*$arrAuthPolicy === null khi $arrRouteInfo['route_type'] === 'business'
-     * $arrAuthPolicy !== null khi $arrRouteInfo['route_type'] === 'authentication'
-     */
     public function setRouteMatchResult(
         array $arrMCAO,
         array $arrRouteInfo,
-        ?array $arrAuthPolicy,
+        ?array $arrContextAcceptedRole,    
         bool $isProhibitedModule,
         bool $isProhibitedRole
     ): void {
         $this->arrMCAO = $arrMCAO;
         $this->arrRouteInfo = $arrRouteInfo;
-        $this->arrAuthPolicy = $arrAuthPolicy;
+        $this->arrContextAcceptedRole = $arrContextAcceptedRole;
         $this->isProhibitedModule = $isProhibitedModule;
         $this->isProhibitedRole = $isProhibitedRole;
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
-
     public function hasRouteMatchResult(): bool
     {
         return $this->arrRouteInfo !== null;

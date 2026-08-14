@@ -6,16 +6,22 @@ use Core\Controller\BaseHtmlPageController;
 use Core\View\HtmlSchema\LoginPageSchema;
 use Core\Auth\AuthService;
 use Core\Controller\Login\LoginAttemptService;
+use Core\Routing\RoleRegistry;
+
 class LoginPageController extends BaseHtmlPageController{
     protected LoginController $apiController;
     protected AuthService $authService;
     protected LoginAttemptService $loginAttemptService;
+    protected RoleRegistry $roleRegistry;
+    
     public function __construct(LoginPageSchema $schema, 
             LoginController $apiController,
-            LoginAttemptService $loginAttemptService){
+            LoginAttemptService $loginAttemptService,
+            RoleRegistry $roleRegistry){
         parent::__construct($schema);
         $this->apiController = $apiController;
         $this->loginAttemptService = $loginAttemptService;
+        $this->roleRegistry = $roleRegistry;
     }
     
     protected function buildParams(string $strFunctName): array{
@@ -49,19 +55,23 @@ class LoginPageController extends BaseHtmlPageController{
     } 
     protected function uiContextAtFragment(string $strFragmentName): array {
         if($strFragmentName === 'login'){
-            //$isAdminLogin = LoginHelper::isAdminLoginRequest($this->requestAuthContext);
-            $isAdminLogin  = false;//tạm hard code
-            $needTurnstile = $this->loginAttemptService->needTurnstile($isAdminLogin);
+            $needTurnstile = $this->loginAttemptService->needTurnstile();
             return ['needTurnstile' => $needTurnstile];
         }    
     }
     public function login() {
         $arrResp = $this->apiController->doAction('login');
         if($arrResp['status'] === Response::SERVER_AUTHENTICATED_STATUS){
-            $strRedirectUrl = Session::get('intended_url') ?? '/';
+            //Lý do vì $requestAuthContext->userRoles() là array có format:[roleCode => displayName,...]
+            $arrRoleCode = array_keys($this->requestAuthContext->userRoles());
+            $strUrl = Session::get('intended_url') ?? 
+            $this->roleRegistry->findDefaultBusinessUrlByRoles($arrRoleCode);
+            if($strUrl === null){
+                throw new HttpException(403, 'User hiện tại không có quyền truy cập chức năng nghiệp vụ nào. Xem lại file config.role.php');
+            }
             Session::remove('intended_url');
-            $arrResp['data'] = $strRedirectUrl;
-            $arrResp['extra'] =  'redirect';
+            $arrResp['data'] = $strUrl;
+            $arrResp['extra'] =  'redirect';//báo hiệu cho client biết cần redirect
         }
         Response::sendJson($arrResp);
     }

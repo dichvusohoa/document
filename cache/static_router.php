@@ -19,49 +19,49 @@ return array (
     'guest' => 
     array (
       'display_name' => 'khách',
-      'default_url' => '/document',
+      'default_business_url' => '/document',
       'weight' => 0,
     ),
     'cm_admin' => 
     array (
       'display_name' => 'admin tài liệu sưu tập',
-      'default_url' => '/document',
+      'default_business_url' => '/document',
       'weight' => 2,
     ),
     'it_admin' => 
     array (
       'display_name' => 'admin tài liệu tin học',
-      'default_url' => '/document',
+      'default_business_url' => '/document',
       'weight' => 2,
     ),
     'pbt_fwk_user' => 
     array (
       'display_name' => 'người dùng PBT framework',
-      'default_url' => '/document',
+      'default_business_url' => '/document',
       'weight' => 1,
     ),
     'pbt_fwk_admin' => 
     array (
       'display_name' => 'admin PBT framework',
-      'default_url' => '/document',
+      'default_business_url' => '/document',
       'weight' => 2,
     ),
     'bud_prj_user' => 
     array (
       'display_name' => 'người dùng BUD project',
-      'default_url' => '/document',
+      'default_business_url' => '/document',
       'weight' => 1,
     ),
     'bud_prj_admin' => 
     array (
       'display_name' => 'admin BUD project',
-      'default_url' => '/document',
+      'default_business_url' => '/document',
       'weight' => 2,
     ),
     'admin' => 
     array (
       'display_name' => 'quản trị hệ thống',
-      'default_url' => '/document',
+      'default_business_url' => '/document',
       'weight' => 3,
     ),
   ),
@@ -69,6 +69,12 @@ return array (
   array (
     'login' => 
     array (
+      'input_actions' => 
+      array (
+        0 => 'index',
+        1 => 'login',
+      ),
+      'default_input_action' => 'index',
       'max_fail_count' => 5,
       'turnstile' => 3,
       'remember_cookie' => true,
@@ -87,9 +93,19 @@ return array (
         'max_role_weight' => 2,
         'accepted_role_count' => 6,
       ),
+      'default_input_roles' => 
+      array (
+        0 => 'guest',
+      ),
     ),
     'cacquak' => 
     array (
+      'input_actions' => 
+      array (
+        0 => 'index',
+        1 => 'login',
+      ),
+      'default_input_action' => 'index',
       'max_fail_count' => 3,
       'turnstile' => 'always',
       'remember_cookie' => false,
@@ -102,6 +118,16 @@ return array (
       array (
         'max_role_weight' => 3,
         'accepted_role_count' => 1,
+      ),
+      'default_input_roles' => 
+      array (
+        0 => 'guest',
+        1 => 'cm_admin',
+        2 => 'it_admin',
+        3 => 'pbt_fwk_user',
+        4 => 'pbt_fwk_admin',
+        5 => 'bud_prj_user',
+        6 => 'bud_prj_admin',
       ),
     ),
   ),
@@ -195,7 +221,6 @@ return array (
         'function' => 'renderPage',
         'method' => 'GET',
         'route_type' => 'business',
-        'authentication_path' => '/login',
       ),
       'update' => 
       array (
@@ -211,7 +236,6 @@ return array (
         'function' => 'update',
         'method' => 'POST',
         'route_type' => 'business',
-        'authentication_path' => '/login',
       ),
     ),
     'document' => 
@@ -233,7 +257,6 @@ return array (
         'function' => 'index',
         'method' => 'GET',
         'route_type' => 'business',
-        'authentication_path' => '/login',
       ),
       'update' => 
       array (
@@ -249,7 +272,6 @@ return array (
         'function' => 'update',
         'method' => 'POST',
         'route_type' => 'business',
-        'authentication_path' => '/login',
       ),
     ),
     'login' => 
@@ -264,7 +286,6 @@ return array (
         'function' => 'renderPage',
         'method' => 'GET',
         'route_type' => 'authentication',
-        'authentication_path' => NULL,
       ),
       'login' => 
       array (
@@ -276,7 +297,6 @@ return array (
         'function' => 'login',
         'method' => 'POST',
         'route_type' => 'authentication',
-        'authentication_path' => NULL,
       ),
     ),
     'cacquak' => 
@@ -297,7 +317,6 @@ return array (
         'function' => 'renderPage',
         'method' => 'GET',
         'route_type' => 'authentication',
-        'authentication_path' => NULL,
       ),
       'login' => 
       array (
@@ -315,7 +334,6 @@ return array (
         'function' => 'login',
         'method' => 'POST',
         'route_type' => 'authentication',
-        'authentication_path' => NULL,
       ),
     ),
     'client-info' => 
@@ -337,7 +355,6 @@ return array (
         'function' => 'index',
         'method' => 'JSON',
         'route_type' => 'business',
-        'authentication_path' => '/login',
       ),
     ),
   ),

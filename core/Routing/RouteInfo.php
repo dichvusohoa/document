@@ -14,8 +14,7 @@ use Core\Utility\ValidUtility;
  *     'function'               => string,
  *     'method'                 => string,
  *     'route_type'             => 'business'|'authentication',
- *     'authentication_path'    => string|null,
- *     'default_business_path'  => string|null,
+ *     'authentication_path'    => string|null
  * ]
  */
 class RouteInfo
@@ -25,8 +24,7 @@ class RouteInfo
     public const FIELD_FUNCTION              = 'function';
     public const FIELD_METHOD                = 'method';
     public const FIELD_ROUTE_TYPE            = 'route_type';
-    public const FIELD_AUTHENTICATION_PATH   = 'authentication_path';
-
+ 
     public const ROUTE_TYPE_BUSINESS       = 'business';
     public const ROUTE_TYPE_AUTHENTICATION = 'authentication';
 
@@ -35,8 +33,7 @@ class RouteInfo
         self::FIELD_FQCN,
         self::FIELD_FUNCTION,
         self::FIELD_METHOD,
-        self::FIELD_ROUTE_TYPE,
-        self::FIELD_AUTHENTICATION_PATH
+        self::FIELD_ROUTE_TYPE
     ];
 
     protected const ROUTE_TYPE_LIST = [
@@ -57,8 +54,7 @@ class RouteInfo
             self::FIELD_FQCN                  => null,
             self::FIELD_FUNCTION              => null,
             self::FIELD_METHOD                => null,
-            self::FIELD_ROUTE_TYPE            => null,
-            self::FIELD_AUTHENTICATION_PATH   => null
+            self::FIELD_ROUTE_TYPE            => null
         ];
     }
 

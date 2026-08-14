@@ -20,7 +20,7 @@
     use Core\Routing\ContextRouter;
     use Core\Routing\RouterFactory;
     use Core\Middleware\MiddlewareFactory;
-   
+    use Core\Routing\AuthRegistry;
     
     use Core\Cache\StaticRouterCache;
     use Core\Foundation\ErrorHandler;
@@ -76,7 +76,16 @@
     $container->set(MiddlewareFactory::class, function($c){
         return new (MiddlewareFactory::class)($c); 
     });
-    
+    $container->set(AuthRegistry::class,function ($c) {
+        return $c->get(RouterFactory::class)
+            ->getStaticRouter()
+            ->createAuthRegistry();
+    });
+    $container->set(RoleRegistry::class,function ($c) {
+        return $c->get(RouterFactory::class)
+            ->getStaticRouter()
+            ->createRoleRegistry();
+    });
     /*$container->set(ControllerFactory::class, function($c){
         return new (ControllerFactory::class)(
             $c    

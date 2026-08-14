@@ -6,7 +6,7 @@ use UnexpectedValueException;
 final class RoleRegistry
 {
     public const FIELD_DISPLAY_NAME = 'display_name';
-    public const FIELD_DEFAULT_URL  = 'default_url';
+    public const FIELD_DEFAULT_BUSINESS_URL  = 'default_business_url';
     public const FIELD_WEIGHT       = 'weight';
 
     protected array $arrR;
@@ -57,7 +57,7 @@ final class RoleRegistry
                 $arrRoleInfo,
                 [
                     self::FIELD_DISPLAY_NAME,
-                    self::FIELD_DEFAULT_URL,
+                    self::FIELD_DEFAULT_BUSINESS_URL,
                     self::FIELD_WEIGHT
                 ],
                 "Role '{$strRole}'"
@@ -71,7 +71,7 @@ final class RoleRegistry
 
             ValidUtility::validateRequiredNonEmptyStringField(
                 $arrRoleInfo,
-                self::FIELD_DEFAULT_URL,
+                self::FIELD_DEFAULT_BUSINESS_URL,
                 "Role '{$strRole}'"
             );
 
@@ -83,11 +83,11 @@ final class RoleRegistry
 
             if (
                 !ValidUtility::isInternalAbsolutePath(
-                    $arrRoleInfo[self::FIELD_DEFAULT_URL]
+                    $arrRoleInfo[self::FIELD_DEFAULT_BUSINESS_URL]
                 )
             ) {
                 throw new UnexpectedValueException(
-                    "Role '{$strRole}': field '".self::FIELD_DEFAULT_URL."' "
+                    "Role '{$strRole}': field '".self::FIELD_DEFAULT_BUSINESS_URL."' "
                     . "phải là đường dẫn tuyệt đối nội bộ hợp lệ."
                 );
             }
@@ -118,5 +118,28 @@ final class RoleRegistry
         return $arrTmp;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    
+    public function findDefaultBusinessUrlByRoles(array $arrRole): ?string
+    {
+        $iMaxWeight = -1;
+        $strNeedleRole = null;
+
+        foreach ($arrRole as $strRole) {
+            if (!isset($this->arrR[$strRole])) {
+                throw new UnexpectedValueException(
+                    "Role '{$strRole}' không được định nghĩa trong config.role.php."
+                );
+            }
+
+            if ($this->arrR[$strRole][self::FIELD_WEIGHT] > $iMaxWeight) {
+                $iMaxWeight = $this->arrR[$strRole][self::FIELD_WEIGHT];
+                $strNeedleRole = $strRole;
+            }
+        }
+
+        if ($strNeedleRole !== null) {
+            return $this->arrR[$strNeedleRole][self::FIELD_DEFAULT_BUSINESS_URL];
+        }
+
+        return null;
+    }
 }
