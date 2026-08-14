@@ -14,7 +14,8 @@ class LoginPageController extends BaseHtmlPageController{
     protected LoginAttemptService $loginAttemptService;
     protected RoleRegistry $roleRegistry;
     
-    public function __construct(LoginPageSchema $schema, 
+    public function __construct(
+            LoginPageSchema $schema, 
             LoginController $apiController,
             LoginAttemptService $loginAttemptService,
             RoleRegistry $roleRegistry){
@@ -24,7 +25,7 @@ class LoginPageController extends BaseHtmlPageController{
         $this->roleRegistry = $roleRegistry;
     }
     
-    protected function buildParams(string $strFunctName): array{
+    protected function argumentsForFunction(string $strFunctName): array{
         return [];
     }
     protected function dataAtFragment(string $strFragmentName):array{
@@ -60,7 +61,7 @@ class LoginPageController extends BaseHtmlPageController{
         }    
     }
     public function login() {
-        $arrResp = $this->apiController->doAction('login');
+        $arrResp = $this->apiController->doFunction('login');
         if($arrResp['status'] === Response::SERVER_AUTHENTICATED_STATUS){
             //Lý do vì $requestAuthContext->userRoles() là array có format:[roleCode => displayName,...]
             $arrRoleCode = array_keys($this->requestAuthContext->userRoles());

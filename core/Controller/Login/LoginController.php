@@ -12,7 +12,7 @@ class LoginController extends BaseController{
         $this->authService = $authService;
     }
    
-    protected function buildParams(string $strFunctName): array{
+    protected function argumentsForFunction(string $strFunctName): array{
         if($strFunctName === 'login'){
             $arrUser = $this->requestAuthContext->request()->post('user');
             //$token là public key

@@ -18,17 +18,17 @@ abstract class BaseController{
      * cách xác định parameters cho các action của nó.
      * resolveParam căn cứ vảo $this->requestAuthContext, $strFunctName mà tính ra giá trị các parameter
      */
-    abstract protected function buildParams(string $strFunctName): array;
+    abstract protected function argumentsForFunction(string $strFunctName): array;
     /*---------------------------------------------------------------------------------------------------------------*/
     /**
      * Hàm tiện ích chung: 
      * Tự động gọi action tương ứng với tham số được resolve.
      */
-    public function doAction(string $strFunctionName){
+    public function doFunction(string $strFunctionName){
         if (!method_exists($this, $strFunctionName)) {
-            throw new \BadMethodCallException("Action '$strFunctionName' không tồn tại trong " . static::class);
+            throw new \BadMethodCallException("Function '$strFunctionName' không tồn tại trong " . static::class);
         }
-        $params = $this->buildParams($strFunctionName);
+        $params = $this->argumentsForFunction($strFunctionName);
         return call_user_func_array([$this, $strFunctionName], $params);
     }
 }

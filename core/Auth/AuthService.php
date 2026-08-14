@@ -17,17 +17,19 @@ class AuthService{
     protected DbService $dbService;
     protected AuthTokenService    $tokenService;
     protected LoginAttemptService $loginAttemptService;
+    protected AuthRegistry $authRegistry;
     function __construct(
-            RequestAuthContext $requestAuthContext,
-            AuthRegistry $authRegistry,
-            DbService $dbService, 
-            AuthTokenService $tokenService, 
-            LoginAttemptService $loginAttemptService){
+        RequestAuthContext $requestAuthContext,
+        DbService $dbService, 
+        AuthTokenService $tokenService, 
+        LoginAttemptService $loginAttemptService,
+        AuthRegistry $authRegistry
+    ){
         $this->requestAuthContext = $requestAuthContext;
-        $this->authRegistry = $authRegistry;
         $this->dbService    = $dbService;
         $this->tokenService = $tokenService;
         $this->loginAttemptService = $loginAttemptService;
+        $this->authRegistry = $authRegistry;
     }
     protected function rememberCookiePolicy(){
         $arrMCAO = $this->requestAuthContext->mcao();
@@ -51,7 +53,6 @@ class AuthService{
                     ];
             }
         }
-
        
         $arrResp = $this->verifyCredentials($strUser, $strPassword);
         if($arrResp['status'] !==Response::SERVER_AUTHENTICATED_STATUS){
@@ -59,10 +60,7 @@ class AuthService{
         } 
         $this->loginAttemptService->resetFailCount();
         session_regenerate_id(true);
-        /*
-        $authData = $arrResp['data'];
-        unset($authData['password']);//lọc bỏ password không lưu vào auth
-        Session::set('auth', $authData);*/
+       
         if($this->rememberCookiePolicy()){//ghi vào cookie
             $authToken = new AuthToken();
             $strUserId = $arrResp['data']['id'];
@@ -71,12 +69,10 @@ class AuthService{
                 throw new RuntimeException('Could not store remember token');
             }
             Cookie::set(['auth', 'token'], $authToken->cookieToken());
-            
         }
         $authData = $arrResp['data'];
         unset($authData['password']);//lọc bỏ password không lưu vào auth
         Session::set('auth', $authData);
-        //return ['status'=> Response::SERVER_AUTHENTICATED_STATUS, 'data' => 'login success' , 'extra' => null];
         return ['status'=> Response::SERVER_AUTHENTICATED_STATUS, 'data' => null , 'extra' => null];
     }
     

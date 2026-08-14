@@ -8,7 +8,7 @@ class CategoryController extends BaseController{
         parent::__construct($requestAuthContext);
     }
    
-    protected function buildParams(string $strFunctName): array{
+    protected function argumentsForFunction(string $strFunctName): array{
         if($strFunctName === 'login'){
             $isAdminLogin = LoginHelper::isAdminLoginRequest($this->requestAuthContext);
             $arrUser = $this->requestAuthContext->request()->post('user');

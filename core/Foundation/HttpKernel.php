@@ -39,7 +39,7 @@ class HttpKernel  {
         $strFunction = $arrRouteInfo[RouteInfo::FIELD_FUNCTION];
         $controller = $this->controllerResolver->create($strFQCN, $this->requestAuthContext);
         $handler = function() use ($controller, $strFunction){
-            $controller->doAction($strFunction);
+            $controller->doFunction($strFunction);
         };
         $arrMiddleware = $this->middlewareFactory->createList($match[ContextRouteInfo::FIELD_MIDDLEWARES]);
         $middlewareChain = new MiddlewareChain($arrMiddleware,$handler);
