@@ -30,7 +30,8 @@ final class RoleRegistry
         return $obj;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function loadConfig(): array{
+    protected function loadConfig(): array
+    {
         $strFileName = 'config.role.php';
         $arrTmp = require CONFIG_PATH . '/' . $strFileName;
 
@@ -41,17 +42,19 @@ final class RoleRegistry
         }
 
         foreach ($arrTmp as $strRole => $arrRoleInfo) {
-            if (!is_string($strRole) || trim($strRole) === '') {
+            if (!ValidUtility::isNonEmptyString($strRole)) {
                 throw new UnexpectedValueException(
-                    "Tên role trong {$strFileName} phải là chuỗi không rỗng."
+                    "Tên role trong {$strFileName} phải là chuỗi không rỗng "
+                    . "và không có khoảng trắng ở đầu hoặc cuối."
                 );
             }
-
             if (!is_array($arrRoleInfo)) {
                 throw new UnexpectedValueException(
                     "Role '{$strRole}' trong {$strFileName} phải là một mảng."
                 );
             }
+
+            $strContext = "Role '{$strRole}'";
 
             ValidUtility::validateNoUnexpectedFields(
                 $arrRoleInfo,
@@ -60,25 +63,39 @@ final class RoleRegistry
                     self::FIELD_DEFAULT_BUSINESS_URL,
                     self::FIELD_WEIGHT
                 ],
-                "Role '{$strRole}'"
+                $strContext
             );
 
-            ValidUtility::validateRequiredNonEmptyStringField(
+            ValidUtility::validateRequiredField(
                 $arrRoleInfo,
                 self::FIELD_DISPLAY_NAME,
-                "Role '{$strRole}'"
+                $strContext,
+                [
+                    'type'      => 'string',
+                    'non_empty' => true,
+                    'trimmed'   => true
+                ]
             );
 
-            ValidUtility::validateRequiredNonEmptyStringField(
+            ValidUtility::validateRequiredField(
                 $arrRoleInfo,
                 self::FIELD_DEFAULT_BUSINESS_URL,
-                "Role '{$strRole}'"
+                $strContext,
+                [
+                    'type'      => 'string',
+                    'non_empty' => true,
+                    'trimmed'   => true
+                ]
             );
 
             ValidUtility::validateRequiredField(
                 $arrRoleInfo,
                 self::FIELD_WEIGHT,
-                "Role '{$strRole}'"
+                $strContext,
+                [
+                    'type' => 'int',
+                    'min'  => 0
+                ]
             );
 
             if (
@@ -87,18 +104,9 @@ final class RoleRegistry
                 )
             ) {
                 throw new UnexpectedValueException(
-                    "Role '{$strRole}': field '".self::FIELD_DEFAULT_BUSINESS_URL."' "
-                    . "phải là đường dẫn tuyệt đối nội bộ hợp lệ."
-                );
-            }
-
-            if (
-                !is_int($arrRoleInfo[self::FIELD_WEIGHT])
-                || $arrRoleInfo[self::FIELD_WEIGHT] < 0
-            ) {
-                throw new UnexpectedValueException(
-                    "Role '{$strRole}': field '".self::FIELD_WEIGHT."' "
-                    . "phải là số nguyên không âm."
+                    "{$strContext}: field '"
+                    . self::FIELD_DEFAULT_BUSINESS_URL
+                    . "' phải là đường dẫn tuyệt đối nội bộ hợp lệ."
                 );
             }
         }
@@ -110,11 +118,12 @@ final class RoleRegistry
             );
         }
 
-        if ($arrTmp['guest']['weight'] !== 0) {
+        if ($arrTmp['guest'][self::FIELD_WEIGHT] !== 0) {
             throw new UnexpectedValueException(
                 "Role 'guest' phải có weight = 0."
             );
         }
+
         return $arrTmp;
     }
     /*---------------------------------------------------------------------------------------------------------------*/

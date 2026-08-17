@@ -1,24 +1,19 @@
 <?php
 
 namespace Core\View\HtmlSchema;
-
 use UnexpectedValueException;
 use Core\Utility\ValidUtility;
-
-class HtmlFragmentSchemaData
-{
+class HtmlFragmentSchemaData{
     /*---------------------------------------------------------------------------------------------------------------*/
-    /* Các loại fragment type. Sau này có thể bổ sung thêm. */
-    public const FRAGMENT_TYPE_CSS_LINK = 'css_link';
-    public const FRAGMENT_TYPE_SCRIPT   = 'script';
-    public const FRAGMENT_TYPE_VIEW     = 'view';
-    public const FRAGMENT_TYPE_ELEMENT  = 'element';
-    public const FRAGMENT_TYPE_TEXT     = 'text';
-
+    /*các loại fragment type. Sau này có thể bổ sung sau*/
+    public const FRAGMENT_TYPE_CSS_LINK  = 'css_link';
+    public const FRAGMENT_TYPE_SCRIPT    = 'script';
+    public const FRAGMENT_TYPE_VIEW      = 'view';
+    public const FRAGMENT_TYPE_ELEMENT   = 'element';
+    public const FRAGMENT_TYPE_TEXT      = 'text';
     /*---------------------------------------------------------------------------------------------------------------*/
     public const DATA_SOURCE_CONTROLLER = 'controller';
     public const DATA_SOURCE_OTHER      = 'other';
-
     /*---------------------------------------------------------------------------------------------------------------*/
     public const RENDER_MODE_SERVER = 'server';
     public const RENDER_MODE_CLIENT = 'client';
@@ -27,13 +22,11 @@ class HtmlFragmentSchemaData
     public const FAILURE_FAIL_PAGE = 'fail_page';
     public const FAILURE_FALLBACK  = 'fallback';
     public const FAILURE_OMIT      = 'omit';
-
     /*---------------------------------------------------------------------------------------------------------------*/
     public const UI_CONTEXT_NONE    = 'none';
     public const UI_CONTEXT_DEFAULT = 'default';
     public const UI_CONTEXT_CUSTOM  = 'custom';
-
-    /*---------------------------------------------------------------------------------------------------------------*/
+     /*---------------------------------------------------------------------------------------------------------------*/
     protected const FRAGMENT_TYPES = [
         self::FRAGMENT_TYPE_CSS_LINK,
         self::FRAGMENT_TYPE_SCRIPT,
@@ -41,16 +34,12 @@ class HtmlFragmentSchemaData
         self::FRAGMENT_TYPE_ELEMENT,
         self::FRAGMENT_TYPE_TEXT
     ];
-
-    /*
-     * Các dạng fragment mà phần khung vỏ luôn được render tại server,
-     * kể cả khi render_mode = client.
-     */
+    //các dạng fragment mà phần khung vỏ luôn được render tại server
+    //kể cả khi render_mode = client
     protected const SERVER_RENDERED_SHELL = [
         self::FRAGMENT_TYPE_VIEW,
         self::FRAGMENT_TYPE_ELEMENT
     ];
-
     protected const DATA_SOURCES = [
         self::DATA_SOURCE_CONTROLLER,
         self::DATA_SOURCE_OTHER
@@ -74,7 +63,6 @@ class HtmlFragmentSchemaData
         'render_detail',
         'failure'
     ];
-
     protected const VIEW_DETAIL_FIELDS = [
         'file',
         'ui_context'
@@ -85,17 +73,14 @@ class HtmlFragmentSchemaData
         'attributes',
         'escape_html'
     ];
-
     protected const TEXT_DETAIL_FIELDS = [
         'escape_html'
     ];
-
     protected const UI_CONTEXTS = [
         self::UI_CONTEXT_NONE,
         self::UI_CONTEXT_DEFAULT,
         self::UI_CONTEXT_CUSTOM
     ];
-
     protected const VOID_HTML_ELEMENTS = [
         'area',
         'base',
@@ -115,7 +100,7 @@ class HtmlFragmentSchemaData
     /*---------------------------------------------------------------------------------------------------------------*/
     public static function validate(
         mixed $arrData,
-        string $strFragmentName
+        string $strFragmentName 
     ): void {
         $strContext = "HTML fragment schema '{$strFragmentName}'";
 
@@ -125,19 +110,13 @@ class HtmlFragmentSchemaData
             );
         }
 
-        ValidUtility::validateNoUnexpectedFields(
-            $arrData,
-            self::ALLOWED_FIELDS,
-            $strContext
-        );
-
+        ValidUtility::validateNoUnexpectedFields($arrData, self::ALLOWED_FIELDS, $strContext);
         self::validateFragmentType($arrData, $strContext);
         self::validateDataSource($arrData, $strContext);
         self::validateRenderMode($arrData, $strContext);
         self::validateRenderDetail($arrData, $strContext);
         self::validateFailure($arrData, $strContext);
     }
-
     /*---------------------------------------------------------------------------------------------------------------*/
     public static function hasServerRenderedShell(
         string $strFragmentType
@@ -148,20 +127,16 @@ class HtmlFragmentSchemaData
             true
         );
     }
-
     /*---------------------------------------------------------------------------------------------------------------*/
     protected static function validateFragmentType(
         array $arrData,
         string $strContext
     ): void {
-        ValidUtility::validateRequiredField(
+        ValidUtility::validateRequiredEnumField(
             $arrData,
             'fragment_type',
-            $strContext,
-            [
-                'type'   => 'string',
-                'values' => self::FRAGMENT_TYPES
-            ]
+            self::FRAGMENT_TYPES,
+            $strContext
         );
     }
 
@@ -170,14 +145,11 @@ class HtmlFragmentSchemaData
         array $arrData,
         string $strContext
     ): void {
-        ValidUtility::validateRequiredField(
+        ValidUtility::validateRequiredEnumField(
             $arrData,
             'data_source',
-            $strContext,
-            [
-                'type'   => 'string',
-                'values' => self::DATA_SOURCES
-            ]
+            self::DATA_SOURCES,
+            $strContext
         );
     }
 
@@ -186,14 +158,11 @@ class HtmlFragmentSchemaData
         array $arrData,
         string $strContext
     ): void {
-        ValidUtility::validateRequiredField(
+        ValidUtility::validateRequiredEnumField(
             $arrData,
             'render_mode',
-            $strContext,
-            [
-                'type'   => 'string',
-                'values' => self::RENDER_MODES
-            ]
+            self::RENDER_MODES,
+            $strContext
         );
     }
 
@@ -208,12 +177,12 @@ class HtmlFragmentSchemaData
         $strFragmentType = $arrData['fragment_type'];
 
         if ($strFragmentType === self::FRAGMENT_TYPE_VIEW) {
-            ValidUtility::validateRequiredField(
-                $arrData,
-                'render_detail',
-                $strContext,
-                ['type' => 'array']
-            );
+            if (!array_key_exists('render_detail', $arrData)) {
+                throw new UnexpectedValueException(
+                    "{$strContext} thiếu field 'render_detail' "
+                    . "khi 'fragment_type' là 'view'."
+                );
+            }
 
             self::validateViewRenderDetail(
                 $arrData['render_detail'],
@@ -224,12 +193,12 @@ class HtmlFragmentSchemaData
         }
 
         if ($strFragmentType === self::FRAGMENT_TYPE_ELEMENT) {
-            ValidUtility::validateRequiredField(
-                $arrData,
-                'render_detail',
-                $strContext,
-                ['type' => 'array']
-            );
+            if (!array_key_exists('render_detail', $arrData)) {
+                throw new UnexpectedValueException(
+                    "{$strContext} thiếu field 'render_detail' "
+                    . "khi 'fragment_type' là 'element'."
+                );
+            }
 
             self::validateElementRenderDetail(
                 $arrData['render_detail'],
@@ -238,15 +207,14 @@ class HtmlFragmentSchemaData
 
             return;
         }
-
         if ($strFragmentType === self::FRAGMENT_TYPE_TEXT) {
             /*
              * Với text:
              *
-             * - Không khai báo render_detail → hợp lệ, escape_html mặc định true.
-             * - render_detail = null         → hợp lệ, escape_html mặc định true.
-             * - render_detail = []           → hợp lệ, escape_html mặc định true.
-             * - escape_html = true|false     → hợp lệ.
+             * - Không khai báo render_detail      → hợp lệ, escape_html mặc định true.
+             * - render_detail = null              → hợp lệ, escape_html mặc định true.
+             * - render_detail = []                → hợp lệ, escape_html mặc định true.
+             * - escape_html = true|false          → hợp lệ.
              */
             if (
                 !array_key_exists('render_detail', $arrData)
@@ -254,13 +222,6 @@ class HtmlFragmentSchemaData
             ) {
                 return;
             }
-
-            ValidUtility::validateRequiredField(
-                $arrData,
-                'render_detail',
-                $strContext,
-                ['type' => 'array']
-            );
 
             self::validateTextRenderDetail(
                 $arrData['render_detail'],
@@ -274,45 +235,40 @@ class HtmlFragmentSchemaData
          * css_link, script không có render metadata riêng.
          * Nội dung của chúng không được đặt trong schema.
          */
-        if (
-            array_key_exists('render_detail', $arrData)
-            && $arrData['render_detail'] !== null
-        ) {
+        if (array_key_exists('render_detail', $arrData) && 
+                $arrData['render_detail'] !== null) {
             throw new UnexpectedValueException(
-                "{$strContext} khi 'fragment_type' là '{$strFragmentType}' "
-                . "thì field 'render_detail' hoặc không khai báo, "
-                . "hoặc phải có giá trị null."
+                "{$strContext} khi 'fragment_type' là '{$strFragmentType}' thì field 'render_detail' hoặc là không khai báo, hoặc khai báo giá trị null"
             );
         }
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
-    /*
-     * Kiểm tra field render_detail đối ứng với fragment_type = view.
-     */
+    //kiểm tra field 'render_detail' đối ứng với 'fragment_type' = view
     protected static function validateViewRenderDetail(
-        array $arrRenderDetail,
+        mixed $arrRenderDetail,
         string $strContext
     ): void {
+        if (!is_array($arrRenderDetail)) {
+            throw new UnexpectedValueException(
+                "{$strContext} field 'render_detail' phải là array "
+                . "khi 'fragment_type' là 'view'."
+            );
+        }
+
         ValidUtility::validateNoUnexpectedFields(
             $arrRenderDetail,
             self::VIEW_DETAIL_FIELDS,
             $strContext,
-            'render_detail'
+            'render_detail'    
         );
 
-        ValidUtility::validateRequiredField(
+        ValidUtility::validateRequiredNonEmptyStringField(
             $arrRenderDetail,
             'file',
             $strContext,
-            [
-                'type'      => 'string',
-                'non_empty' => true,
-                'trimmed'   => true
-            ],
             'render_detail'
         );
-
         self::validateUiContext(
             $arrRenderDetail,
             $strContext
@@ -321,88 +277,62 @@ class HtmlFragmentSchemaData
 
     /*---------------------------------------------------------------------------------------------------------------*/
     protected static function validateElementRenderDetail(
-        array $arrRenderDetail,
+        mixed $arrRenderDetail,
         string $strContext
     ): void {
+        if (!is_array($arrRenderDetail)) {
+            throw new UnexpectedValueException(
+                "{$strContext} field 'render_detail' phải là array "
+                . "khi 'fragment_type' là 'element'."
+            );
+        }
+
         ValidUtility::validateNoUnexpectedFields(
             $arrRenderDetail,
             self::ELEMENT_DETAIL_FIELDS,
             $strContext,
             'render_detail'
         );
-
-        /*
-         * Kiểu dữ liệu, non-empty và trimmed là validation generic.
-         */
-        ValidUtility::validateRequiredField(
-            $arrRenderDetail,
-            'tag',
-            $strContext,
-            [
-                'type'      => 'string',
-                'non_empty' => true,
-                'trimmed'   => true
-            ],
-            'render_detail'
-        );
-
-        /*
-         * Các rule còn lại là rule riêng của HTML element.
-         */
+        //tag là field phải có trong render_detail
+        if (!array_key_exists('tag', $arrRenderDetail)) {
+            throw new UnexpectedValueException(
+                "{$strContext} thiếu field 'render_detail.tag'."
+            );
+        }
         self::validateHtmlElementName(
             $arrRenderDetail['tag'],
             $strContext
         );
-
-        /*
-         * attributes là optional, chấp nhận:
-         *
-         * - không khai báo;
-         * - attributes = null;
-         * - attributes = array.
-         */
-        if (
-            array_key_exists('attributes', $arrRenderDetail)
-            && $arrRenderDetail['attributes'] !== null
-        ) {
-            ValidUtility::validateRequiredField(
-                $arrRenderDetail,
-                'attributes',
-                $strContext,
-                ['type' => 'array'],
-                'render_detail'
-            );
-
+        //attributes là tùy chọn, chấp nhận không có 'attributes' hoặc 'attributes'=>null
+        if (array_key_exists('attributes', $arrRenderDetail) && $arrRenderDetail['attributes']!==null) {
             self::validateAttributes(
                 $arrRenderDetail['attributes'],
                 $strContext
             );
         }
-
-        self::validateEscapeHtml(
-            $arrRenderDetail,
-            $strContext
-        );
+        self::validateEscapeHtml($arrRenderDetail,$strContext);
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
     protected static function validateTextRenderDetail(
-        array $arrRenderDetail,
+        mixed $arrRenderDetail,
         string $strContext
     ): void {
+        if (!is_array($arrRenderDetail)) {
+            throw new UnexpectedValueException(
+                "{$strContext} field 'render_detail' phải là array "
+                . "khi 'fragment_type' là 'text'."
+            );
+        }
+
         ValidUtility::validateNoUnexpectedFields(
             $arrRenderDetail,
             self::TEXT_DETAIL_FIELDS,
             $strContext,
             'render_detail'
         );
-
-        self::validateEscapeHtml(
-            $arrRenderDetail,
-            $strContext
-        );
+        self::validateEscapeHtml($arrRenderDetail,$strContext);
     }
-
     /*---------------------------------------------------------------------------------------------------------------*/
     protected static function validateEscapeHtml(
         array $arrRenderDetail,
@@ -415,15 +345,15 @@ class HtmlFragmentSchemaData
             return;
         }
 
-        ValidUtility::validateRequiredField(
-            $arrRenderDetail,
-            'escape_html',
-            $strContext,
-            ['type' => 'bool'],
-            'render_detail'
-        );
+        if (!is_bool($arrRenderDetail['escape_html'])) {
+            throw new UnexpectedValueException(
+                "{$strContext} field 'render_detail.escape_html' "
+                . "phải là bool; nhận được "
+                . get_debug_type($arrRenderDetail['escape_html'])
+                . "."
+            );
+        }
     }
-
     /*---------------------------------------------------------------------------------------------------------------*/
     protected static function validateUiContext(
         array $arrRenderDetail,
@@ -440,18 +370,31 @@ class HtmlFragmentSchemaData
             return;
         }
 
-        ValidUtility::validateRequiredField(
-            $arrRenderDetail,
-            'ui_context',
-            $strContext,
-            [
-                'type'   => 'string',
-                'values' => self::UI_CONTEXTS
-            ],
-            'render_detail'
-        );
-    }
+        $mixUiContext = $arrRenderDetail['ui_context'];
+        $strPath = 'render_detail.ui_context';
 
+        if (!is_string($mixUiContext)) {
+            throw new UnexpectedValueException(
+                "{$strContext} field '{$strPath}' phải là string hoặc null; "
+                . 'nhận được '
+                . get_debug_type($mixUiContext)
+                . "."
+            );
+        }
+
+        if (!in_array($mixUiContext, self::UI_CONTEXTS, true)) {
+            $strAllowedValues = implode(
+                "', '",
+                self::UI_CONTEXTS
+            );
+
+            throw new UnexpectedValueException(
+                "{$strContext} field '{$strPath}' có giá trị không hợp lệ "
+                . "'{$mixUiContext}'; các giá trị cho phép là "
+                . "'{$strAllowedValues}'."
+            );
+        }
+    }
     /*---------------------------------------------------------------------------------------------------------------*/
     protected static function validateFailure(
         array $arrData,
@@ -463,51 +406,50 @@ class HtmlFragmentSchemaData
         $strDataSource = $arrData['data_source'];
 
         if ($strDataSource === self::DATA_SOURCE_OTHER) {
-            /*
-             * Với data_source = other:
-             *
-             * - không khai báo failure → hợp lệ;
-             * - failure = null         → hợp lệ;
-             * - giá trị khác null      → không hợp lệ.
-             */
-            if (
-                array_key_exists('failure', $arrData)
-                && $arrData['failure'] !== null
-            ) {
+            if (array_key_exists('failure', $arrData)
+                && $arrData['failure'] !== null) {
                 throw new UnexpectedValueException(
-                    "{$strContext} khi 'data_source' là 'other' "
-                    . "thì field 'failure' hoặc không khai báo, "
-                    . "hoặc phải có giá trị null."
+                    "{$strContext} khi 'data_source' là 'other' thì field 'failure' hoặc là không khai báo, hoặc khai báo giá trị null "
                 );
             }
 
             return;
         }
 
-        /*
-         * Với data_source = controller thì failure là bắt buộc.
-         */
-        ValidUtility::validateRequiredField(
+        ValidUtility::validateRequiredEnumField(
             $arrData,
             'failure',
-            $strContext,
-            [
-                'type'   => 'string',
-                'values' => self::FAILURE_MODES
-            ]
+            self::FAILURE_MODES,
+            $strContext
         );
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
     protected static function validateHtmlElementName(
-        string $strTagName,
+        mixed $strTagName,
         string $strContext
     ): void {
         $strPath = 'render_detail.tag';
 
-        /*
-         * non_empty và trimmed đã được ValidUtility kiểm tra trước.
-         */
+        if (!is_string($strTagName)) {
+            throw new UnexpectedValueException(
+                "{$strContext} field '{$strPath}' phải là string."
+            );
+        }
+
+        if ($strTagName === '') {
+            throw new UnexpectedValueException(
+                "{$strContext} field '{$strPath}' không được rỗng."
+            );
+        }
+
+        if ($strTagName !== trim($strTagName)) {
+            throw new UnexpectedValueException(
+                "{$strContext} field '{$strPath}' không được có "
+                . "khoảng trắng ở đầu hoặc cuối."
+            );
+        }
+
         if ($strTagName !== strtolower($strTagName)) {
             throw new UnexpectedValueException(
                 "{$strContext} field '{$strPath}' phải được viết thường."
@@ -518,13 +460,11 @@ class HtmlFragmentSchemaData
          * Chấp nhận HTML element name hoặc custom element name đơn giản.
          *
          * Ví dụ hợp lệ:
-         *
          * div
          * section
          * my-component
          *
          * Ví dụ không hợp lệ:
-         *
          * <div>
          * div class="main"
          * div/span
@@ -549,10 +489,16 @@ class HtmlFragmentSchemaData
 
     /*---------------------------------------------------------------------------------------------------------------*/
     protected static function validateAttributes(
-        array $arrAttributes,
+        mixed $arrAttributes,
         string $strContext
     ): void {
         $strBasePath = 'render_detail.attributes';
+
+        if (!is_array($arrAttributes)) {
+            throw new UnexpectedValueException(
+                "{$strContext} field '{$strBasePath}' phải là array."
+            );
+        }
 
         foreach ($arrAttributes as $strAttributeName => $mixAttributeValue) {
             if (!is_string($strAttributeName)) {
@@ -613,10 +559,10 @@ class HtmlFragmentSchemaData
          * xml:lang
          * x-data
          */
-        if (
-            $strAttributeName === ''
-            || $strAttributeName !== trim($strAttributeName)
-            || $strAttributeName !== strtolower($strAttributeName)
+         if ( 
+            $strAttributeName === '' //không cho phép $strAttributeName blank
+            || $strAttributeName !== trim($strAttributeName)//khong cho phép chứa khoảng trắng ở đầu và cuối
+            || ($strAttributeName !== strtolower($strAttributeName)) //không cho phép dung chữ hoa     
         ) {
             return false;
         }
@@ -628,4 +574,5 @@ class HtmlFragmentSchemaData
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
+  
 }

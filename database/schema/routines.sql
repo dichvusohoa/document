@@ -1050,7 +1050,6 @@ BEGIN
     SELECT
         at.user_id AS id,
         u.name,
-        u.password,
         u.subscriber_id,
         ur.roles,
         CASE

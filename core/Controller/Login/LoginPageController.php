@@ -63,14 +63,18 @@ class LoginPageController extends BaseHtmlPageController{
     public function login() {
         $arrResp = $this->apiController->doFunction('login');
         if($arrResp['status'] === Response::SERVER_AUTHENTICATED_STATUS){
-            //Lý do vì $requestAuthContext->userRoles() là array có format:[roleCode => displayName,...]
-            $arrRoleCode = array_keys($this->requestAuthContext->userRoles());
+            //$arrRoleCode = array_keys($this->requestAuthContext->userRoles());
+            //Lý do vì $arrResp['data']['roles'] là array có format:[roleCode => displayName,...]
+            $arrRoleCode = array_keys(
+                $arrResp['data'][UserInfo::FIELD_ROLES]
+            );
             $strUrl = Session::get('intended_url') ?? 
             $this->roleRegistry->findDefaultBusinessUrlByRoles($arrRoleCode);
             if($strUrl === null){
                 throw new HttpException(403, 'User hiện tại không có quyền truy cập chức năng nghiệp vụ nào. Xem lại file config.role.php');
             }
             Session::remove('intended_url');
+            Session::remove('intended_roles');
             $arrResp['data'] = $strUrl;
             $arrResp['extra'] =  'redirect';//báo hiệu cho client biết cần redirect
         }

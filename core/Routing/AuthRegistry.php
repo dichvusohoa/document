@@ -223,11 +223,15 @@ final class AuthRegistry
             $mixAuthConfig,
             $strContext
         );
-
-        ValidUtility::validateRequiredPositiveIntField(
+        //validateRequiredPositiveIntField
+        ValidUtility::validateRequiredField(
             $mixAuthConfig,
             self::FIELD_MAX_FAIL_COUNT,
-            $strContext
+            $strContext,
+            [
+                'type' => 'int',
+                'min'  => 1
+            ]    
         );
 
         $this->validateTurnstile(
@@ -266,10 +270,16 @@ final class AuthRegistry
         array $arrDefinedRole,
         string $strContext
     ): array {
-        ValidUtility::validateRequiredNonEmptyStringField(
+        //validateRequiredNonEmptyStringField
+        ValidUtility::validateRequiredField(
             $arrRegistryEntry,
             self::FIELD_ACCEPTED_ROLES_PATTERN,
-            $strContext
+            $strContext,
+            [
+                'type'      => 'string',
+                'non_empty' => true,
+                'trimmed'   => true
+            ]
         );
 
         $strAcceptedRolesPattern =
@@ -375,10 +385,12 @@ final class AuthRegistry
         array $arrRegistryEntry,
         string $strContext
     ): array {
-        ValidUtility::validateRequiredBoolField(
+        //validateRequiredBoolField
+        ValidUtility::validateRequiredField(
             $arrRegistryEntry,
             self::FIELD_REMEMBER_COOKIE,
-            $strContext
+            $strContext,
+            ['type' => 'bool']    
         );
 
         $isRememberCookie =
@@ -411,13 +423,16 @@ final class AuthRegistry
 
             return $arrRegistryEntry;
         }
-
-        ValidUtility::validateRequiredPositiveIntField(
+        //ValidUtility::validateRequiredPositiveIntField
+        ValidUtility::validateRequiredField(
             $arrRegistryEntry,
             self::FIELD_REMEMBER_EXPIRE,
-            $strContext
+            $strContext,
+            [
+                'type' => 'int',
+                'min'  => 1
+            ]      
         );
-
         return $arrRegistryEntry;
     }
 
@@ -450,23 +465,37 @@ final class AuthRegistry
         array $arrRegistryEntry,
         string $strContext
     ): void {
-        ValidUtility::validateRequiredNonEmptyStringListField(
+        //ValidUtility::validateRequiredNonEmptyStringListField(
+        ValidUtility::validateRequiredField(
             $arrRegistryEntry,
             self::FIELD_INPUT_ACTIONS,
-            $strContext
+            $strContext,
+            [
+                'type'           => 'string_list',
+                'non_empty'      => true,
+                'item_non_empty' => true
+            ]    
         );
-
-        ValidUtility::validateUniqueListField(
+        //ValidUtility::validateUniqueListField
+        ValidUtility::validateRequiredField(
             $arrRegistryEntry,
             self::FIELD_INPUT_ACTIONS,
-            $strContext
+            $strContext,
+            [
+                'type'   => 'array',
+                'unique' => true
+            ]    
         );
-
-        ValidUtility::validateRequiredEnumField(
+        //ValidUtility::validateRequiredEnumField(
+        ValidUtility::validateRequiredField(
             $arrRegistryEntry,
             self::FIELD_DEFAULT_INPUT_ACTION,
-            $arrRegistryEntry[self::FIELD_INPUT_ACTIONS],
-            $strContext
+            //$arrRegistryEntry[self::FIELD_INPUT_ACTIONS],
+            $strContext,
+            [
+                'type' => 'string',
+                'values' => $arrRegistryEntry[self::FIELD_INPUT_ACTIONS]
+            ]    
         );
     }
     /*---------------------------------------------------------------------------------------------------------------*/

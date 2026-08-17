@@ -9,7 +9,7 @@ class AuthInfo{
     public static function isValid(mixed $arrData): bool {
         return Response::isValid($arrData) && (
             (($arrData['data'] === null || $arrData['data'] === false) && $arrData['status'] === Response::SERVER_UNAUTHENTICATED_STATUS  ) ||
-            UserInfo::isValid($arrData['data'])
+            UserInfo::isValidWithLastActivity($arrData['data'])
         );
             
     }

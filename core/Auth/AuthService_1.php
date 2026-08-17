@@ -114,7 +114,6 @@ class AuthService{
 
         return !empty($response['success']);
     }
-    
     protected function verifyCredentials(string $strUser, string $strPassword): array {
         $arrContextAcceptedRole = $this->requestAuthContext->contextAcceptedRoles();
         $strContextAcceptedRolesJson = json_encode(
@@ -123,10 +122,68 @@ class AuthService{
         );
         $arrResp = $this->dbService->fetchOne("lib_spGetUserByNameAndRoles",
             ["pName" => $strUser, "pRoles" => $strContextAcceptedRolesJson]);
-        $arrResp = UserInfo::normalizeDbData('lib_spGetUserByNameAndRoles', UserInfo::DB_DATA_WITH_PASSWORD , $arrResp);
+        //1. chặn trước các lỗi DB - đây là bước đầu tiên
+        if (Response::isResponseError($arrResp)) {
+            throw new RuntimeException('Database error while authenticating user');
+        }
+        //2. lỗi dữ liệu empty - $arrResp['data'] có thể là null
         if(Response::isResponseEmpty($arrResp)){
             $this->loginAttemptService->increaseFailCount();
             return ['status' => Response::SERVER_UNAUTHENTICATED_STATUS, 'data' => 'Tên đăng nhập hoặc mật khẩu không đúng' , 'extra' => null];
+        }
+        //3. chuẩn hóa và kiểm tra format của $arrResp, đề phòng store procedure trả về sai format
+        /*
+         * roles bắt buộc phải tồn tại và khác null.
+         */
+        $strFieldRoles = UserInfo::FIELD_ROLES;
+
+        if (!isset($arrResp['data'][$strFieldRoles])) {
+            throw new LogicException(
+                "lib_spGetUserByNameAndRoles trả về thiếu field {$strFieldRoles} "
+                . 'của UserInfo hoặc giá trị bằng null'
+            );
+        }
+
+        /*
+         * registered_modules bắt buộc phải tồn tại,
+         * nhưng giá trị null là hợp lệ trong bài toán no-module.
+         */
+        $strFieldRegisteredModules = UserInfo::FIELD_REGISTERED_MODULES;
+
+        if (!array_key_exists(
+            $strFieldRegisteredModules,
+            $arrResp['data']
+        )) {
+            throw new LogicException(
+                "lib_spGetUserByNameAndRoles trả về thiếu field "
+                . "{$strFieldRegisteredModules} của UserInfo"
+            );
+        }
+        try{
+            $arrResp['data'][$strFieldRoles] = json_decode(
+                $arrResp['data'][$strFieldRoles],
+                true,
+                512,
+                JSON_THROW_ON_ERROR
+            );
+            if ($arrResp['data'][$strFieldRegisteredModules] !== null) {
+                $arrResp['data'][$strFieldRegisteredModules] = json_decode(
+                    $arrResp['data'][$strFieldRegisteredModules],
+                    true,
+                    512,
+                    JSON_THROW_ON_ERROR
+                );
+            }
+        }
+        catch (JsonException $e) {
+            throw new LogicException(
+                'lib_spGetUserByNameAndRoles trả về dữ liệu JSON không hợp lệ.',
+                0,
+                $e
+            );
+        }
+        if(!UserInfo::isValidWithPassword($arrResp['data'])){
+            throw new LogicException('lib_spGetUserByNameAndRoles trả về dữ liệu không chuẩn format');
         }
         //4. verify password
         if (!password_verify($strPassword, $arrResp['data'][UserInfo::FIELD_PASSWORD])) {

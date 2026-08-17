@@ -36,7 +36,7 @@ class AuthContext {
         
         if(AuthInfo::isUnauthenticated($arrAuthInfo)){
             //bổ sung các thông tin về guest user cho $auth["data"]
-            $arrAuthInfo["data"] = UserInfo::buildGuest();
+            $arrAuthInfo["data"] = UserInfo::createGuest();
         }
       
         
@@ -54,24 +54,17 @@ class AuthContext {
      */
     protected function getAuthInfoBySession(): array {
         $auth = Session::get('auth');
-        if( UserInfo::isValid($auth)  
-            && isset($auth['last_activity'])  //đây là field bổ sung vào để kiểm soát chính xác thời gian timeout
-            && is_int($auth['last_activity'])){    
-            
+        if( UserInfo::isValidWithLastActivity($auth)){    
             if(time() - $auth['last_activity'] >= SESSION_TIMEOUT){
                 Session::destroy();
             }
             else{
-                unset($auth['last_activity']);//field last_activity lưu và cập nhật ở sesssion
+                //field last_activity lưu và cập nhật ở sesssion, không cần dùng trong logic xử lý sau này
+                unset($auth['last_activity']);
                 $status = $auth["id"] === null ? Response::SERVER_UNAUTHENTICATED_STATUS : Response::SERVER_AUTHENTICATED_STATUS;
                 return ["status" => "$status", "data" => $auth, "extra" => "" ]; 
             }
-            /*elseif($auth["id"] === null){
-                return ["status" => Response::SERVER_UNAUTHENTICATED_STATUS, "data" => $auth, "extra" => "" ]; 
-            }
-            else{
-                return ["status" => Response::SERVER_AUTHENTICATED_STATUS, "data" => $auth, "extra" => "" ]; 
-            }*/
+            
         }
         return ["status" => Response::SERVER_UNAUTHENTICATED_STATUS, "data" => null, "extra" => "session expired or missing" ]; //chưa authenticate by session
     }

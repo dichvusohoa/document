@@ -2,17 +2,18 @@
 namespace Core\Routing;
 use Core\Http\Request;
 use Core\Http\Session;
+use LogicException;
 use Core\Http\HttpException;
 class ContextRouter
 {
-   
-    protected array $arrEnabledModule;
+    /*vì applicaton có thể không có module => $arrEnabledModule === null*/
+    protected ?array $arrEnabledModule;
     protected array $arrUserRole;
     protected StaticRouter $staticRouter;
 
     /*---------------------------------------------------------------------------------------------------------------*/
     public function __construct(
-        array $arrEnabledModule,
+        ?array $arrEnabledModule,
         array $arrUserRole,
         StaticRouter $staticRouter
     ) {
@@ -28,7 +29,7 @@ class ContextRouter
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
-    public function getEnabledModules(): array
+    public function getEnabledModules(): ?array
     {
         return $this->arrEnabledModule;
     }
@@ -38,13 +39,11 @@ class ContextRouter
     {
         $this->arrUserRole = $arrUserRole;
     }
-
     /*---------------------------------------------------------------------------------------------------------------*/
-    public function setEnabledModules(array $arrEnabledModule): void
+    public function setEnabledModules(?array $arrEnabledModule): void
     {
         $this->arrEnabledModule = $arrEnabledModule;
     }
-
     /*---------------------------------------------------------------------------------------------------------------*/
     protected function calculateContextAcceptedRoles(
         array $arrMCAO,
@@ -62,15 +61,19 @@ class ContextRouter
         $strController =
             $arrMCAO[MCAOInfo::FIELD_CONTROLLER];
 
-        $arrAuthPolicy =
-            $authRegistry->getAuthPolicy($strController);
-
+        $arrAuthPolicy = $authRegistry->getAuthPolicy($strController);
+        $strIntendedUrl = Session::get('intended_url');
         $arrIntendedRole = Session::get('intended_roles');
-
         if (
-            Session::get('intended_url')
-            && is_array($arrIntendedRole)
+            ($strIntendedUrl === null) !== ($arrIntendedRole === null)
         ) {
+            //phải đảm bảo Session::get('intended_url') và Session::get('intended_roles')
+            //phải đồng thời bằng null hoặc khác null
+            throw new LogicException(
+                'Session intended_url và intended_roles không đồng bộ.'
+            );
+        }
+        if (is_array($arrIntendedRole)){        
             return array_values(
                 array_intersect(
                     $arrAuthPolicy[AuthRegistry::FIELD_ACCEPTED_ROLES],
@@ -78,7 +81,6 @@ class ContextRouter
                 )
             );
         }
-
         return $arrAuthPolicy[
             AuthRegistry::FIELD_ACCEPTED_ROLES
         ];
@@ -118,8 +120,17 @@ class ContextRouter
         $strModule = $arrMCAO[MCAOInfo::FIELD_MODULE];
         
         $arrContextRouteInfo[ContextRouteInfo::FIELD_ROUTE_INFO] = $arrRouteInfo;
-        $arrContextRouteInfo[ContextRouteInfo::FIELD_CONTEXT_ACCEPTED_ROLES] =
-        $this->calculateContextAcceptedRoles($arrMCAO, $arrRouteInfo);        
+        $arrContextAcceptedRole = $this->calculateContextAcceptedRoles($arrMCAO, $arrRouteInfo);  
+        if (
+            $arrRouteInfo[RouteInfo::FIELD_ROUTE_TYPE]
+                === RouteInfo::ROUTE_TYPE_AUTHENTICATION
+            && $arrContextAcceptedRole === []
+        ) {
+            throw new LogicException(
+                'Authentication route không có context accepted role bằng empty là không phù hợp.'
+            );
+        }
+        $arrContextRouteInfo[ContextRouteInfo::FIELD_CONTEXT_ACCEPTED_ROLES] = $arrContextAcceptedRole;
         $arrContextRouteInfo[ContextRouteInfo::FIELD_MIDDLEWARES] = $arrMiddleware;
         
         if ($this->isModuleProhibited($strModule)) {
@@ -135,7 +146,6 @@ class ContextRouter
         $arrContextRouteInfo[ContextRouteInfo::FIELD_PROHIBITED_ROLE] = false;
         return $arrContextRouteInfo;
     }
-
     /*---------------------------------------------------------------------------------------------------------------*/
     protected function effectiveUserRolesAtRoute(array $arrRouteInfo): array
     {
@@ -150,8 +160,30 @@ class ContextRouter
     /*---------------------------------------------------------------------------------------------------------------*/
     protected function isModuleProhibited(?string $strModule): bool
     {
-        return $strModule !== null
-            && !in_array($strModule, $this->arrEnabledModule, true);
+        /*
+         * Route không thuộc module.
+         */
+        if ($strModule === null) {
+            return false;
+        }
+        //từ đây trở xuống là $strModule !== null
+        /*
+         * Có route thuộc module nhưng application lại được xác định
+         * là bài toán không có module ($this->arrEnabledModule === null)
+         *
+         * Đây là trạng thái cấu hình không nhất quán.
+         */
+        if ($this->arrEnabledModule === null) {
+            throw new LogicException(
+                "Route {$strModule} khác null nhưng hệ thống đang cấu hình không có module"
+            );
+        }
+
+        return !in_array(
+            $strModule,
+            $this->arrEnabledModule,
+            true
+        );
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     protected function buildMiddlewares(

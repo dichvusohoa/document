@@ -52,7 +52,6 @@ class RequestAuthContext
     {
         return $this->arrMCAO;
     }
-
     /*---------------------------------------------------------------------------------------------------------------*/
     public function routeInfo(): ?array
     {

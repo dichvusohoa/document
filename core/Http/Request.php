@@ -13,8 +13,6 @@ class Request {
     protected array $jsonData; // ví dụ do hàm fetch tạo ra 
     protected array $serverData;
     protected array $filesData;
-    // dự kiến để tự bổ sung parameter bằng code , kiểu như 'prefix_url'
-    protected array $customData = []; 
     protected ?string $rawInput = null;
 
     public function __construct() {
@@ -64,8 +62,7 @@ class Request {
     }
 
     public function input(string $key, $default = null, $filter = null) {
-        $value = $this->customData[$key]
-            ?? $this->jsonData[$key]
+        $value = $this->jsonData[$key]
             ?? $this->postData[$key]
             ?? $this->getData[$key]
             ?? $default;
@@ -74,13 +71,12 @@ class Request {
     /**
      * Thêm hoặc ghi đè parameter
      */
-    public function set(string $key, $value, string $source = 'custom'): void {
+    public function set(string $key, $value, string $source = 'json'): void {
         switch ($source) {
             case 'get':  $this->getData[$key]  = $value; break;
             case 'post': $this->postData[$key] = $value; break;
-            case 'json': $this->jsonData[$key] = $value; break;
-            case 'custom':
-            default:     $this->customData[$key] = $value; break;
+            case 'json':
+            default:     $this->jsonData[$key] = $value; break;
         }
     }
 
@@ -88,8 +84,7 @@ class Request {
         // Ưu tiên: JSON → POST → GET
         return array_merge($this->getData, 
                 $this->postData, 
-                $this->jsonData, 
-                $this->customData // customData ưu tiên cao hơn
+                $this->jsonData // jsonData ưu tiên cao hơn
                 );
     }
     // -----------------  File -----------------

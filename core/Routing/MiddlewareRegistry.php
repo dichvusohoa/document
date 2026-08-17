@@ -13,7 +13,7 @@ class MiddlewareRegistry {
         $this->arrMiddleware = [];
         $strFileName = 'config.middleware.php';
         $arrTmp = require CONFIG_PATH.'/'.$strFileName;
-        if(!ValidUtility::isStringListMap($arrTmp, false)){
+        if(!ValidUtility::isStringListMap($arrTmp, ['allow_string_value' => true])){
             throw new UnexpectedValueException("File {$strFileName} có format không phù hợp"); 
         }
         foreach ($arrTmp as $routePath => $fqcn) {

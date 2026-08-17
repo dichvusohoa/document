@@ -1,6 +1,7 @@
 <?php
 namespace Core\Routing;
 use RuntimeException;
+use LogicException;
 use Core\Cache\StaticRouterCache;
 use Core\Routing\ContextRouter;
 use Core\Http\Response;
@@ -45,11 +46,10 @@ class RouterFactory{
     public function getStaticRouter(): StaticRouter
     {
         if ($this->staticRouter === null) {
-            throw new \LogicException(
+            throw new LogicException(
                 'StaticRouter has not been created.'
             );
         }
-
         return $this->staticRouter;
     }
 }
