@@ -18,8 +18,7 @@ class AuthContext {
     public function getAuthInfo(): array{
         $arrAuthInfo = $this->getAuthInfoBySession();//SERVER_UNAUTHENTICATED_STATUS hoặc  SERVER_AUTHENTICATED_STATUS
         if($arrAuthInfo['data'] === null){
-            //xác thực bằng session thất bại phải dùng cookie
-            //SERVER_UNAUTHENTICATED_STATUS, SERVER_AUTHENTICATED_STATUS, SERVER_DB_ERR_STATUS
+            //chưa có thông tin lưu session => xác thực bằng session thất bại phải dùng cookie
             $arrAuthInfo = $this->getAuthInfoByCookie();
         }
         /*đến bước cuối cùng này thì đánh giá tổng thể
@@ -37,11 +36,10 @@ class AuthContext {
         if(AuthInfo::isUnauthenticated($arrAuthInfo)){
             //bổ sung các thông tin về guest user cho $auth["data"]
             $arrAuthInfo["data"] = UserInfo::createGuest();
+            $arrAuthInfo['data'][UserInfo::FIELD_CREATED_AT] = time(); 
         }
-      
-        
         //tới đây là trạng thái Response::SERVER_AUTHENTICATED_STATUS hoặc SERVER_UNAUTHENTICATED_STATUS
-        $arrAuthInfo['data']['last_activity'] = time(); 
+        $arrAuthInfo['data'][UserInfo::FIELD_LAST_ACTIVITY] = time(); 
         Session::set('auth', $arrAuthInfo['data']);//cập nhật lại session
         //$this->arrAuth = $auth;
         return $arrAuthInfo;
@@ -54,13 +52,20 @@ class AuthContext {
      */
     protected function getAuthInfoBySession(): array {
         $auth = Session::get('auth');
-        if( UserInfo::isValidWithLastActivity($auth)){    
-            if(time() - $auth['last_activity'] >= SESSION_TIMEOUT){
+        if( UserInfo::isValidSessionData($auth)){  
+            $boolIdleExpired =
+                time() - $auth[UserInfo::FIELD_LAST_ACTIVITY]
+                >= SESSION_IDLE_TIMEOUT;
+            $boolAbsoluteExpired =
+                time() - $auth[UserInfo::FIELD_CREATED_AT]
+                >= SESSION_ABSOLUTE_TIMEOUT;
+            if ($boolIdleExpired || $boolAbsoluteExpired) {
                 Session::destroy();
             }
             else{
-                //field last_activity lưu và cập nhật ở sesssion, không cần dùng trong logic xử lý sau này
-                unset($auth['last_activity']);
+                //field created_at, last_activity lưu và cập nhật ở sesssion, không cần dùng trong logic xử lý sau này
+                unset($auth[UserInfo::FIELD_LAST_ACTIVITY]);
+                unset($auth[UserInfo::FIELD_CREATED_AT]);
                 $status = $auth["id"] === null ? Response::SERVER_UNAUTHENTICATED_STATUS : Response::SERVER_AUTHENTICATED_STATUS;
                 return ["status" => "$status", "data" => $auth, "extra" => "" ]; 
             }
@@ -87,7 +92,6 @@ class AuthContext {
         //$usrService = new UserService($this->dbService); 
         $arrAuthInfo = $this->userService->getUserByToken($strLeftToken);
         if(Response::isResponseOK($arrAuthInfo) && isset($arrAuthInfo["data"]) && UserInfo::isValid($arrAuthInfo["data"])){
-            //sửa lại status từ Response::SERVER_OK_STATUS thành Response::SERVER_AUTHENTICATED_STATUS
             $arrAuthInfo["status"] = Response::SERVER_AUTHENTICATED_STATUS;
             $arrAuthInfo["extra"]  = "auth by cookie";
             return $arrAuthInfo;

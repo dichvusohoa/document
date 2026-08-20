@@ -3,8 +3,6 @@ namespace Core\Controller\Login;
 use Core\Http\Session;
 use Core\Http\RequestAuthContext;
 use Core\Routing\AuthRegistry;
-use Core\Routing\MCAOInfo;
-use UnexpectedValueException;
 class LoginAttemptService {
     protected string $key;
     protected RequestAuthContext $requestAuthContext;
@@ -29,16 +27,8 @@ class LoginAttemptService {
     public function resetFailCount(): void{
         Session::set($this->key, 0);
     }
-    protected function turnstilePolicy(){
-        $arrMCAO = $this->requestAuthContext->mcao();
-        $strControllerName = $arrMCAO[MCAOInfo::FIELD_CONTROLLER];
-        $arrAuthPolicy = $this->authRegistry->getAuthPolicy($strControllerName);
-        if($arrAuthPolicy === null){
-            throw new UnexpectedValueException('...');
-        }
-        return $arrAuthPolicy[AuthRegistry::FIELD_TURNSTILE];
-    }
-    public function needTurnstile(): bool{
+    
+    /*public function needTurnstile(): bool{
         $mixTurnstile = $this->turnstilePolicy();
         if($mixTurnstile === AuthRegistry::TURNSTILE_ALWAYS){
             return true;
@@ -47,6 +37,6 @@ class LoginAttemptService {
             return false;
         }
         return $this->getFailCount() >= $mixTurnstile;
-    }
+    }*/
     //put your code here
 }

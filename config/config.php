@@ -7,8 +7,8 @@ define('SYSTEM_MAINTENANCE_MESSAGE','Hệ thống đang bảo trì từ 0h 20/07
 /*danh sách các modules mà guest user có thể truy cập*/
 //const GUEST_ACCESSIBLE_MODULES = ['compiled-materials','it-documents'];
 const GUEST_ACCESSIBLE_MODULES = [];
-define('SESSION_TIMEOUT', 1800); // thời gian giữ session là 30 phút
-define('COOKIE_EXP_BY_DAYS',7);//// thời gian lưu cookie là 7 ngày
+define('SESSION_IDLE_TIMEOUT', 1800); // thời idle session là 30 phút
+define('SESSION_ABSOLUTE_TIMEOUT',28800); // thời gian session tồn tại tối đa là 8 hours
 define('MIN_CACHE_TTL', 3600); // thời gian time to live của cache tối thiểu là 60 phút
 define("ARR_PAGE_SIZE", array(25,50,75,100));
 
@@ -21,9 +21,14 @@ Ví dụ viết 'connection' => \Core\Models\Connection::class chứ không vi�
 */
 
 /*--------------------------------------------------------------------*/
-$lifetime = 2 * SESSION_TIMEOUT;
+$lifetime = 2 * SESSION_IDLE_TIMEOUT;
+/*
+ * GC chỉ là cơ chế cleanup phía server.
+ * Cho nó một khoảng đệm lớn hơn idle timeout.
+ */
 ini_set('session.gc_maxlifetime', $lifetime);
-session_set_cookie_params($lifetime);
+/*session.cookie_lifetime = 0 nghĩa là cookie session tồn tại đến hết browser session*/
+session_set_cookie_params(0);
 /*--------------------------------------------------------------------*/
 function loadCfgConnection() {
     $envFile = dirname(__FILE__) . '/.env.local.php';

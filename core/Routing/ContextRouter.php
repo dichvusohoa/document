@@ -49,6 +49,7 @@ class ContextRouter
         array $arrMCAO,
         array $arrRouteInfo
     ): ?array {
+        //nhánh route bussiness thì không cần thông tin này
         if (
             $arrRouteInfo[RouteInfo::FIELD_ROUTE_TYPE]
             === RouteInfo::ROUTE_TYPE_BUSINESS
@@ -64,22 +65,36 @@ class ContextRouter
         $arrAuthPolicy = $authRegistry->getAuthPolicy($strController);
         $strIntendedUrl = Session::get('intended_url');
         $arrIntendedRole = Session::get('intended_roles');
+        /*Phải đảm bảo rằng 
+        Session::get('intended_url') và Session::get('intended_roles')
+        phải đồng thời bằng null hoặc khác null
+        */
         if (
             ($strIntendedUrl === null) !== ($arrIntendedRole === null)
         ) {
-            //phải đảm bảo Session::get('intended_url') và Session::get('intended_roles')
-            //phải đồng thời bằng null hoặc khác null
             throw new LogicException(
                 'Session intended_url và intended_roles không đồng bộ.'
             );
         }
         if (is_array($arrIntendedRole)){        
-            return array_values(
+            $arrContextAcceptedRole = array_values(
                 array_intersect(
                     $arrAuthPolicy[AuthRegistry::FIELD_ACCEPTED_ROLES],
                     $arrIntendedRole
                 )
             );
+            if ($arrContextAcceptedRole !== []) {
+                return $arrContextAcceptedRole;
+            }
+
+            /*
+             * Authentication route hiện tại không thể phục vụ
+             * intended business context lưu trữ trong Session
+             * - không thể redirect về url trong Session sau khi login thành công
+             * Bỏ intended context và thực hiện login thông thường.
+             */
+            Session::remove('intended_url');
+            Session::remove('intended_roles');
         }
         return $arrAuthPolicy[
             AuthRegistry::FIELD_ACCEPTED_ROLES

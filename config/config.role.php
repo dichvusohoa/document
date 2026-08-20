@@ -2,7 +2,8 @@
 /*config.role.php liệt kê tất các các role. Trong code ta sử dụng phần key của array
 ứng dụng khi dựng dữ liệu định tuyến thì dùng nó để valid các giá trị ra ngoài phạm vi
  * role đã định nghĩa trước
-  */
+ * Cân nhắc bổ sung khả năng tùy biến session timeout theo role trong tương lai
+*/
 return 
 [
     'guest' => ['display_name' => 'khách', 'default_business_url' => '/document', 'weight' =>0 ], 

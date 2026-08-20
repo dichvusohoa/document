@@ -7,7 +7,7 @@ return [
         'max_fail_count'       => 5,
         'turnstile' => 3, // Các giá trị: 'never', 'always' hoặc số nguyên dương 1, 2, 3...
         'remember_cookie'      => true,
-        'remember_expire'      => 86400 * 7,
+        'remember_expire'      => 86400 * 7, /*7 days*/
     ],    
     'cacquak' => [
         'input_actions' => ['index', 'login'],

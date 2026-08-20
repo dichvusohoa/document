@@ -1,11 +1,15 @@
 <?php
-
 namespace Core\User;
+
+use RuntimeException;
+use LogicException;
+use JsonException;
 use UnexpectedValueException;
 use InvalidArgumentException;
 use Core\Utility\ValidUtility;
 use Core\Utility\MathUtility;
 use Core\Http\Response;
+
 class UserInfo
 {
     public const FIELD_ID                 = 'id';
@@ -14,6 +18,7 @@ class UserInfo
     public const FIELD_SUBSCRIBER_ID      = 'subscriber_id';
     public const FIELD_ROLES              = 'roles';
     public const FIELD_REGISTERED_MODULES = 'registered_modules';
+    public const FIELD_CREATED_AT         = 'created_at';
     public const FIELD_LAST_ACTIVITY      = 'last_activity';
 
     private const GUEST_ROLE = 'guest';
@@ -104,24 +109,42 @@ class UserInfo
      *
      * Contract:
      *
-     * UserInfo + last_activity
+     * UserInfo + created_at + last_activity
      */
-    public static function isValidWithLastActivity(mixed $arrData): bool
+    public static function isValidSessionData(mixed $arrData): bool
     {
-        return ValidUtility::hasExactFields(
+        if (!ValidUtility::hasExactFields(
             $arrData,
             array_merge(
                 self::FIELDS,
-                [self::FIELD_LAST_ACTIVITY]
+                [
+                    self::FIELD_CREATED_AT,
+                    self::FIELD_LAST_ACTIVITY
+                ]
             )
-        )
-        && self::isValidCommonData($arrData)
-        && is_int(
-            $arrData[self::FIELD_LAST_ACTIVITY]
-        )
-        && $arrData[self::FIELD_LAST_ACTIVITY] > 0;
-    }
+        )) {
+            return false;
+        }
 
+        if (!self::isValidCommonData($arrData)) {
+            return false;
+        }
+
+        foreach (
+            [self::FIELD_CREATED_AT, self::FIELD_LAST_ACTIVITY]
+            as $strField
+        ) {
+            if (
+                !is_int($arrData[$strField])
+                || $arrData[$strField] <= 0
+            ) {
+                return false;
+            }
+        }
+
+        return $arrData[self::FIELD_LAST_ACTIVITY]
+            >= $arrData[self::FIELD_CREATED_AT];
+    }
     /*---------------------------------------------------------------------------------------------------------------*/
     /**
      * Kiểm tra các field chung của UserInfo.
@@ -320,7 +343,7 @@ class UserInfo
         /*
          * roles bắt buộc phải tồn tại và khác null.
          */
-        $strFieldRoles = UserInfo::FIELD_ROLES;
+        $strFieldRoles = self::FIELD_ROLES;
 
         if (!isset($arrResp['data'][$strFieldRoles]) || 
             !is_string($arrResp['data'][$strFieldRoles])) {
@@ -334,7 +357,7 @@ class UserInfo
          * registered_modules bắt buộc phải tồn tại,
          * nhưng giá trị null là hợp lệ trong bài toán no-module.
          */
-        $strFieldRegisteredModules = UserInfo::FIELD_REGISTERED_MODULES;
+        $strFieldRegisteredModules = self::FIELD_REGISTERED_MODULES;
 
         if (!array_key_exists(
                 $strFieldRegisteredModules,

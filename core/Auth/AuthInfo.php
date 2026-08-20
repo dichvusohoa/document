@@ -8,8 +8,8 @@ class AuthInfo{
     không cần khởi tạo đối tượng bằng toán tử new*/
     public static function isValid(mixed $arrData): bool {
         return Response::isValid($arrData) && (
-            (($arrData['data'] === null || $arrData['data'] === false) && $arrData['status'] === Response::SERVER_UNAUTHENTICATED_STATUS  ) ||
-            UserInfo::isValidWithLastActivity($arrData['data'])
+            ($arrData['data'] === null && $arrData['status'] === Response::SERVER_UNAUTHENTICATED_STATUS) ||
+            UserInfo::isValidSessionData($arrData['data'])
         );
             
     }

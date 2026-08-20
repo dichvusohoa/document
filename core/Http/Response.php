@@ -40,10 +40,6 @@ class Response {
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     public static function isResponseError(mixed $response): bool {
-        /*$arr = [self::SERVER_OK_STATUS, self::SERVER_MAINTENANCE_STATUS,self::SERVER_AUTHENTICATED_STATUS ,self::SERVER_UNAUTHENTICATED_STATUS];
-        return !self::isValid($response) || !in_array($response["status"], $arr);
-         
-         */
         return self::isValid($response) && in_array($response["status"], self::$ERROR_STATUSES);
     }
     /*---------------------------------------------------------------------------------------------------------------*/

@@ -8,16 +8,12 @@ use Core\Database\Connection\Connection;
 use Core\Http\Response;
 use Core\Foundation\ErrorHandler;
 use Core\Utility\MathUtility;
+/*Kết quả trả về [status =>, data => extra]
+ * status có 2 loại SERVER_DB_ERR_STATUS và Response::SERVER_OK_STATUS
+ */
 class DbService{
-    //begin mã lỗi trả chạy sau thực hiện các lệnh sql
-    //Begin: client sẽ post lên máy chủ dữ liệu dạng các row gồm nhiều field data. Khi có lỗi server sẽ trả về mô tả lỗi dạng
-    //array có định vị đến từng row và từng field. Dưỡi đây là cac mã lỗi
-
-    const PDO_NO_ERR = "00000"; // mã lỗi OK của MSQL
-    /*---------------------------------------------------------------------------------------------------------------*/
     protected Connection $connection;
-
-    /*---------------------------------------------------------------------------------------------------------------*/
+ /*---------------------------------------------------------------------------------------------------------------*/
     function __construct(Connection $connection){
         $this->connection  = $connection;
     }
@@ -30,10 +26,10 @@ class DbService{
      * Xử lý tập trung PDOException.
      *
      * $throwDbOnError = true:
-     *     Ném lại PDOException cho tầng gọi.
+     *     chuyển PDOException thành DataAccessException và ném cho tầng gọi.
      *
      * $throwDbOnError = false:
-     *     Chuyển PDOException thành response lỗi database.
+     *     Chuyển PDOException => DataAccessException => response lỗi database.
      *
      * Hàm này không xử lý các loại exception khác.
      */
@@ -67,7 +63,7 @@ class DbService{
         try {
             $pdoStatement->closeCursor();
         } catch (PDOException $e) {
-            // Không ném lỗi cleanup để tránh che mất lỗi database gốc.
+            // Không ném lỗi nếu $pdoStatement->closeCursor() để tránh che mất lỗi database gốc.
             // Sau này có thể ghi log tại đây.
         }
     }
@@ -83,52 +79,38 @@ class DbService{
      *                    Insert SP
      *                    Update SP  
      *                    DeleteSP:   return số phần tử bị xóa  
+     * Hàm tự quản lý và đóng PDOStatement
+     * Hàm này luôn ném PDOException khi database lỗi.
+     * Hàm này luôn ném InvalidArgumentException khi $pdo->query('SELECT @total AS num;')->fetchColumn(0)
+     * không cast được về số nguyên > 0
      */
     protected function innerExecActionSP(string $strSPName, array $arrParam): int{
-        $pdoStatement = null;
-        try {
-            $pdo = $this->connection->get();
-            /*$strPlaceHolders = implode(",", 
-                    array_map(
-                        fn($k) => ":$k", 
-                        array_keys($arrParam))
-                    );
-            $strSQL = "CALL $strSPName($strPlaceHolders, @total);";
-            */
-            //Begin tạo chuỗi kiểu như: "CALL strSPName(:x,:y,....@total);"
-            $arrArgument = array_map(
-                static fn(string $strName): string => ":{$strName}",
-                array_keys($arrParam)
-            );
-            $arrArgument[] = '@total';
-            $strSQL = sprintf(
-                'CALL %s(%s);',
-                $strSPName,
-                implode(', ', $arrArgument)
-            );
-            //End tạo chuỗi kiểu như: "CALL strSPName(:x,:y,....@total);"
-            $pdoStatement = $pdo->prepare($strSQL);
-            foreach($arrParam as $strName=>$value){
-                $pdoStatement->bindValue(":".$strName,$value);
-            }
-            $pdoStatement->execute();
-            /*
-             * Phải đóng result set của CALL trước khi chạy
-             * SELECT @total trên cùng connection.
-             */
-            $pdoStatement->closeCursor();
-            $pdoStatement = null;
-            return (int)$pdo->query('SELECT @total AS num;')->fetchColumn(0);
+        $pdo = $this->connection->get();
+        //Begin tạo chuỗi kiểu như: "CALL strSPName(:x,:y,....@total);"
+        $arrArgument = array_map(
+            static fn(string $strName): string => ":{$strName}",
+            array_keys($arrParam)
+        );
+        $arrArgument[] = '@total';
+        $strSQL = sprintf(
+            'CALL %s(%s);',
+            $strSPName,
+            implode(', ', $arrArgument)
+        );
+        //End tạo chuỗi kiểu như: "CALL strSPName(:x,:y,....@total);"
+        $pdoStatement = $pdo->prepare($strSQL);
+        foreach($arrParam as $strName=>$value){
+            $pdoStatement->bindValue(":".$strName,$value);
         }
-        finally {
-             /*
-            * Chỉ cleanup dự phòng khi lỗi xảy ra trước lúc
-            * closeCursor() hoàn tất.
-            *
-            * Không catch lỗi chính; exception gốc vẫn truyền ra ngoài.
-            */
-            $this->cleanupStatement($pdoStatement);
-        }
+        $pdoStatement->execute();
+        /*
+         * Phải đóng result set của CALL trước khi chạy
+         * SELECT @total trên cùng connection.
+         */
+        $pdoStatement->closeCursor();
+        //return (int)$pdo->query('SELECT @total AS num;')->fetchColumn(0);
+        $value = $pdo->query('SELECT @total AS num;')->fetchColumn(0);
+        return MathUtility::toNonNegativeInt($value);
     }     
     /*---------------------------------------------------------------------------------------------------------------*/
     /**
@@ -232,8 +214,13 @@ class DbService{
     Return: Cấu trúc dạng
     ["status"=>Response::SERVER_OK_STATUS,"data"=>$arrData,"extra"=>$pagination];
      */
-    public function fetchPageResult(string $strSelectSPName, array $arrSelectSPParam, 
-    string $strCountSPName, array $arrCountSPParam, array $arrPaginationParamMap, bool $throwDbOnError = true): array{
+    public function fetchPageResult(
+            string $strSelectSPName, 
+            array $arrSelectSPParam, 
+            string $strCountSPName, 
+            array $arrCountSPParam, 
+            array $arrPaginationParamMap, 
+            bool $throwDbOnError = true): array{
         /*
          * Các lỗi validation không phải lỗi database,
          * vì vậy được đặt ngoài phạm vi catch PDOException.
@@ -264,15 +251,6 @@ class DbService{
                 $strCountSPName,
                 $arrCountSPParam
             );
-
-            /*
-             * Count SP phải trả số nguyên không âm.
-             * Nếu sai, đây là lỗi contract, không phải PDOException.
-             */
-            $totalRows = MathUtility::toNonNegativeInt(
-                $totalRows
-            );
-
             $pagination = $this->buildPagination(
                 $totalRows,
                 $iPageIndex,

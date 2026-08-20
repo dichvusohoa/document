@@ -21,7 +21,7 @@ vẫn không bị timeout session và tiếp tục chạy được => bảo mậ
 
 nên cần cơ chế 
 
-if(time() - $_SESSION['auth']['last_activity'] > SESSION_TIMEOUT){
+if(time() - $_SESSION['auth']['last_activity'] > SESSION_IDLE_TIMEOUT){
     //hành vi hủy session (nói ở phần sau) 
 }
 ở đây giả thiết là dữ liệu xác thực được lưu ở $_SESSION['auth']. last_activity là
@@ -34,16 +34,16 @@ a) trước khi ta gọi session_start(); cần có đoạn code tựa như sau
 
 
 require_one (config.php);
-$lifetime = 2 * SESSION_TIMEOUT; //hệ số 2 hoặc 1 con số nào đó > 1. SESSION_TIMEOUT thì có thể định nghĩa trong file config.php
+$lifetime = 2 * SESSION_IDLE_TIMEOUT; //hệ số 2 hoặc 1 con số nào đó > 1. SESSION_IDLE_TIMEOUT thì có thể định nghĩa trong file config.php
 ini_set('session.gc_maxlifetime', $lifetime);
 session_set_cookie_params($lifetime);
 
 điều này để đảm bảo không xảy ra việc xóa file session trên server và file cookie
-ở client trước thời điểm SESSION_TIMEOUT
+ở client trước thời điểm SESSION_IDLE_TIMEOUT
 
 b)
 session_start();
-if(time() - $_SESSION['auth']['last_activity'] > SESSION_TIMEOUT){
+if(time() - $_SESSION['auth']['last_activity'] > SESSION_IDLE_TIMEOUT){
     //hành vi hủy session (nói ở phần sau) 
 }
 else{

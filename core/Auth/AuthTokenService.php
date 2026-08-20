@@ -1,17 +1,19 @@
 <?php
 namespace Core\Auth;
-use Core\Http\Response;
 use Core\Database\DbService;
-/*prefix authSrvc*/
 class AuthTokenService{
     protected DbService $dbService;
     function __construct(DbService $dbService){
         $this->dbService    = $dbService;
         
     }
-    public function tokenToDB(AuthToken $authToken, $strUserId){
-        $sExpDateTime = date('Y-m-d H:i:s', strtotime(COOKIE_EXP_BY_DAYS . ' day', time()));
-
+    /*---------------------------------------------------------------------------------------------------------------*/
+    public function tokenToDB(
+            AuthToken $authToken, 
+            int $iUserId, 
+            int $iCookieExpSecond): array{
+        //$sExpDateTime = date('Y-m-d H:i:s', strtotime(COOKIE_EXP_BY_DAYS . ' day', time()));
+        $strExpDateTime = date('Y-m-d H:i:s', time() + $iCookieExpSecond);
         $jsonFields = json_encode([
             ['field_name' => 'selector',         'field_type' => 'VARCHAR(30)'],
             ['field_name' => 'hashed_validator', 'field_type' => 'VARCHAR(255)'],
@@ -22,8 +24,8 @@ class AuthTokenService{
         $jsonRecords = json_encode([
             'selector'         => $authToken->leftToken(),
             'hashed_validator' => $authToken->hashedRightToken(),
-            'user_id'          => $strUserId,
-            'exp_date'         => $sExpDateTime,
+            'user_id'          => $iUserId,
+            'exp_date'         => $strExpDateTime,
         ], JSON_UNESCAPED_UNICODE);
 
         return $this->dbService->execActionSP('lib_spAdd', [
@@ -33,5 +35,6 @@ class AuthTokenService{
             'jsonRecords' => $jsonRecords,
         ]);
     }
-    
+    /*---------------------------------------------------------------------------------------------------------------*/
+    //sau này cần bổ sung các hàm xóa token hết hạn
 }
