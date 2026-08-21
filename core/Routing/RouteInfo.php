@@ -1,8 +1,5 @@
 <?php
 namespace Core\Routing;
-
-use Core\Utility\ValidUtility;
-
 /**
  * Định nghĩa contract của dữ liệu tại nút lá trong cây MCAR.
  * Tạo ra cấu trúc này còn dự kiến tương lai sẽ chuyển nhiều hàm xử lý dữ liệu lên đây
@@ -14,7 +11,6 @@ use Core\Utility\ValidUtility;
  *     'function'               => string,
  *     'method'                 => string,
  *     'route_type'             => 'business'|'authentication',
- *     'authentication_path'    => string|null
  * ]
  */
 class RouteInfo

@@ -23,29 +23,16 @@ class AuthService{
     
     public function verifyCredentials(string $strUser, string $strPassword): array {
         $arrContextAcceptedRole = $this->requestAuthContext->contextAcceptedRoles();
-        /*$strContextAcceptedRolesJson = json_encode(
-            $arrContextAcceptedRole,
-            JSON_THROW_ON_ERROR
-        );
-        $arrResp = $this->dbService->fetchOne("lib_spGetUserByNameAndRoles",
-            ["pName" => $strUser, "pRoles" => $strContextAcceptedRolesJson]);
-        //$arrResp = UserInfo::normalizeDbData('lib_spGetUserByNameAndRoles', UserInfo::DB_DATA_WITH_PASSWORD , $arrResp);
-        if($arrResp['data'] !== null){
-            $arrResp['data'] = UserInfo::normalizeDbData2(
-                    'lib_spGetUserByNameAndRoles',
-                    UserInfo::DB_DATA_WITH_PASSWORD,
-                    $arrResp['data']
-                    );
-        }*/
         $arrResp = $this->userService->getUserByNameAndRoles($strUser, $arrContextAcceptedRole);
         if(Response::isResponseEmpty($arrResp)){
             return ['status' => Response::SERVER_UNAUTHENTICATED_STATUS, 'data' => 'Tên đăng nhập hoặc mật khẩu không đúng' , 'extra' => null];
         }
-        //4. verify password
-        if (!password_verify($strPassword, $arrResp['data'][UserInfo::FIELD_PASSWORD])) {
+        //4. verify password, $arrResp['extra'] chứa password
+        if (!password_verify($strPassword, $arrResp['extra'])) {
             return ['status' =>Response::SERVER_UNAUTHENTICATED_STATUS, 'data' => 'Tên đăng nhập hoặc mật khẩu không đúng' , 'extra' => null];
         }
         $arrResp['status'] = Response::SERVER_AUTHENTICATED_STATUS;
+        $arrResp['extra'] = null; //xóa bỏ thông tin mật khẩu
         return $arrResp;
     }
     

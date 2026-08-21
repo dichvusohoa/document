@@ -1,5 +1,6 @@
 <?php
 namespace Core\Controller;
+use BadMethodCallException;
 use Core\Http\RequestAuthContext;
 abstract class BaseController{
     protected RequestAuthContext  $requestAuthContext;
@@ -26,7 +27,7 @@ abstract class BaseController{
      */
     public function doFunction(string $strFunctionName){
         if (!method_exists($this, $strFunctionName)) {
-            throw new \BadMethodCallException("Function '$strFunctionName' không tồn tại trong " . static::class);
+            throw new BadMethodCallException("Function '$strFunctionName' không tồn tại trong " . static::class);
         }
         $params = $this->argumentsForFunction($strFunctionName);
         return call_user_func_array([$this, $strFunctionName], $params);

@@ -1,6 +1,6 @@
 <?php
 namespace Core\Controller;
-use Core\Auth\AuthInfo;
+use Core\Auth\AuthResponse;
 use Core\Database\DataAccessException;
 use Core\Http\Response;
 use Core\View\FragmentRenderer;
@@ -60,16 +60,16 @@ abstract class BaseHtmlPageController extends BaseController{
         return $arrFragmentUiContext;
     }
     protected function buildDefaultUiContext(): array{
-        $arrAuthInfo = $this->getRequestAuthContext()->authInfo();
-        $arrUserInfo = $arrAuthInfo['data'];
+        $arrAuthResponse = $this->getRequestAuthContext()->auth();
+        $arrSessionInfo = $arrAuthResponse['data'];
         //lọc bỏ chỉ lấy các field cần thiết cho uicontext
         return [
-            'id' => $arrUserInfo['id'],
-            'name' => $arrUserInfo['name'],
-            'subscriber_id' => $arrUserInfo['subscriber_id'],
-            'roles' => $arrUserInfo['roles'],
-            'registered_modules' => $arrUserInfo['registered_modules'],
-            'is_authenticated' => AuthInfo::isAuthenticated($arrAuthInfo)
+            'id' => $arrSessionInfo['id'],
+            'name' => $arrSessionInfo['name'],
+            'subscriber_id' => $arrSessionInfo['subscriber_id'],
+            'roles' => $arrSessionInfo['roles'],
+            'registered_modules' => $arrSessionInfo['registered_modules'],
+            'is_authenticated' => AuthResponse::isAuthenticated($arrAuthResponse)
         ];
     }
     //ví dụ sau này hàm lấy dữ liệu có thể là index(), list() có thể call lại hàm này

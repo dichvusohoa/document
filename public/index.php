@@ -62,14 +62,14 @@
     $container->set(RequestAuthContext::class, function ($c) {
         return new (RequestAuthContext::class)(
             $c->get(Request::class),
-            $c->get(AuthContext::class)->getAuthInfo()
+            $c->get(AuthContext::class)->getAuth()
         );
     });
     $container->set(RouterFactory::class, function($c){
         return new (RouterFactory::class)(
             StaticRouter::class, 
             ContextRouter::class, 
-            $c->get(AuthContext::class)->getAuthInfo(),
+            $c->get(AuthContext::class)->getAuth(),
             $c->get(StaticRouterCache::class)    
         );
     });

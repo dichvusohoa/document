@@ -56,7 +56,7 @@ class LoginPageController extends BaseHtmlPageController{
     } 
     protected function uiContextAtFragment(string $strFragmentName): array {
         if($strFragmentName === 'login'){
-            $needTurnstile = $this->loginAttemptService->needTurnstile();
+            $needTurnstile = $this->apiController->needTurnstile();
             return ['needTurnstile' => $needTurnstile];
         }    
     }

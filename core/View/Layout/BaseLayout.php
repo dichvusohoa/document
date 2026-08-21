@@ -32,7 +32,7 @@ còn không cần thiết thì $deviceScreenFactory thường trả về null
 - Nhiệm vụ tiếp theo của Layout là khi layout file đã xác định rồi thì cần tìm ra các nhân tố có thể gây ra 
  tùy biến giao diện. Ví dụ với url request /school?area=xxx  thì đã xác định được layout là một
  table có 2 cột, cột trái là area, cột phải là list school theo area. Tuy nhiên tùy theo user là nomal và admin
- mà có thể xuất hiện các button như Add, Delete hay không. Thực hiện bằng mapToUiContext, thường là thường là userInfo nó chứa trong self::requestAuthContext->authInfo()['data']
+ mà có thể xuất hiện các button như Add, Delete hay không. Thực hiện bằng mapToUiContext, thường là thường là userInfo nó chứa trong self::requestAuthContext->auth()['data']
   
 3.Các điểm cần chú ý về thiết kế file layout
 File layout thể hiện ra được cấu trúc về hình học của các phân vùng, số lượng khối, vị trí tương quan của các phân vùng.

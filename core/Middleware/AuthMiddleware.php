@@ -6,7 +6,7 @@ use Core\Routing\AuthRegistry;
 use Core\Routing\RoleRegistry;
 use Core\Http\RequestAuthContext;
 use Core\Http\Response;
-use Core\Auth\AuthInfo;
+use Core\Auth\AuthResponse;
 use Core\Http\Session;
 use Core\Http\HttpException;
 class AuthMiddleware {
@@ -32,7 +32,7 @@ class AuthMiddleware {
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     protected function handleProhibitedBusinessPath(RequestAuthContext $requestAuthContext){
-        if(AuthInfo::isAuthenticated($requestAuthContext->authInfo())){
+        if(AuthResponse::isAuthenticated($requestAuthContext->auth())){
             throw new HttpException(403, 'không đủ quyền truy cập chức năng này');
         }
         $routeInfo = $requestAuthContext->routeInfo();

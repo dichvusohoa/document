@@ -1055,7 +1055,8 @@ BEGIN
         CASE
             WHEN u.subscriber_id IS NULL THEN am.registered_modules
             ELSE sm.registered_modules
-        END AS registered_modules
+        END AS registered_modules,
+        at.hashed_validator
     FROM auth_token at
     JOIN user u ON at.user_id = u.id
     LEFT JOIN user_roles ur ON u.id = ur.user_id

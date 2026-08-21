@@ -2,14 +2,14 @@
 
 namespace Core\Http;
 
-use Core\Auth\AuthInfo;
+use Core\Auth\AuthResponse;
 use InvalidArgumentException;
 
 class RequestAuthContext
 {
     protected Request $request;
 
-    protected array $arrAuthInfo;
+    protected array $arrAuthResponse;
 
     /*
      * Các property dưới đây chỉ có giá trị
@@ -25,16 +25,16 @@ class RequestAuthContext
 
     public function __construct(
         Request $request,
-        array $arrAuthInfo
+        array $arrAuthResponse
     ) {
-        if (!AuthInfo::isValid($arrAuthInfo)) {
+        if (!AuthResponse::isValid($arrAuthResponse)) {
             throw new InvalidArgumentException(
-                'arrAuthInfo có format không chính xác.'
+                'arrAuthResponse có format không chính xác.'
             );
         }
 
         $this->request = $request;
-        $this->arrAuthInfo = $arrAuthInfo;
+        $this->arrAuthResponse = $arrAuthResponse;
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
@@ -43,9 +43,9 @@ class RequestAuthContext
         return $this->request;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    public function authInfo(): array
+    public function auth(): array
     {
-        return $this->arrAuthInfo;
+        return $this->arrAuthResponse;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     public function mcao(): ?array
@@ -60,7 +60,7 @@ class RequestAuthContext
     /*---------------------------------------------------------------------------------------------------------------*/
     /*chú ý kêt quả trả về có định dạng [strRoleCode => strDisplayName, ....]*/
     public function userRoles(): array{
-        return $this->arrAuthInfo['data']['roles'];
+        return $this->arrAuthResponse['data']['roles'];
     }    
     /*---------------------------------------------------------------------------------------------------------------*/
     public function contextAcceptedRoles(): ?array{

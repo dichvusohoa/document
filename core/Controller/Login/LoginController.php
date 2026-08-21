@@ -75,9 +75,9 @@ class LoginController extends BaseController{
                     $iRememberExpireSecond);
         }
         $authData = $arrResp['data'];
-        unset($authData[UserInfo::FIELD_PASSWORD]);//lọc bỏ password không lưu vào auth
-        $authData[UserInfo::FIELD_CREATED_AT] = time();
-        $authData[UserInfo::FIELD_LAST_ACTIVITY] = time();
+        //unset($authData[UserInfo::FIELD_PASSWORD]);//lọc bỏ password không lưu vào auth
+        $authData[SessionInfo::FIELD_CREATED_AT] = time();
+        $authData[SessionInfo::FIELD_LAST_ACTIVITY] = time();
         Session::set('auth', $authData);
         return ['status'=> Response::SERVER_AUTHENTICATED_STATUS, 'data' => $authData , 'extra' => null];
     }
@@ -114,7 +114,7 @@ class LoginController extends BaseController{
         return !empty($response['success']);
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected function needTurnstile(): bool{
+    public function needTurnstile(): bool{
         $mixTurnstile = $this->arrAuthPolicy[AuthRegistry::FIELD_TURNSTILE];
         if($mixTurnstile === AuthRegistry::TURNSTILE_ALWAYS){
             return true;
