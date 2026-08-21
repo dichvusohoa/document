@@ -65,16 +65,18 @@ class LoginController extends BaseController{
             $authToken = new AuthToken();
             $iUserId = $arrResp['data'][UserInfo::FIELD_ID];
             $iRememberExpireSecond = $this->arrAuthPolicy[AuthRegistry::FIELD_REMEMBER_EXPIRE];
+            //nếu có DB Error thì $this->authService->tokenToDb sẽ throw ra luôn
             $exec = $this->authService->tokenToDb($authToken, $iUserId, $iRememberExpireSecond);
-            if (Response::isResponseError($exec)) {
+            /*if (Response::isResponseError($exec)) {
                 throw new RuntimeException('Could not store remember token');
-            }
+            }*/
             Cookie::set(['auth', 'token'], 
                     $authToken->cookieToken(), 
                     $iRememberExpireSecond);
         }
         $authData = $arrResp['data'];
         unset($authData[UserInfo::FIELD_PASSWORD]);//lọc bỏ password không lưu vào auth
+        $authData[UserInfo::FIELD_CREATED_AT] = time();
         $authData[UserInfo::FIELD_LAST_ACTIVITY] = time();
         Session::set('auth', $authData);
         return ['status'=> Response::SERVER_AUTHENTICATED_STATUS, 'data' => $authData , 'extra' => null];

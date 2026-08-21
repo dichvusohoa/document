@@ -4,15 +4,15 @@ use Core\Foundation\ErrorHandler;
 class Response {
     const RESPONSE_HTML_TYPE = 'html';
     const RESPONSE_JSON_TYPE = 'json';
-    
+    /*Mã lỗi thành công SERVER_OK_STATUS là chung nhất */
     const SERVER_OK_STATUS  = 'server_ok';
-    const SERVER_MAINTENANCE_STATUS  = 'server_maintenance_status'; /*hệ thống suspended*/
     const SERVER_AUTHENTICATED_STATUS = 'server_authenticated'; 
     const SERVER_UNAUTHENTICATED_STATUS = 'server_unauthenticated'; 
     /*Mã lỗi SERVER_ERR_STATUS là mã lỗi chung nhất thường được trả về khi xử lý dữ liệu bị lỗi*/
     const SERVER_ERR_STATUS = 'server_error'; 
-    /* khi muốn báo lỗi cụ thể hơn thì có thể dùng các mã lỗi sau */
+     /* khi muốn báo lỗi cụ thể hơn thì có thể dùng các mã lỗi sau */
     /* Thường khi run SQL bị lỗi cú pháp, bị lỗi vi phạm contraints ... có thể trả về lỗi này SERVER_DB_ERR_STATUS*/
+    const SERVER_MAINTENANCE_STATUS  = 'server_maintenance_status'; /*hệ thống suspended*/
     const SERVER_DB_ERR_STATUS = 'server_db_error';
     /*lỗi do logic dữ liệu. Ví dụ ta qui ước logic không được tạo các thực phẩm trùng tên trong database */
     const SERVER_LOGIC_ERR_STATUS = 'server_logic_error';
@@ -22,33 +22,41 @@ class Response {
     const SERVER_EXECUTE_ACCESS_FORBIDDEN = 'execute access forbidden';// 403 forbidden 
     const SERVER_RESOURCE_NOT_FOUND_STATUS = 'server_resource_not_found';// 404 not found 
     
+    public static array $OK_STATUSES = [
+        self::SERVER_OK_STATUS,
+        self::SERVER_AUTHENTICATED_STATUS,
+        self::SERVER_UNAUTHENTICATED_STATUS,
+        
+    ];
     public static array $ERROR_STATUSES = [
-        self::SERVER_ERR_STATUS,
+        self::SERVER_ERR_STATUS, 
+        self::SERVER_MAINTENANCE_STATUS,
         self::SERVER_DB_ERR_STATUS,
         self::SERVER_LOGIC_ERR_STATUS,
         self::SERVER_INCOMPLETE_STATUS,
-        self::SERVER_PARSE_ERR_STATUS
+        self::SERVER_PARSE_ERR_STATUS,
+        self::SERVER_EXECUTE_ACCESS_FORBIDDEN,
+        self::SERVER_RESOURCE_NOT_FOUND_STATUS
     ];
     
     /*---------------------------------------------------------------------------------------------------------------*/
     public static function isValid(mixed $response): bool {
-        //return is_array($response) && isset($response["status"]) && is_string($response["status"]) && array_key_exists("data", $response);
         return is_array($response) && 
         isset($response["status"]) && is_string($response["status"]) && 
         array_key_exists("data", $response)&&
         array_key_exists("extra", $response);       
     }
     /*---------------------------------------------------------------------------------------------------------------*/
+    public static function isResponseOK(mixed $response): bool {
+        return self::isValid($response) && in_array($response["status"], self::$OK_STATUSES);
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
     public static function isResponseError(mixed $response): bool {
         return self::isValid($response) && in_array($response["status"], self::$ERROR_STATUSES);
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    public static function isResponseOK(mixed $response): bool {
-        return self::isValid($response) && $response["status"] === self::SERVER_OK_STATUS;
-    }
-    /*---------------------------------------------------------------------------------------------------------------*/
     public static function isResponseEmpty(mixed $response): bool {
-        return self::isValid($response) && array_key_exists("data", $response) && ($response["data"] === null || $response["data"] === false);
+        return self::isResponseOK($response) && array_key_exists("data", $response) && $response["data"] === null ;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     protected static function getResponseType(): string {
@@ -60,7 +68,7 @@ class Response {
         $json = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         if ($json === false) {
             http_response_code(500);
-            $json = json_encode(['status' => self::SERVER_PARSE_ERR_STATUS, 'data' => 'JSON encoding failed', 'extra' => '']);
+            $json = json_encode(['status' => self::SERVER_PARSE_ERR_STATUS, 'data' => 'JSON encoding failed', 'extra' => null]);
         }
         echo $json;
         exit();

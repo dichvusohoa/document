@@ -15,13 +15,28 @@ class AuthInfo{
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     public static function isAuthenticated($arrData): bool {
-        return self::isValid($arrData) && 
-            $arrData['status'] === Response::SERVER_AUTHENTICATED_STATUS && isset($arrData['data']['id']) ;
+        return Response::isValid($arrData) && 
+            $arrData['status'] === Response::SERVER_AUTHENTICATED_STATUS ;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     public static function isUnauthenticated($arrData): bool {
         return self::isValid($arrData) && 
-            $arrData['status'] === Response::SERVER_UNAUTHENTICATED_STATUS ;
+            $arrData['status'] === Response::SERVER_UNAUTHENTICATED_STATUS;
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    public static function fromDbData(array $arrResp, string $strSPName ){
+        if (Response::isResponseError($arrResp)) {
+            throw new RuntimeException(
+                "Lỗi database khi lấy UserInfo từ {$strSPName}."
+            );
+        }
+        if (Response::isResponseEmpty($arrResp)) {
+            $arrResp['status'] = Response::SERVER_UNAUTHENTICATED_STATUS;
+            $arrResp['data'] = UserInfo::createGuest();
+            $arrResp['data'][UserInfo::FIELD_CREATED_AT] = time();
+        }
+        $arrResp['data'][UserInfo::FIELD_LAST_ACTIVITY] = time(); 
+        return $arrResp;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     

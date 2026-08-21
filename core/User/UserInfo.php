@@ -278,9 +278,9 @@ class UserInfo
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     public static function normalizeDbData(
-        string $strSPName,
-        string $strType,    
-        array $arrResp,
+        array   $arrResp,    
+        string  $strSPName,
+        string  $strType    
     ): array {
         //1. chặn trước các lỗi DB - đây là bước đầu tiên
         if (Response::isResponseError($arrResp)) {
@@ -420,5 +420,133 @@ class UserInfo
             );
         }
         return $arrResp;
+    }
+    
+    
+    /*---------------------------------------------------------------------------------------------------------------*/
+    /*Kiểm tra chuẩn hóa id và subscriber_id về số nguyên, registered_modules và roles dạng array*/
+    public static function normalizeDbData2(
+        string $strSPName,
+        string $strType,    
+        array $arrRespData,
+    ): array {
+       
+        if (!is_array($arrRespData)) {
+            throw new LogicException(
+                "{$strSPName} trả về field data không đúng format array."
+            );
+        }
+        //1.chuẩn hóa field: id và subscriber_id: filed phải tồn tại, 
+        //giá trị bằng null hoặc là số nguyên không âm
+        
+        foreach (
+            [self::FIELD_ID, self::FIELD_SUBSCRIBER_ID]
+            as $strField
+        ) 
+        {
+            if (!array_key_exists($strField, $arrRespData)) {
+                throw new LogicException(
+                    "{$strSPName} trả về thiếu field {$strField} của UserInfo."
+                );
+            }
+            if ($arrRespData[$strField] === null) {
+                continue;
+            }
+            try {
+                $arrRespData[$strField] =
+                    MathUtility::toNonNegativeInt(
+                        $arrRespData[$strField]
+                    );
+            }
+            catch (InvalidArgumentException $e) {
+                throw new LogicException(
+                    "{$strSPName} trả về field {$strField} "
+                    . 'không phải số nguyên không âm hợp lệ.',
+                    0,
+                    $e
+                );
+            }   
+        }
+        //2. chuẩn hóa và kiểm tra format của $arrResp, đề phòng store procedure trả về sai format
+        /*
+         * roles bắt buộc phải tồn tại và khác null.
+         */
+        $strFieldRoles = self::FIELD_ROLES;
+
+        if (!isset($arrRespData[$strFieldRoles]) || 
+            !is_string($arrRespData[$strFieldRoles])) {
+            throw new LogicException(
+                "{$strSPName} trả về thiếu field {$strFieldRoles} "
+                . 'của UserInfo hoặc giá trị bằng null hoặc giá trị không phải kiểu string'
+            );
+        }
+
+        /*
+         * registered_modules bắt buộc phải tồn tại,
+         * nhưng giá trị null là hợp lệ trong bài toán no-module.
+         */
+        $strFieldRegisteredModules = self::FIELD_REGISTERED_MODULES;
+
+        if (!array_key_exists(
+                $strFieldRegisteredModules,
+                $arrRespData
+            )
+            || (
+                $arrRespData[$strFieldRegisteredModules] !== null
+                && !is_string(
+                    $arrRespData[$strFieldRegisteredModules]
+                )
+            )
+        ) {
+            throw new LogicException(
+                "{$strSPName} trả về thiếu field "
+                . "{$strFieldRegisteredModules} của UserInfo hoặc giá trị không phải null/string"
+            );
+        }
+        try{
+            $arrRespData[$strFieldRoles] = json_decode(
+                $arrRespData[$strFieldRoles],
+                true,
+                512,
+                JSON_THROW_ON_ERROR
+            );
+            if ($arrRespData[$strFieldRegisteredModules] !== null) {
+                $arrRespData[$strFieldRegisteredModules] = json_decode(
+                    $arrRespData[$strFieldRegisteredModules],
+                    true,
+                    512,
+                    JSON_THROW_ON_ERROR
+                );
+            }
+        }
+        catch (JsonException $e) {
+            throw new LogicException(
+                "{$strSPName} trả về dữ liệu JSON không hợp lệ.",
+                0,
+                $e
+            );
+        }
+        /*
+         * Validate sau normalization.
+         */
+        switch ($strType) {
+            case self::DB_DATA_BASIC:
+                $boolValid = self::isValid($arrRespData);
+                break;
+            case self::DB_DATA_WITH_PASSWORD:
+                $boolValid = self::isValidWithPassword($arrRespData);
+                break;
+            default:
+                throw new InvalidArgumentException(
+                    __METHOD__
+                    . ": type '{$strType}' không hợp lệ."
+                );
+        }
+        if (!$boolValid) {
+            throw new UnexpectedValueException(
+                "{$strSPName} trả về dữ liệu UserInfo không đúng contract."
+            );
+        }
+        return $arrRespData;
     }
 }
