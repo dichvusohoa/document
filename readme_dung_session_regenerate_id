@@ -1,0 +1,5 @@
+Tóm lại khi nào bạn bắt buộc phải dùng?
+Bạn nên gọi session_regenerate_id(true) tại 3 thời điểm nhạy cảm này:
+Ngay sau khi người dùng đăng nhập thành công.
+Ngay sau khi người dùng đăng xuất (để xóa sạch dấu vết).
+Khi người dùng thực hiện các hành động nâng cao quyền hạn (ví dụ: vào trang quản trị Admin, thay đổi mật khẩu, hoặc thanh toán tiền).

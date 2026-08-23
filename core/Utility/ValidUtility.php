@@ -511,14 +511,21 @@ class ValidUtility
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
-    private static function validateOptions(
+    public static function validateOptions(
         array $arrOption,
         array $arrAllowedOption,
-        string $strMethod
+        string $strMethod,
+        int $iMaxOptionCount = 3    
     ): void {
-        if (count($arrOption) > 3) {
+        if ($iMaxOptionCount < 0) {
             throw new InvalidArgumentException(
-                "{$strMethod}: option chỉ được có tối đa 3 phần tử."
+                __METHOD__ . ': iMaxOptionCount không được nhỏ hơn 0.'
+            );
+        }
+        if (count($arrOption) > $iMaxOptionCount) {
+            throw new InvalidArgumentException(
+                "{$strMethod}: option chỉ được có tối đa "
+                . "{$iMaxOptionCount} phần tử."
             );
         }
 

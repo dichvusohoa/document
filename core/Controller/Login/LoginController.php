@@ -1,27 +1,30 @@
 <?php
 namespace Core\Controller\Login;
 use UnexpectedValueException;
-use RuntimeException;
 use Core\Http\Response;
 use Core\Http\Session;
 use Core\Http\Cookie;
 use Core\User\UserInfo;
+use Core\Auth\SessionInfo;
 use Core\Auth\AuthToken;
 use Core\Http\RequestAuthContext;
 use Core\Controller\BaseController;
 use Core\Auth\AuthService;
+use Core\Auth\AuthTokenService;
 use Core\Routing\AuthRegistry;
 use Core\Routing\MCAOInfo;
 use Core\Controller\Login\LoginAttemptService;
 
 class LoginController extends BaseController{
     protected AuthService $authService;
+    protected AuthTokenService $authTokenService;
     protected array $authPolicy;
     /*---------------------------------------------------------------------------------------------------------------*/
     public function __construct(
             RequestAuthContext $requestAuthContext, 
             AuthRegistry $authRegistry,
             AuthService $authService,
+            AuthTokenService $authTokenService,
             LoginAttemptService $loginAttemptService){
         parent::__construct($requestAuthContext);
         $arrMCAO = $requestAuthContext->mcao();
@@ -32,6 +35,7 @@ class LoginController extends BaseController{
         }
         $this->arrAuthPolicy = $arrAuthPolicy;
         $this->authService = $authService;
+        $this->authTokenService = $authTokenService;
         $this->loginAttemptService = $loginAttemptService;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
@@ -65,21 +69,16 @@ class LoginController extends BaseController{
             $authToken = new AuthToken();
             $iUserId = $arrResp['data'][UserInfo::FIELD_ID];
             $iRememberExpireSecond = $this->arrAuthPolicy[AuthRegistry::FIELD_REMEMBER_EXPIRE];
-            //nếu có DB Error thì $this->authService->tokenToDb sẽ throw ra luôn
-            $exec = $this->authService->tokenToDb($authToken, $iUserId, $iRememberExpireSecond);
-            /*if (Response::isResponseError($exec)) {
-                throw new RuntimeException('Could not store remember token');
-            }*/
+            //nếu có DB Error thì $this->authTokenService->tokenToDb sẽ throw ra luôn
+            //$exec = $this->authService->tokenToDb($authToken, $iUserId, $iRememberExpireSecond);
+            $this->authTokenService->tokenToDB($authToken, $iUserId, $iRememberExpireSecond);
             Cookie::set(['auth', 'token'], 
                     $authToken->cookieToken(), 
                     $iRememberExpireSecond);
         }
-        $authData = $arrResp['data'];
-        //unset($authData[UserInfo::FIELD_PASSWORD]);//lọc bỏ password không lưu vào auth
-        $authData[SessionInfo::FIELD_CREATED_AT] = time();
-        $authData[SessionInfo::FIELD_LAST_ACTIVITY] = time();
-        Session::set('auth', $authData);
-        return ['status'=> Response::SERVER_AUTHENTICATED_STATUS, 'data' => $authData , 'extra' => null];
+        $arrSessionInfo = SessionInfo::create($arrResp['data']);
+        Session::set('auth', $arrSessionInfo);
+        return ['status'=> Response::SERVER_AUTHENTICATED_STATUS, 'data' => $arrSessionInfo , 'extra' => null];
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     protected static function verifyTurnstile(?string $token): bool{

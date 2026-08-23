@@ -2,18 +2,15 @@
 namespace Core\Auth;
 use Core\Http\Session;
 use Core\User\UserInfo;
-use Core\Auth\SessionInfo;
 use Core\User\UserService;
 use Core\Http\Response;
 use Core\Http\Cookie;
 
 class AuthContext {
     protected UserService $userService;
-   // protected array $arrAuth;//lưu trữ lại dữ liệu authenticate
-
+ 
     public function __construct(UserService $userService){
         $this->userService = $userService;
-        //$this->arrAuth = [];
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     public function getAuth(): array{
@@ -22,22 +19,25 @@ class AuthContext {
             //chưa có thông tin lưu session => xác thực bằng session thất bại phải dùng cookie
             $arrAuth = $this->getAuthByCookie();
         }
-        /*đến bước cuối cùng này thì đánh giá tổng thể
-        và modify lại dữ liệu để thuận tiện cho việc xử lý bên ngoài  function
-        $auth["status"] có 2 khả năng:
-         *  SERVER_UNAUTHENTICATED_STATUS: 
-         *  do 
-         *      - không có token hoặc lỗi lưu trữ token trong cookie
-         *      - query dữ liệu ra empty hoặc có dữ liệu nhưng format không chuẩn
-         *  SERVER_AUTHENTICATED_STATUS
+         /*
+         * Sau getAuthBySession() và getAuthByCookie(),
+         * status chỉ còn:
+         *
+         * SERVER_UNAUTHENTICATED_STATUS:
+         * - không có remember token
+         * - token malformed
+         * - token không tồn tại / hết hạn
+         * - validator không khớp
+         *
+         * SERVER_AUTHENTICATED_STATUS:
+         * - xác thực thành công bằng session hoặc remember cookie
+         *
+         * Lỗi DB hoặc dữ liệu DB sai contract:
+         * - throw Exception, không chuyển thành unauthenticated.
          */
-        //kiểm tra và chuyển hướng kết thúc nếu phải login hoặc xảy ra Response::SERVER_DB_ERR_STATUS
-       // $arrAuthResponse['status'] = Response::SERVER_DB_ERR_STATUS;
-        
         if($arrAuth['data'] === null){
             //bổ sung các thông tin về guest user cho $auth["data"]
-            $arrAuth['data'] = UserInfo::createGuest();
-            $arrAuth['data'][SessionInfo::FIELD_CREATED_AT] = time(); 
+           $arrAuth['data'] = SessionInfo::create(UserInfo::createGuest());
         }
         //tới đây là trạng thái Response::SERVER_AUTHENTICATED_STATUS hoặc SERVER_UNAUTHENTICATED_STATUS
         $arrAuth['data'][SessionInfo::FIELD_LAST_ACTIVITY] = time(); 
@@ -52,25 +52,45 @@ class AuthContext {
      */
     protected function getAuthBySession(): array {
         $sessionInfo = Session::get('auth');
-        //$sessionInfo là chuẩn format
-        if(SessionInfo::isValid($sessionInfo)){  
-            $boolIdleExpired =
-                time() - $sessionInfo[SessionInfo::FIELD_LAST_ACTIVITY]
-                >= SESSION_IDLE_TIMEOUT;
-            $boolAbsoluteExpired =
-                time() - $sessionInfo[SessionInfo::FIELD_CREATED_AT]
-                >= SESSION_ABSOLUTE_TIMEOUT;
-            if ($boolIdleExpired || $boolAbsoluteExpired) {
-                Session::destroy();
-            }
-            else{
-                //field created_at, last_activity lưu và cập nhật ở sesssion, không cần dùng trong logic xử lý sau này
-                $status = $sessionInfo[UserInfo::FIELD_ID] === null ? Response::SERVER_UNAUTHENTICATED_STATUS : Response::SERVER_AUTHENTICATED_STATUS;
-                return ["status" => "$status", "data" => $sessionInfo, "extra" => "" ]; 
-            }
-            
+        if ($sessionInfo === null) {
+            //mục đích Session::reset(); là: Không có dữ liệu auth trong session hiện tại => sau này chương trình sẽ tạo data mới và ghi vào session
+            //thì session đó phải có session_id mới không trùng với session_id hiện tại
+            Session::reset();
+            return [
+                'status' => Response::SERVER_UNAUTHENTICATED_STATUS,
+                'data'   => null,
+                'extra'  => 'session missing'
+            ];
         }
-        return ["status" => Response::SERVER_UNAUTHENTICATED_STATUS, "data" => null, "extra" => "session expired or missing" ]; //chưa authenticate by session
+        if (!SessionInfo::isValid($sessionInfo)) {
+            //mục đích Session::reset(); là: hiện tại session dữ liệu không hợp lệ 
+            //=> 1) cần xóa dữ liệu không hợp lệ đó đi. 2)sau này chương trình sẽ tạo data mới và ghi vào session
+            //thì session đó phải có session_id mới không trùng với session_id hiện tại
+            Session::reset();
+            return [
+                'status' => Response::SERVER_UNAUTHENTICATED_STATUS,
+                'data'   => null,
+                'extra'  => 'invalid session data'
+            ];
+        }
+        //$sessionInfo là chuẩn format
+        $iNow = time();  
+        $boolIdleExpired =
+            $iNow - $sessionInfo[SessionInfo::FIELD_LAST_ACTIVITY]
+            >= SESSION_IDLE_TIMEOUT;
+        $boolAbsoluteExpired =
+            $iNow - $sessionInfo[SessionInfo::FIELD_CREATED_AT]
+            >= SESSION_ABSOLUTE_TIMEOUT;
+        if ($boolIdleExpired || $boolAbsoluteExpired) {
+            //Session::destroy();
+            //mục đích Session::reset(); là: hiện tại session dữ liệu đã hết hạn
+            //=> 1) cần xóa dữ liệu hết hạn đó đi. 2)sau này chương trình sẽ tạo data mới và ghi vào session
+            //thì session đó phải có session_id mới không trùng với session_id hiện tại
+            Session::reset();
+            return ['status' => Response::SERVER_UNAUTHENTICATED_STATUS, 'data' => null, 'extra' => 'session expired' ]; //chưa authenticate by session
+        }
+        $status = $sessionInfo[UserInfo::FIELD_ID] === null ? Response::SERVER_UNAUTHENTICATED_STATUS : Response::SERVER_AUTHENTICATED_STATUS;
+        return ['status' => $status, 'data' => $sessionInfo, 'extra' => null ]; 
     }
     /*---------------------------------------------------------------------------------------------------------------*/    
     /* return resp
@@ -78,27 +98,85 @@ class AuthContext {
      *  Response::SERVER_AUTHENTICATED_STATUS || 
      *  Response::SERVER_UNAUTHENTICATED_STATUS || 
      */
-    protected function getAuthByCookie(): array {
-        $strToken = Cookie::get(['auth','token']);
-        if($strToken === null || strpos($strToken,':') === false){
-            return ["status" => Response::SERVER_UNAUTHENTICATED_STATUS, "data" => null, "extra" => "cookie token is missing or malformed"];
+    protected function getAuthByCookie(): array
+    {
+        $strToken = Cookie::get(['auth', 'token']);
+
+        if ($strToken === null) {
+            return [
+                'status' => Response::SERVER_UNAUTHENTICATED_STATUS,
+                'data'   => null,
+                'extra'  => 'remember cookie is missing'
+            ];
         }
-        list($strLeftToken, $strRightToken) = explode(':', $strToken);
-        if (strlen($strLeftToken) !== AuthToken::LEFT_TOKEN_LENGTH || strlen($strRightToken) !== AuthToken::RIGHT_TOKEN_LENGTH) {
-            return ["status" => Response::SERVER_UNAUTHENTICATED_STATUS, "data" => null, "extra" => "invalid token structure: incorrect length"];
+
+        if (!is_string($strToken)) {
+            Cookie::remove('auth');
+
+            return [
+                'status' => Response::SERVER_UNAUTHENTICATED_STATUS,
+                'data'   => null,
+                'extra'  => 'remember cookie is malformed'
+            ];
         }
-        //$arrAuth['status'] chắc chắn bằng Response::SERVER_OK_STATUS
-        $arrAuth = $this->userService->getUserByToken($strLeftToken, $strRightToken);
-        
-        if(Response::isResponseEmpty($arrAuth)){ //database trả về null
-            $arrAuth['status'] = Response::SERVER_UNAUTHENTICATED_STATUS;
-            $arrAuth['extra']  = 'auth by token but data in database is empty';
+
+        $arrTokenPart = explode(':', $strToken);
+
+        if (count($arrTokenPart) !== 2) {
+            Cookie::remove('auth');
+
+            return [
+                'status' => Response::SERVER_UNAUTHENTICATED_STATUS,
+                'data'   => null,
+                'extra'  => 'remember cookie is malformed'
+            ];
+        }
+
+        [$strLeftToken, $strRightToken] = $arrTokenPart;
+
+        if (
+            strlen($strLeftToken) !== AuthToken::LEFT_TOKEN_LENGTH
+            || strlen($strRightToken) !== AuthToken::RIGHT_TOKEN_LENGTH
+            || !ctype_xdigit($strLeftToken)
+            || !ctype_xdigit($strRightToken)
+        ) {
+            Cookie::remove('auth');
+
+            return [
+                'status' => Response::SERVER_UNAUTHENTICATED_STATUS,
+                'data'   => null,
+                'extra'  => 'invalid token structure'
+            ];
+        }
+
+        $arrAuth = $this->userService->getUserByToken(
+            $strLeftToken,
+            $strRightToken
+        );
+
+        if (Response::isResponseEmpty($arrAuth)) {
+            Cookie::remove('auth');
+
+            $arrAuth['status'] =
+                Response::SERVER_UNAUTHENTICATED_STATUS;
+
+            $arrAuth['extra'] =
+                'remember token is invalid or expired';
+
             return $arrAuth;
         }
-        $arrAuth['data'][SessionInfo::FIELD_CREATED_AT] = time();
-        $arrAuth['data'][SessionInfo::FIELD_LAST_ACTIVITY] = time();
-        $arrAuth['status'] = Response::SERVER_AUTHENTICATED_STATUS;
-        $arrAuth['extra']  = 'auth by cookie';
+
+        $arrAuth['data'] =
+            SessionInfo::create($arrAuth['data']);
+
+        //Session::regenerateId(true);
+
+        $arrAuth['status'] =
+            Response::SERVER_AUTHENTICATED_STATUS;
+
+        $arrAuth['extra'] =
+            'auth by cookie';
+
         return $arrAuth;
     }
 

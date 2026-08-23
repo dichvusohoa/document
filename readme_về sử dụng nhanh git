@@ -10,6 +10,9 @@ git add .
 git commit -m "2026-08-21-11-38"
 git push
 
+git add .
+git commit -m "2026-08-21-22-42"
+git push
 
 2. Đẩy một vài  file lên 
 git add file1 file2

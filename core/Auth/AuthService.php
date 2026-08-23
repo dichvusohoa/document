@@ -2,8 +2,6 @@
 namespace Core\Auth;
 use Core\Http\Response;
 use Core\Http\RequestAuthContext;
-use Core\Auth\AuthToken;
-use Core\User\UserInfo;
 use Core\User\UserService;
 class AuthService{
     protected RequestAuthContext $requestAuthContext;
@@ -35,15 +33,5 @@ class AuthService{
         $arrResp['extra'] = null; //xóa bỏ thông tin mật khẩu
         return $arrResp;
     }
-    
-    public function tokenToDb(
-            AuthToken $authToken, 
-            int $iUserId, 
-            int $iRememberExpireSecond) {
-        return  $this->tokenService->tokenToDB(
-                    $authToken, 
-                    $iUserId, 
-                    $iRememberExpireSecond);
-            
-    }
+   
 }

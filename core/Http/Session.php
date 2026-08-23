@@ -1,106 +1,172 @@
 <?php
+
 namespace Core\Http;
-use \InvalidArgumentException;
-class Session {
-    public static function ensureStarted(): void {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
-        }
-    }
-    public static function get(null|array|string $arrElement = null, $default = null) {
-        self::ensureStarted();
-        if($arrElement === null){
-            return $_SESSION;
-        }
-        $arrChunk = $_SESSION;
-        // Nếu là chuỗi, chuyển thành mảng 1 phần tử
-        if (!is_array($arrElement)) {
-            $arrElement = [$arrElement];
-        }
-        // Nếu mảng rỗng thì trả về toàn bộ session
-        if (empty($arrElement)) {
-            return $arrChunk;
-        }
-        foreach ($arrElement as $element) {
-            if (!is_string($element)) {
-                throw new InvalidArgumentException("All elements in path must be strings");
-            }
 
-            if (is_array($arrChunk) && array_key_exists($element, $arrChunk)) {
-                $arrChunk = &$arrChunk[$element]; // Tiến sâu vào
-            } else {
-                return $default;
-            }
-        }
-        return $arrChunk;
-    }
+use RuntimeException;
+use Core\Utility\ArrayUtility;
 
-    public static function set(array|string $arrElement, $value): void {
-        self::ensureStarted();
-        if (!is_array($arrElement)) {
-            $arrElement = [$arrElement];
+class Session
+{
+    /*---------------------------------------------------------------------------------------------------------------*/
+    public static function ensureStarted(): void
+    {
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            return;
         }
-        if (empty($arrElement)) {
-            throw new InvalidArgumentException("Key path cannot be empty");
-        }
-        $arrChunk = &$_SESSION; //khởi tạo chắc chắn là array
-        foreach ($arrElement as $element) {
-            if (!is_string($element)) {
-                throw new InvalidArgumentException("All elements in key path must be strings");
-            }
-            if(!is_array($arrChunk)){
-                $arrChunk  = [];
-            }
-            if (!array_key_exists($element,$arrChunk)) {
-                $arrChunk[$element] = [];
-            }
-            $arrChunk = &$arrChunk[$element]; // Tiến sâu vào
-        }
-        // Gán giá trị tại điểm cuối
-        $arrChunk = $value;
-    }
 
-    public static function remove(array|string $arrElement): void {
-        self::ensureStarted();
-        if (!is_array($arrElement)) {
-            $arrElement = [$arrElement];
+        if (session_status() === PHP_SESSION_DISABLED) {
+            throw new RuntimeException(
+                'PHP session đang bị disabled.'
+            );
         }
-        if (empty($arrElement)) {
-            throw new InvalidArgumentException('Key path cannot be empty');
-        }
-        $arrChunk = &$_SESSION;
-        // Duyệt tới phần tử cha của phần cần xóa
-        $depth = count($arrElement);
-        for ($i = 0; $i < $depth - 1; $i++) {
-            $key = $arrElement[$i];
-            if (!is_string($key)) {
-                throw new InvalidArgumentException("All elements in key path must be strings");
-            }
-            if (is_array($arrChunk)&& array_key_exists($key, $arrChunk)) {
-                $arrChunk = &$arrChunk[$key];
-            }
-            else{
-                return;//không cần thiết phải xóa
-            }
-        }
-        // Xóa phần tử cuối nếu tồn tại và mảng cha hợp lệ
-        $lastKey = $arrElement[$depth - 1];
-        if (is_array($arrChunk) && array_key_exists($lastKey, $arrChunk)) {
-            unset($arrChunk[$lastKey]);
-        }
-    }
 
-    public static function destroy(): void {
-        self::ensureStarted();
-        $_SESSION = []; //dùng cả $_SESSION = [] và session_unset() cho chắc
-        session_unset(); //dùng cả $_SESSION = [] và session_unset() cho chắc
-        session_destroy();
-        if (ini_get("session.use_cookies")) { //chắc chắn rằng PHP dùng cookie lưu PHPSESSID 
-            $params = session_get_cookie_params();
-            setcookie(session_name(), '', time() - 42000,
-                $params["path"], $params["domain"],
-                $params["secure"], $params["httponly"]
+        if (!session_start()) {
+            throw new RuntimeException(
+                'Không thể khởi tạo PHP session.'
             );
         }
     }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    public static function get(
+        array|string $mixElement = [],
+        mixed $default = null
+    ): mixed {
+        self::ensureStarted();
+
+        $arrElement = ArrayUtility::normalizePath(
+            $mixElement,
+            true
+        );
+
+        return ArrayUtility::getByPath(
+            $_SESSION,
+            $arrElement,
+            $default
+        );
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    public static function set(
+        array|string $mixElement,
+        mixed $value
+    ): void {
+        self::ensureStarted();
+
+        $arrElement = ArrayUtility::normalizePath(
+            $mixElement,
+            false
+        );
+
+        ArrayUtility::setByPath(
+            $_SESSION,
+            $arrElement,
+            $value
+        );
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    public static function remove(
+        array|string $mixElement
+    ): void {
+        self::ensureStarted();
+
+        $arrElement = ArrayUtility::normalizePath(
+            $mixElement,
+            false
+        );
+
+        ArrayUtility::removeByPath(
+            $_SESSION,
+            $arrElement
+        );
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    /*
+     * Mục đích:
+     *
+     * 1) Sau hàm này, code trong request hiện tại truy cập $_SESSION
+     *    sẽ nhận được [] và không còn dữ liệu session cũ.
+     *
+     * 2) Nếu session ID được lưu bằng cookie thì yêu cầu browser
+     *    xóa session cookie.
+     *
+     * 3) Xóa dữ liệu của session hiện tại khỏi session storage
+     *    của server.
+     *
+     * 4) Xóa session cookie khỏi $_COOKIE của request hiện tại,
+     *    tránh việc session_start() tiếp theo trong cùng request
+     *    lấy lại session ID cũ từ $_COOKIE.
+     */
+    public static function destroy(): void
+    {
+        self::ensureStarted();
+
+        /*
+         * Xóa dữ liệu session trong request hiện tại.
+         */
+        $_SESSION = [];
+
+        /*
+         * Nếu PHP sử dụng cookie để truyền session ID
+         * thì yêu cầu browser xóa session cookie.
+         */
+        if (ini_get('session.use_cookies')) {
+            $strSessionName = session_name();
+            $arrCookieParams = session_get_cookie_params();
+
+            setcookie(
+                $strSessionName,
+                '',
+                [
+                    'expires'  => time() - 42000,
+                    'path'     => $arrCookieParams['path'],
+                    'domain'   => $arrCookieParams['domain'],
+                    'secure'   => $arrCookieParams['secure'],
+                    'httponly' => $arrCookieParams['httponly'],
+                    'samesite' => $arrCookieParams['samesite'],
+                ]
+            );
+
+            /*
+             * setcookie() chỉ tác động lên response gửi về browser,
+             * không tự thay đổi $_COOKIE trong request hiện tại.
+             */
+            unset($_COOKIE[$strSessionName]);
+        }
+
+        /*
+         * Xóa dữ liệu session gắn với session ID hiện tại
+         * khỏi session storage của server.
+         */
+        if (!session_destroy()) {
+            throw new RuntimeException(
+                'Không thể hủy PHP session.'
+            );
+        }
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    /*
+     * Xóa toàn bộ dữ liệu session hiện tại và chuyển sang
+     * một session ID mới.
+     *
+     * Session vẫn tiếp tục active sau hàm này.
+     */
+    public static function reset(): void
+    {
+        self::ensureStarted();
+
+        $_SESSION = [];
+
+        if (!session_regenerate_id(true)) {
+            throw new RuntimeException(
+                'Không thể tạo session ID mới.'
+            );
+        }
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    
 }

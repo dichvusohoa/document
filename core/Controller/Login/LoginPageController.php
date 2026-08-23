@@ -3,9 +3,10 @@ namespace Core\Controller\Login;
 use Core\Http\Response;
 use Core\Http\Session;
 use Core\Controller\BaseHtmlPageController;
+use Core\Controller\Login\LoginAttemptService;
 use Core\View\HtmlSchema\LoginPageSchema;
 use Core\Auth\AuthService;
-use Core\Controller\Login\LoginAttemptService;
+use Core\User\UserInfo;
 use Core\Routing\RoleRegistry;
 
 class LoginPageController extends BaseHtmlPageController{

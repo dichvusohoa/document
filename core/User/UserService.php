@@ -145,14 +145,14 @@ class UserService
          * password là field riêng của dữ liệu xác thực,
          * không thuộc UserInfo cơ bản.
          */
-        if (!isset($arrResp['data'][UserInfo::FIELD_PASSWORD])) {
+        if (!isset($arrResp['data']['password'])) {
             throw new LogicException(
                 'lib_spGetUserByNameAndRoles trả về thiếu field password '
                 . 'hoặc password bằng null.'
             );
         }
 
-        $strPassword = $arrResp['data'][UserInfo::FIELD_PASSWORD];
+        $strPassword = $arrResp['data']['password'];
 
         if (!is_string($strPassword) || $strPassword === '') {
             throw new LogicException(
@@ -160,7 +160,7 @@ class UserService
             );
         }
 
-        unset($arrResp['data'][UserInfo::FIELD_PASSWORD]);
+        unset($arrResp['data']['password']);
 
         $arrResp['data'] = UserInfo::normalizeDbData(
             'lib_spGetUserByNameAndRoles',
