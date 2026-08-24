@@ -1,6 +1,7 @@
 <?php
 namespace Core\Middleware;
 use \Closure;
+use UnexpectedValueException;
 use Core\Routing\RouteInfo;
 use Core\Routing\AuthRegistry;
 use Core\Routing\RoleRegistry;

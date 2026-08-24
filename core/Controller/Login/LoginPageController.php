@@ -7,6 +7,7 @@ use Core\Controller\Login\LoginAttemptService;
 use Core\View\HtmlSchema\LoginPageSchema;
 use Core\Auth\AuthService;
 use Core\User\UserInfo;
+use Core\Http\HttpException;
 use Core\Routing\RoleRegistry;
 
 class LoginPageController extends BaseHtmlPageController{

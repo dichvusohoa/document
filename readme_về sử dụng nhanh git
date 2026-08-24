@@ -6,12 +6,10 @@ git add .
 git commit -m "mô tả thay đổi"
 git push
 
-git add .
-git commit -m "2026-08-21-11-38"
-git push
+
 
 git add .
-git commit -m "2026-08-21-22-42"
+git commit -m "2026-08-23-21-42"
 git push
 
 2. Đẩy một vài  file lên 

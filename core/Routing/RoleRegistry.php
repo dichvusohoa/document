@@ -76,18 +76,18 @@ final class RoleRegistry
                     'trimmed'   => true
                 ]
             );
-
+            
             ValidUtility::validateRequiredField(
                 $arrRoleInfo,
                 self::FIELD_DEFAULT_BUSINESS_URL,
                 $strContext,
                 [
-                    'type'      => 'string',
+                    'type'      => '?string',
                     'non_empty' => true,
                     'trimmed'   => true
                 ]
             );
-
+            
             ValidUtility::validateRequiredField(
                 $arrRoleInfo,
                 self::FIELD_WEIGHT,

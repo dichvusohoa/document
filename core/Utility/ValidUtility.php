@@ -213,31 +213,53 @@ class ValidUtility
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
-    /**
+        /**
      * Kiểm tra field bắt buộc.
+     *
+     * Field luôn bắt buộc phải tồn tại.
      *
      * Option là array phẳng, tối đa 3 phần tử.
      * Nếu có option thì bắt buộc phải có 'type'.
      *
-     * type = string:
-     *   non_empty => bool
-     *   trimmed   => bool
-     *   values    => array
+     * Nullable được biểu diễn trực tiếp trong type bằng dấu "?" ở đầu,
+     * tương tự cú pháp nullable type của PHP.
      *
-     * type = int:
-     *   min       => int
+     * Ví dụ:
      *
-     * type = bool:
-     *   không có option bổ sung
+     *   ['type' => 'string']
+     *       Field phải là string và không được null.
      *
-     * type = array:
-     *   non_empty => bool
-     *   unique    => bool
+     *   ['type' => '?string']
+     *       Field có thể là string hoặc null.
      *
-     * type = string_list:
-     *   non_empty      => bool
-     *   item_non_empty => bool
-     *   unique         => bool
+     *   ['type' => '?string', 'non_empty' => true, 'trimmed' => true]
+     *       Field có thể là null.
+     *       Nếu khác null thì phải là string không rỗng và đã trim.
+     *
+     * Dấu "?" chỉ cho phép value = null.
+     * Nó không làm field trở thành optional.
+     *
+     * Các type hỗ trợ:
+     *
+     *   string | ?string
+     *       non_empty => bool
+     *       trimmed   => bool
+     *       values    => array
+     *
+     *   int | ?int
+     *       min       => int
+     *
+     *   bool | ?bool
+     *       không có option bổ sung
+     *
+     *   array | ?array
+     *       non_empty => bool
+     *       unique    => bool
+     *
+     *   string_list | ?string_list
+     *       non_empty      => bool
+     *       item_non_empty => bool
+     *       unique         => bool
      */
     public static function validateRequiredField(
         array $arrData,
@@ -251,39 +273,131 @@ class ValidUtility
             $strParentPath
         );
 
+        /*
+         * Field bắt buộc phải tồn tại.
+         *
+         * nullable chỉ cho phép value = null,
+         * không cho phép thiếu field.
+         */
         if (!array_key_exists($strFieldName, $arrData)) {
             throw new UnexpectedValueException(
                 "{$strContext} thiếu field '{$strFieldPath}'."
             );
         }
 
+        /*
+         * Không có option:
+         * chỉ yêu cầu field tồn tại.
+         */
         if ($arrOption === []) {
             return;
         }
-
-        self::validateOptions(
-            $arrOption,
-            ['type', 'non_empty', 'trimmed', 'values', 'min', 'unique', 'item_non_empty'],
-            __METHOD__
-        );
-
-        if (!array_key_exists('type', $arrOption) || !is_string($arrOption['type'])) {
+        if (
+            !array_key_exists('type', $arrOption)
+            || !is_string($arrOption['type'])
+            || $arrOption['type'] === ''
+        ) {
             throw new InvalidArgumentException(
-                __METHOD__ . ": option 'type' là bắt buộc và phải là string."
+                __METHOD__
+                . ": option 'type' là bắt buộc và phải là string không rỗng."
             );
         }
 
-        $mixFieldValue = $arrData[$strFieldName];
+        /*
+         * Parse nullable type.
+         *
+         * Ví dụ:
+         *
+         *   string   -> nullable = false, type = string
+         *   ?string  -> nullable = true,  type = string
+         */
         $strType = $arrOption['type'];
+        $boolNullable = str_starts_with(
+            $strType,
+            '?'
+        );
+
+        if ($boolNullable) {
+            $strType = substr(
+                $strType,
+                1
+            );
+
+            if ($strType === '') {
+                throw new InvalidArgumentException(
+                    __METHOD__
+                    . ": option 'type' không hợp lệ."
+                );
+            }
+        }
+
+        /*
+         * Xác định các option được phép theo type.
+         *
+         * Phải kiểm tra rule trước khi xử lý nullable để tránh
+         * trường hợp value = null làm che mất lỗi cấu hình option.
+         */
+        $arrAllowedOption = match ($strType) {
+            'string' => [
+                'type',
+                'non_empty',
+                'trimmed',
+                'values'
+            ],
+
+            'int' => [
+                'type',
+                'min'
+            ],
+
+            'bool' => [
+                'type'
+            ],
+
+            'array' => [
+                'type',
+                'non_empty',
+                'unique'
+            ],
+
+            'string_list' => [
+                'type',
+                'non_empty',
+                'item_non_empty',
+                'unique'
+            ],
+
+            default => throw new InvalidArgumentException(
+                __METHOD__
+                . ": type '{$arrOption['type']}' không được hỗ trợ."
+            )
+        };
+
+        self::validateOptions(
+            $arrOption,
+            $arrAllowedOption,
+            __METHOD__
+        );
+
+        $mixFieldValue = $arrData[$strFieldName];
+
+        /*
+         * Nếu nullable type và value = null thì hợp lệ.
+         *
+         * Nếu type không nullable thì null vẫn là dữ liệu không hợp lệ.
+         */
+        if ($mixFieldValue === null) {
+            if ($boolNullable) {
+                return;
+            }
+
+            throw new UnexpectedValueException(
+                "{$strContext} field '{$strFieldPath}' không được là null."
+            );
+        }
 
         switch ($strType) {
             case 'string':
-                self::validateOptions(
-                    $arrOption,
-                    ['type', 'non_empty', 'trimmed', 'values'],
-                    __METHOD__
-                );
-
                 if (!is_string($mixFieldValue)) {
                     throw new UnexpectedValueException(
                         "{$strContext} field '{$strFieldPath}' phải là string; "
@@ -293,13 +407,19 @@ class ValidUtility
                     );
                 }
 
-                if (self::boolOption($arrOption, 'non_empty') && $mixFieldValue === '') {
+                if (
+                    self::boolOption($arrOption, 'non_empty')
+                    && $mixFieldValue === ''
+                ) {
                     throw new UnexpectedValueException(
                         "{$strContext} field '{$strFieldPath}' không được rỗng."
                     );
                 }
 
-                if (self::boolOption($arrOption, 'trimmed') && $mixFieldValue !== trim($mixFieldValue)) {
+                if (
+                    self::boolOption($arrOption, 'trimmed')
+                    && $mixFieldValue !== trim($mixFieldValue)
+                ) {
                     throw new UnexpectedValueException(
                         "{$strContext} field '{$strFieldPath}' không được có "
                         . 'khoảng trắng ở đầu hoặc cuối.'
@@ -309,12 +429,22 @@ class ValidUtility
                 if (array_key_exists('values', $arrOption)) {
                     if (!is_array($arrOption['values'])) {
                         throw new InvalidArgumentException(
-                            __METHOD__ . ": option 'values' phải là array."
+                            __METHOD__
+                            . ": option 'values' phải là array."
                         );
                     }
 
-                    if (!in_array($mixFieldValue, $arrOption['values'], true)) {
-                        $strAllowedValues = implode("', '", $arrOption['values']);
+                    if (
+                        !in_array(
+                            $mixFieldValue,
+                            $arrOption['values'],
+                            true
+                        )
+                    ) {
+                        $strAllowedValues = implode(
+                            "', '",
+                            $arrOption['values']
+                        );
 
                         throw new UnexpectedValueException(
                             "{$strContext} field '{$strFieldPath}' có giá trị "
@@ -323,15 +453,10 @@ class ValidUtility
                         );
                     }
                 }
+
                 break;
 
             case 'int':
-                self::validateOptions(
-                    $arrOption,
-                    ['type', 'min'],
-                    __METHOD__
-                );
-
                 if (!is_int($mixFieldValue)) {
                     throw new UnexpectedValueException(
                         "{$strContext} field '{$strFieldPath}' phải là int; "
@@ -344,7 +469,8 @@ class ValidUtility
                 if (array_key_exists('min', $arrOption)) {
                     if (!is_int($arrOption['min'])) {
                         throw new InvalidArgumentException(
-                            __METHOD__ . ": option 'min' phải là int."
+                            __METHOD__
+                            . ": option 'min' phải là int."
                         );
                     }
 
@@ -356,15 +482,10 @@ class ValidUtility
                         );
                     }
                 }
+
                 break;
 
             case 'bool':
-                self::validateOptions(
-                    $arrOption,
-                    ['type'],
-                    __METHOD__
-                );
-
                 if (!is_bool($mixFieldValue)) {
                     throw new UnexpectedValueException(
                         "{$strContext} field '{$strFieldPath}' phải là boolean; "
@@ -373,66 +494,70 @@ class ValidUtility
                         . '.'
                     );
                 }
+
                 break;
 
             case 'array':
-                self::validateOptions(
-                    $arrOption,
-                    ['type', 'non_empty', 'unique'],
-                    __METHOD__
-                );
-
                 if (!is_array($mixFieldValue)) {
                     throw new UnexpectedValueException(
                         "{$strContext} field '{$strFieldPath}' phải là array."
                     );
                 }
 
-                if (self::boolOption($arrOption, 'non_empty') && $mixFieldValue === []) {
+                if (
+                    self::boolOption($arrOption, 'non_empty')
+                    && $mixFieldValue === []
+                ) {
                     throw new UnexpectedValueException(
-                        "{$strContext} field '{$strFieldPath}' không được là array rỗng."
+                        "{$strContext} field '{$strFieldPath}' "
+                        . 'không được là array rỗng.'
                     );
                 }
 
                 if (
                     self::boolOption($arrOption, 'unique')
-                    && count($mixFieldValue) !== count(array_unique($mixFieldValue))
+                    && count($mixFieldValue)
+                        !== count(array_unique($mixFieldValue))
                 ) {
                     throw new UnexpectedValueException(
                         "{$strContext} field '{$strFieldPath}' "
                         . 'không được chứa giá trị trùng nhau.'
                     );
                 }
+
                 break;
 
             case 'string_list':
-                self::validateOptions(
-                    $arrOption,
-                    ['type', 'non_empty', 'item_non_empty', 'unique'],
-                    __METHOD__
-                );
-
                 $arrListOption = [];
-                foreach (['non_empty', 'item_non_empty', 'unique'] as $strOptionName) {
+
+                foreach (
+                    [
+                        'non_empty',
+                        'item_non_empty',
+                        'unique'
+                    ] as $strOptionName
+                ) {
                     if (array_key_exists($strOptionName, $arrOption)) {
-                        $arrListOption[$strOptionName] = $arrOption[$strOptionName];
+                        $arrListOption[$strOptionName]
+                            = $arrOption[$strOptionName];
                     }
                 }
 
-                if (!self::isStringList($mixFieldValue, $arrListOption)) {
+                if (
+                    !self::isStringList(
+                        $mixFieldValue,
+                        $arrListOption
+                    )
+                ) {
                     throw new UnexpectedValueException(
-                        "{$strContext} field '{$strFieldPath}' "
-                        . 'không đúng format string list yêu cầu.'
-                    );
-                }
-                break;
-
-            default:
-                throw new InvalidArgumentException(
-                    __METHOD__ . ": type '{$strType}' không được hỗ trợ."
+                    "{$strContext} field '{$strFieldPath}' "
+                    . 'không đúng format string list yêu cầu.'
                 );
-        }
+            }
+
+            break;
     }
+}
 
     /*---------------------------------------------------------------------------------------------------------------*/
     /**
