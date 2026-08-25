@@ -44,7 +44,7 @@ abstract class BaseUserInfo
      * ];
      */
     protected const EXTENSION_FIELDS = [];
-
+    protected const EXTENSION_SP_NAME = null;
     /*---------------------------------------------------------------------------------------------------------------*/
     /**
      * Kiểm tra UserInfo hoàn chỉnh:
@@ -70,6 +70,11 @@ abstract class BaseUserInfo
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
+    public static function extensionSPName(): ?string
+    {
+        return static::EXTENSION_SP_NAME;
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
     /**
      * Tạo UserInfo guest hoàn chỉnh.
      */
@@ -93,12 +98,21 @@ abstract class BaseUserInfo
 
     /*---------------------------------------------------------------------------------------------------------------*/
     /**
-     * Chuẩn hóa record UserInfo lấy từ DB.
+     * Chuẩn hóa UserInfo đầy đủ lấy từ DB.
      *
-     * $arrData phải chỉ chứa các field thuộc UserInfo.
+     * $arrData khi truyền vào phải đã chứa đầy đủ:
      *
-     * Các field phụ như password phải được caller xử lý
-     * và loại bỏ trước khi gọi hàm này.
+     * - các base fields;
+     * - các extension fields của UserInfo tại Application.
+     *
+     * Việc gọi các stored procedure cần thiết và merge dữ liệu
+     * thành $arrData hoàn chỉnh là trách nhiệm của caller.
+     *
+     * Hàm này chỉ chịu trách nhiệm:
+     *
+     * - normalize base fields;
+     * - normalize extension fields;
+     * - validate UserInfo hoàn chỉnh.
      */
     public static function normalizeDbData(
         string $strSPName,

@@ -112,7 +112,11 @@ class UserService
         unset(
             $arrResp['data']['hashed_validator']
         );
-
+        //bổ sung thông tin mở rộng cho userInfo nếu có
+        $arrResp['data'] =
+            $this->extendUserInfo(
+            $arrResp['data']
+        );
         /*
          * Từ đây data phải đúng contract UserInfo
          * thực sự của application.
@@ -196,7 +200,11 @@ class UserService
         unset(
             $arrResp['data'][self::DB_FIELD_PASSWORD]
         );
-
+        //bổ sung thêm thông tin cho UserInfo nếu có
+        $arrResp['data'] =
+        $this->extendUserInfo(
+            $arrResp['data']
+        );
         /*
          * Normalize bằng UserInfo thực sự của application.
          */
@@ -211,5 +219,65 @@ class UserService
         $arrResp['extra'] = $strPassword;
 
         return $arrResp;
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    protected function extendUserInfo(
+        array $arrUserInfo
+    ): array {
+        $strUserInfoFQCN =
+            $this->strUserInfoFQCN;
+
+        $strExtensionSPName =
+            $strUserInfoFQCN::extensionSPName();
+
+        if ($strExtensionSPName === null) {
+            return $arrUserInfo;
+        }
+
+        /*
+         * id lúc này đến trực tiếp từ Core SP.
+         */
+        $iUserId = (int)$arrUserInfo[
+            BaseUserInfo::FIELD_ID
+        ];
+
+        $arrExtResp =
+            $this->dbService->fetchOne(
+                $strExtensionSPName,
+                [
+                    'pUserId' => $iUserId
+                ]
+            );
+
+        if ($arrExtResp['data'] === null) {
+            throw new UnexpectedValueException(
+                "{$strExtensionSPName} không trả về "
+                . "UserInfo extension cho user id {$iUserId}."
+            );
+        }
+
+        $arrExtension =
+            $arrExtResp['data'];
+
+        /*
+         * Extension không được ghi đè dữ liệu
+         * đã được Core SP cung cấp.
+         */
+        $arrConflict = array_intersect_key(
+            $arrExtension,
+            $arrUserInfo
+        );
+
+        if ($arrConflict !== []) {
+            throw new UnexpectedValueException(
+                "{$strExtensionSPName} trả về field "
+                . 'trùng với BaseUserInfo.'
+            );
+        }
+
+        return array_merge(
+            $arrUserInfo,
+            $arrExtension
+        );
     }
 }
