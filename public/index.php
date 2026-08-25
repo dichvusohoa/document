@@ -7,14 +7,11 @@
     use Core\Database\Connection\Connection;
     use Core\Http\Request;
     use Core\Auth\AuthContext;
-    
+    use Core\User\BaseUserInfo;
+    use Core\Auth\SessionInfo;
     use Core\View\Layout\BaseLayout;
     use Core\View\Layout\BaseMobileDetectFactory;
     use Core\View\Layout\BaseDeviceScreenFactory;
-    use App\View\Layout\Layout;
-    use App\View\Layout\MobileDetectFactory;
-    use App\View\Layout\DeviceScreenFactory;
-    
     use Core\Http\RequestAuthContext;
     use Core\Routing\StaticRouter;
     use Core\Routing\ContextRouter;
@@ -24,6 +21,13 @@
     
     use Core\Cache\StaticRouterCache;
     use Core\Foundation\ErrorHandler;
+    
+    use App\User\UserInfo;
+    use App\View\Layout\Layout;
+    use App\View\Layout\MobileDetectFactory;
+    use App\View\Layout\DeviceScreenFactory;
+    
+    
     
    // use App\Controller\HtmlPage\LoginPageController;
     //use Core\Controller\ControllerFactory;
@@ -53,7 +57,15 @@
             $c->get(BaseDeviceScreenFactory::class)    
         );
     });
-    
+
+    $strUserInfoFQCN = UserInfo::class;
+    $container->set(
+        BaseUserInfo::class,
+        $strUserInfoFQCN
+    );
+    SessionInfo::setUserInfoFQCN(
+        $strUserInfoFQCN
+    );
     //2.Begin chỉ set các class có contructor đặc biệt không tạo tự động được 
     $container->set(Connection::class, function ($c) {
         $cfg = loadCfgConnection();

@@ -3,27 +3,21 @@ namespace Core\Controller\Login;
 use Core\Http\Response;
 use Core\Http\Session;
 use Core\Controller\BaseHtmlPageController;
-use Core\Controller\Login\LoginAttemptService;
 use Core\View\HtmlSchema\LoginPageSchema;
-use Core\Auth\AuthService;
-use Core\User\UserInfo;
+use Core\User\BaseUserInfo;
 use Core\Http\HttpException;
 use Core\Routing\RoleRegistry;
 
 class LoginPageController extends BaseHtmlPageController{
     protected LoginController $apiController;
-    protected AuthService $authService;
-    protected LoginAttemptService $loginAttemptService;
     protected RoleRegistry $roleRegistry;
     
     public function __construct(
             LoginPageSchema $schema, 
             LoginController $apiController,
-            LoginAttemptService $loginAttemptService,
             RoleRegistry $roleRegistry){
         parent::__construct($schema);
         $this->apiController = $apiController;
-        $this->loginAttemptService = $loginAttemptService;
         $this->roleRegistry = $roleRegistry;
     }
     
@@ -68,7 +62,7 @@ class LoginPageController extends BaseHtmlPageController{
             //$arrRoleCode = array_keys($this->requestAuthContext->userRoles());
             //Lý do vì $arrResp['data']['roles'] là array có format:[roleCode => displayName,...]
             $arrRoleCode = array_keys(
-                $arrResp['data'][UserInfo::FIELD_ROLES]
+                $arrResp['data'][BaseUserInfo::FIELD_ROLES]
             );
             $strUrl = Session::get('intended_url') ?? 
             $this->roleRegistry->findDefaultBusinessUrlByRoles($arrRoleCode);

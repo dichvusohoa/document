@@ -1,16 +1,20 @@
 <?php
 namespace Core\Auth;
 use Core\Http\Session;
-use Core\User\UserInfo;
+use Core\User\BaseUserInfo;
 use Core\User\UserService;
 use Core\Http\Response;
 use Core\Http\Cookie;
 
 class AuthContext {
     protected UserService $userService;
- 
-    public function __construct(UserService $userService){
+    protected string $strUserInfoFQCN;
+    
+    public function __construct(
+            UserService $userService,
+            BaseUserInfo $userInfo){
         $this->userService = $userService;
+        $this->strUserInfoFQCN = $userInfo::class;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     public function getAuth(): array{
@@ -37,7 +41,11 @@ class AuthContext {
          */
         if($arrAuth['data'] === null){
             //bổ sung các thông tin về guest user cho $auth["data"]
-           $arrAuth['data'] = SessionInfo::create(UserInfo::createGuest());
+            $strUserInfoFQCN = $this->strUserInfoFQCN;
+            $arrAuth['data'] =
+            SessionInfo::create(
+                $strUserInfoFQCN::createGuest()
+            );
         }
         //tới đây là trạng thái Response::SERVER_AUTHENTICATED_STATUS hoặc SERVER_UNAUTHENTICATED_STATUS
         $arrAuth['data'][SessionInfo::FIELD_LAST_ACTIVITY] = time(); 
@@ -51,8 +59,8 @@ class AuthContext {
      * Response::SERVER_UNAUTHENTICATED_STATUS
      */
     protected function getAuthBySession(): array {
-        $sessionInfo = Session::get('auth');
-        if ($sessionInfo === null) {
+        $arrSessionInfo = Session::get('auth');
+        if ($arrSessionInfo === null) {
             //mục đích Session::reset(); là: Không có dữ liệu auth trong session hiện tại => sau này chương trình sẽ tạo data mới và ghi vào session
             //thì session đó phải có session_id mới không trùng với session_id hiện tại
             Session::reset();
@@ -62,7 +70,7 @@ class AuthContext {
                 'extra'  => 'session missing'
             ];
         }
-        if (!SessionInfo::isValid($sessionInfo)) {
+        if (!SessionInfo::isValid($arrSessionInfo)) {
             //mục đích Session::reset(); là: hiện tại session dữ liệu không hợp lệ 
             //=> 1) cần xóa dữ liệu không hợp lệ đó đi. 2)sau này chương trình sẽ tạo data mới và ghi vào session
             //thì session đó phải có session_id mới không trùng với session_id hiện tại
@@ -73,13 +81,13 @@ class AuthContext {
                 'extra'  => 'invalid session data'
             ];
         }
-        //$sessionInfo là chuẩn format
+        //$arrSessionInfo là chuẩn format
         $iNow = time();  
         $boolIdleExpired =
-            $iNow - $sessionInfo[SessionInfo::FIELD_LAST_ACTIVITY]
+            $iNow - $arrSessionInfo[SessionInfo::FIELD_LAST_ACTIVITY]
             >= SESSION_IDLE_TIMEOUT;
         $boolAbsoluteExpired =
-            $iNow - $sessionInfo[SessionInfo::FIELD_CREATED_AT]
+            $iNow - $arrSessionInfo[SessionInfo::FIELD_CREATED_AT]
             >= SESSION_ABSOLUTE_TIMEOUT;
         if ($boolIdleExpired || $boolAbsoluteExpired) {
             //Session::destroy();
@@ -89,8 +97,8 @@ class AuthContext {
             Session::reset();
             return ['status' => Response::SERVER_UNAUTHENTICATED_STATUS, 'data' => null, 'extra' => 'session expired' ]; //chưa authenticate by session
         }
-        $status = $sessionInfo[UserInfo::FIELD_ID] === null ? Response::SERVER_UNAUTHENTICATED_STATUS : Response::SERVER_AUTHENTICATED_STATUS;
-        return ['status' => $status, 'data' => $sessionInfo, 'extra' => null ]; 
+        $strStatus = $arrSessionInfo[BaseUserInfo::FIELD_ID] === null ? Response::SERVER_UNAUTHENTICATED_STATUS : Response::SERVER_AUTHENTICATED_STATUS;
+        return ['status' => $strStatus, 'data' => $arrSessionInfo, 'extra' => null ]; 
     }
     /*---------------------------------------------------------------------------------------------------------------*/    
     /* return resp

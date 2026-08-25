@@ -1,24 +1,32 @@
 <?php
+
 namespace Core\User;
+
+use LogicException;
+use JsonException;
+use UnexpectedValueException;
+use InvalidArgumentException;
 use Core\Utility\ValidUtility;
-class UserInfo
+use Core\Utility\MathUtility;
+/*3 function isExtensionValid, extendGuest, normalizeExtensionDbData nên được override lại ở các lớp thừa kế
+ * thêm EXTENSION_FIELDS nữa
+ * 3 function isValid, createGuest, normalizeDbData giao tiếp ra bên ngoài
+ */
+/*---------------------------------------------------------------------------------------------------------------*/
+abstract class BaseUserInfo
 {
     public const FIELD_ID                 = 'id';
     public const FIELD_NAME               = 'name';
-    public const FIELD_PASSWORD           = 'password';
     public const FIELD_SUBSCRIBER_ID      = 'subscriber_id';
     public const FIELD_ROLES              = 'roles';
     public const FIELD_REGISTERED_MODULES = 'registered_modules';
-    public const FIELD_LAST_ACTIVITY      = 'last_activity';
 
-    private const GUEST_ROLE = 'guest';
+    protected const GUEST_ROLE = 'guest';
 
     /*
-     * UserInfo thuần.
-     *
-     * Được sử dụng trong AuthInfo, RequestAuthContext...
+     * Các field thuộc contract lõi của UserInfo.
      */
-    private const FIELDS = [
+    private const BASE_FIELDS = [
         self::FIELD_ID,
         self::FIELD_NAME,
         self::FIELD_SUBSCRIBER_ID,
@@ -27,130 +35,109 @@ class UserInfo
     ];
 
     /*
-     * Dữ liệu user do stored procedure phục vụ authentication trả về.
+     * UserInfo của App override constant này khi cần thêm field.
      *
-     * UserInfo + password.
-     */
-    private const FIELDS_WITH_PASSWORD = [
-        self::FIELD_ID,
-        self::FIELD_NAME,
-        self::FIELD_PASSWORD,
-        self::FIELD_SUBSCRIBER_ID,
-        self::FIELD_ROLES,
-        self::FIELD_REGISTERED_MODULES
-    ];
-
-    /*
-     * Dữ liệu user được lưu trong Session['auth'].
+     * Ví dụ:
      *
-     * UserInfo + last_activity.
+     * protected const EXTENSION_FIELDS = [
+     *     self::FIELD_SCHOOL_ID
+     * ];
      */
-    private const FIELDS_WITH_LAST_ACTIVITY = [
-        self::FIELD_ID,
-        self::FIELD_NAME,
-        self::FIELD_SUBSCRIBER_ID,
-        self::FIELD_ROLES,
-        self::FIELD_REGISTERED_MODULES,
-        self::FIELD_LAST_ACTIVITY
-    ];
-
-    /*---------------------------------------------------------------------------------------------------------------*/
-    public static function createGuest(): array
-    {
-        return [
-            self::FIELD_ID            => null,
-            self::FIELD_NAME          => null,
-            self::FIELD_SUBSCRIBER_ID => null,
-
-            self::FIELD_ROLES => [
-                self::GUEST_ROLE => 'khách'
-            ],
-
-            /*
-             * Contract:
-             *
-             * [
-             *     module_id => module_name,
-             *     ...
-             * ]
-             */
-            self::FIELD_REGISTERED_MODULES => GUEST_ACCESSIBLE_MODULES
-        ];
-    }
+    protected const EXTENSION_FIELDS = [];
 
     /*---------------------------------------------------------------------------------------------------------------*/
     /**
-     * Kiểm tra UserInfo thuần.
+     * Kiểm tra UserInfo hoàn chỉnh:
+     *
+     * BaseUserInfo
+     * +
+     * extension của UserInfo thực sự tại App.
      */
     public static function isValid(mixed $arrData): bool
     {
-        return ValidUtility::hasExactFields(
+        if (!ValidUtility::hasExactFields(
             $arrData,
-            self::FIELDS
-        )
-        && self::isValidCommonData($arrData);
+            array_merge(
+                self::BASE_FIELDS,
+                static::EXTENSION_FIELDS
+            )
+        )) {
+            return false;
+        }
+
+        return static::isBaseValid($arrData)
+            && static::isExtensionValid($arrData);
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
     /**
-     * Kiểm tra dữ liệu user do stored procedure phục vụ authentication trả về.
-     *
-     * Contract:
-     *
-     * UserInfo + password
+     * Tạo UserInfo guest hoàn chỉnh.
      */
-    public static function isValidWithPassword(mixed $arrData): bool
+    public static function createGuest(): array
     {
-        return ValidUtility::hasExactFields(
-            $arrData,
-            self::FIELDS_WITH_PASSWORD
-        )
-        && self::isValidCommonData($arrData)
+        $arrUserInfo = static::createBaseGuest();
 
-        /*
-         * Stored procedure phục vụ authentication chỉ trả user thực,
-         * không trả guest.
-         */
-        && $arrData[self::FIELD_ID] !== null
-
-        && ValidUtility::isNonEmptyString(
-            $arrData[self::FIELD_PASSWORD]
+        $arrUserInfo = static::extendGuest(
+            $arrUserInfo
         );
+
+        if (!static::isValid($arrUserInfo)) {
+            throw new LogicException(
+                static::class
+                . '::createGuest() tạo ra UserInfo không đúng contract.'
+            );
+        }
+
+        return $arrUserInfo;
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
     /**
-     * Kiểm tra dữ liệu user được lưu trong Session['auth'].
+     * Chuẩn hóa record UserInfo lấy từ DB.
      *
-     * Contract:
+     * $arrData phải chỉ chứa các field thuộc UserInfo.
      *
-     * UserInfo + last_activity
+     * Các field phụ như password phải được caller xử lý
+     * và loại bỏ trước khi gọi hàm này.
      */
-    public static function isValidWithLastActivity(mixed $arrData): bool
-    {
-        return ValidUtility::hasExactFields(
-            $arrData,
-            self::FIELDS_WITH_LAST_ACTIVITY
-        )
-        && self::isValidCommonData($arrData)
+    public static function normalizeDbData(
+        string $strSPName,
+        array $arrData
+    ): array {
+        $arrData = static::normalizeBaseDbData(
+            $strSPName,
+            $arrData
+        );
 
-        && is_int(
-            $arrData[self::FIELD_LAST_ACTIVITY]
-        )
+        $arrData = static::normalizeExtensionDbData(
+            $strSPName,
+            $arrData
+        );
 
-        && $arrData[self::FIELD_LAST_ACTIVITY] > 0;
+        if (!static::isValid($arrData)) {
+            throw new UnexpectedValueException(
+                "{$strSPName} trả về dữ liệu "
+                . static::class
+                . ' không đúng contract.'
+            );
+        }
+
+        return $arrData;
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
     /**
-     * 
-     * Kiểm tra các field chung của UserInfo.
+     * Kiểm tra phần contract lõi.
+     *
+     * Hàm chỉ được gọi sau khi isValid() đã xác nhận
+     * đầy đủ và chính xác danh sách field.
      */
-    private static function isValidCommonData(array $arrData): bool
+    protected static function isBaseValid(array $arrData): bool
     {
         $mixId           = $arrData[self::FIELD_ID];
         $mixName         = $arrData[self::FIELD_NAME];
         $mixSubscriberId = $arrData[self::FIELD_SUBSCRIBER_ID];
+        $arrRoles        = $arrData[self::FIELD_ROLES];
 
         /*
          * roles:
@@ -159,24 +146,50 @@ class UserInfo
          *     role_code => display_name,
          *     ...
          * ]
+         *
+         * UserInfo luôn phải có ít nhất một role.
          */
-        if (!self::isValidRoles(
-            $arrData[self::FIELD_ROLES]
-        )) {
+        if (
+            $arrRoles === []
+            || !ValidUtility::isStringPairMap(
+                $arrRoles,
+                [
+                    'non_empty_key'   => true,
+                    'non_empty_value' => true
+                ]
+            )
+        ) {
             return false;
         }
 
         /*
          * registered_modules:
          *
+         * null
+         *     Application không sử dụng mô hình module.
+         *
+         * []
+         *     Application có module nhưng user không có module nào.
+         *
          * [
          *     module_id => module_name,
          *     ...
          * ]
          */
-        if (!self::isValidRegisteredModules(
-            $arrData[self::FIELD_REGISTERED_MODULES]
-        )) {
+        $arrRegisteredModules =
+            $arrData[self::FIELD_REGISTERED_MODULES];
+
+        if (
+            $arrRegisteredModules !== null
+            && !ValidUtility::isIntStringMap(
+                $arrRegisteredModules,
+                [
+                    'min_key'         => 1,
+                    'non_empty_value' => true,
+                    'unique_value'    => true
+                ]
+            )
+        ) {
             return false;
         }
 
@@ -186,9 +199,9 @@ class UserInfo
         if ($mixId === null) {
             return $mixName === null
                 && $mixSubscriberId === null
-                && array_keys(
-                    $arrData[self::FIELD_ROLES]
-                ) === [self::GUEST_ROLE];
+                && array_keys($arrRoles) === [
+                    static::GUEST_ROLE
+                ];
         }
 
         /*
@@ -202,6 +215,15 @@ class UserInfo
             return false;
         }
 
+        /*
+         * subscriber_id:
+         *
+         * null
+         *     Application/user không thuộc mô hình subscriber.
+         *
+         * positive int
+         *     ID subscriber.
+         */
         if (
             $mixSubscriberId !== null
             && (
@@ -217,74 +239,185 @@ class UserInfo
 
     /*---------------------------------------------------------------------------------------------------------------*/
     /**
-     * Contract:
+     * Hook để UserInfo tại App kiểm tra các field mở rộng.
      *
-     * [
-     *     role_code => display_name,
-     *     ...
-     * ]
+     * Base mặc định không có extension.
      */
-    private static function isValidRoles(mixed $arrRoles): bool
+    protected static function isExtensionValid(array $arrData): bool
     {
-        if (
-            !ValidUtility::isStringPairMap($arrRoles)
-            || $arrRoles === []
-        ) {
-            return false;
-        }
-
-        foreach ($arrRoles as $strRoleCode => $strDisplayName) {
-            if (
-                !ValidUtility::isNonEmptyString($strRoleCode)
-                || !ValidUtility::isNonEmptyString($strDisplayName)
-            ) {
-                return false;
-            }
-        }
-
         return true;
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
-        /**
-     * Contract:
-     *
-     * null
-     *     Application không sử dụng mô hình module.
-     *
-     * []
-     *     Application có module nhưng user không đăng ký module nào.
-     *
-     * [
-     *     module_id => module_name,
-     *     ...
-     * ]
-     *     Các module user được đăng ký.
+    /**
+     * Tạo phần lõi của guest.
      */
-    private static function isValidRegisteredModules(mixed $arrModules): bool
+    protected static function createBaseGuest(): array
     {
+        return [
+            self::FIELD_ID            => null,
+            self::FIELD_NAME          => null,
+            self::FIELD_SUBSCRIBER_ID => null,
+
+            self::FIELD_ROLES => [
+                static::GUEST_ROLE => 'khách'
+            ],
+
+            self::FIELD_REGISTERED_MODULES =>
+                GUEST_ACCESSIBLE_MODULES
+        ];
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    /**
+     * Hook để App bổ sung các field extension cho guest.
+     */
+    protected static function extendGuest(array $arrUserInfo): array
+    {
+        return $arrUserInfo;
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    /**
+     * Chuẩn hóa các field lõi của UserInfo lấy từ DB.
+     */
+    protected static function normalizeBaseDbData(
+        string $strSPName,
+        array $arrData
+    ): array {
         /*
-         * null:
-         * application không sử dụng mô hình module.
+         * id và subscriber_id:
+         *
+         * field phải tồn tại;
+         * null được giữ nguyên;
+         * int/numeric-string được chuẩn hóa về native int.
          */
-        if ($arrModules === null) {
-            return true;
+        foreach (
+            [
+                self::FIELD_ID,
+                self::FIELD_SUBSCRIBER_ID
+            ]
+            as $strField
+        ) {
+            if (!array_key_exists($strField, $arrData)) {
+                throw new LogicException(
+                    "{$strSPName} trả về thiếu field "
+                    . "{$strField} của UserInfo."
+                );
+            }
+
+            if ($arrData[$strField] === null) {
+                continue;
+            }
+
+            try {
+                $arrData[$strField] =
+                    MathUtility::toNonNegativeInt(
+                        $arrData[$strField]
+                    );
+            } catch (InvalidArgumentException $e) {
+                throw new LogicException(
+                    "{$strSPName} trả về field {$strField} "
+                    . 'không phải số nguyên không âm hợp lệ.',
+                    0,
+                    $e
+                );
+            }
         }
 
         /*
-         * []:
-         * application có mô hình module nhưng user không có module nào.
-         *
-         * [module_id => module_name]&#58;      * các module user được đăng ký.
+         * roles bắt buộc tồn tại, khác null
+         * và DB phải trả dưới dạng JSON string.
          */
-        return ValidUtility::isIntStringMap(
-            $arrModules,
-            [
-                'min_key'         => 1,
-                'non_empty_value' => true,
-                'unique_value'    => true
-            ]
-        );
+        $strFieldRoles = self::FIELD_ROLES;
+
+        if (
+            !isset($arrData[$strFieldRoles])
+            || !is_string($arrData[$strFieldRoles])
+        ) {
+            throw new LogicException(
+                "{$strSPName} trả về thiếu field "
+                . "{$strFieldRoles} của UserInfo "
+                . 'hoặc giá trị null/không phải string.'
+            );
+        }
+
+        /*
+         * registered_modules bắt buộc có field.
+         *
+         * null hợp lệ cho bài toán no-module.
+         * Nếu khác null thì DB phải trả JSON string.
+         */
+        $strFieldRegisteredModules =
+            self::FIELD_REGISTERED_MODULES;
+
+        if (
+            !array_key_exists(
+                $strFieldRegisteredModules,
+                $arrData
+            )
+            || (
+                $arrData[$strFieldRegisteredModules] !== null
+                && !is_string(
+                    $arrData[$strFieldRegisteredModules]
+                )
+            )
+        ) {
+            throw new LogicException(
+                "{$strSPName} trả về thiếu field "
+                . "{$strFieldRegisteredModules} của UserInfo "
+                . 'hoặc giá trị không phải null/string.'
+            );
+        }
+
+        /*
+         * JSON DB representation
+         *     ↓
+         * PHP array representation.
+         */
+        try {
+            $arrData[$strFieldRoles] = json_decode(
+                $arrData[$strFieldRoles],
+                true,
+                512,
+                JSON_THROW_ON_ERROR
+            );
+
+            if (
+                $arrData[$strFieldRegisteredModules]
+                !== null
+            ) {
+                $arrData[$strFieldRegisteredModules] =
+                    json_decode(
+                        $arrData[$strFieldRegisteredModules],
+                        true,
+                        512,
+                        JSON_THROW_ON_ERROR
+                    );
+            }
+        } catch (JsonException $e) {
+            throw new LogicException(
+                "{$strSPName} trả về dữ liệu JSON không hợp lệ.",
+                0,
+                $e
+            );
+        }
+
+        return $arrData;
     }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    /**
+     * Hook để UserInfo tại App chuẩn hóa các field DB mở rộng.
+     *
+     * Base mặc định không có extension.
+     */
+    protected static function normalizeExtensionDbData(
+        string $strSPName,
+        array $arrData
+    ): array {
+        return $arrData;
+    }
+
     /*---------------------------------------------------------------------------------------------------------------*/
 }

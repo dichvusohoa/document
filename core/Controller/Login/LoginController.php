@@ -4,7 +4,7 @@ use UnexpectedValueException;
 use Core\Http\Response;
 use Core\Http\Session;
 use Core\Http\Cookie;
-use Core\User\UserInfo;
+use Core\User\BaseUserInfo;
 use Core\Auth\SessionInfo;
 use Core\Auth\AuthToken;
 use Core\Http\RequestAuthContext;
@@ -18,7 +18,8 @@ use Core\Controller\Login\LoginAttemptService;
 class LoginController extends BaseController{
     protected AuthService $authService;
     protected AuthTokenService $authTokenService;
-    protected array $authPolicy;
+    protected LoginAttemptService $loginAttemptService;
+    protected array $arrAuthPolicy;
     /*---------------------------------------------------------------------------------------------------------------*/
     public function __construct(
             RequestAuthContext $requestAuthContext, 
@@ -67,7 +68,7 @@ class LoginController extends BaseController{
         session_regenerate_id(true);
         if($this->arrAuthPolicy[AuthRegistry::FIELD_REMEMBER_COOKIE]){//ghi vào cookie
             $authToken = new AuthToken();
-            $iUserId = $arrResp['data'][UserInfo::FIELD_ID];
+            $iUserId = $arrResp['data'][BaseUserInfo::FIELD_ID];
             $iRememberExpireSecond = $this->arrAuthPolicy[AuthRegistry::FIELD_REMEMBER_EXPIRE];
             //nếu có DB Error thì $this->authTokenService->tokenToDb sẽ throw ra luôn
             //$exec = $this->authService->tokenToDb($authToken, $iUserId, $iRememberExpireSecond);

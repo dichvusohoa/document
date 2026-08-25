@@ -97,8 +97,10 @@ final class RoleRegistry
                     'min'  => 0
                 ]
             );
-
+            $strDefaultBusinessUrl =
+            $arrRoleInfo[self::FIELD_DEFAULT_BUSINESS_URL];
             if (
+                $strDefaultBusinessUrl !== null &&    
                 !ValidUtility::isInternalAbsolutePath(
                     $arrRoleInfo[self::FIELD_DEFAULT_BUSINESS_URL]
                 )
@@ -138,7 +140,14 @@ final class RoleRegistry
                     "Role '{$strRole}' không được định nghĩa trong config.role.php."
                 );
             }
-
+            $strDefaultBusinessUrl =
+                $this->arrR[$strRole][
+                    self::FIELD_DEFAULT_BUSINESS_URL
+                ];
+            //skip các role có default_bussiness_url === null
+            if ($strDefaultBusinessUrl === null) {
+                continue;
+            }
             if ($this->arrR[$strRole][self::FIELD_WEIGHT] > $iMaxWeight) {
                 $iMaxWeight = $this->arrR[$strRole][self::FIELD_WEIGHT];
                 $strNeedleRole = $strRole;

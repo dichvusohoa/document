@@ -1,8 +1,10 @@
 <?php
+
 namespace Core\Auth;
 
-use Core\User\UserInfo;
+use Core\User\BaseUserInfo;
 use InvalidArgumentException;
+use LogicException;
 use UnexpectedValueException;
 
 class SessionInfo
@@ -10,33 +12,60 @@ class SessionInfo
     public const FIELD_CREATED_AT    = 'created_at';
     public const FIELD_LAST_ACTIVITY = 'last_activity';
 
+    protected static ?string $strUserInfoFQCN = null;
+
     /*---------------------------------------------------------------------------------------------------------------*/
-    public static function create(array $arrUserInfo): array
+    public static function setUserInfoFQCN(string $strUserInfoFQCN): void
     {
-        if (!UserInfo::isValid($arrUserInfo)) {
+        if (
+            !is_subclass_of(
+                $strUserInfoFQCN,
+                BaseUserInfo::class,
+                true
+            )
+        ) {
             throw new InvalidArgumentException(
-                'arrUserInfo không đúng contract UserInfo.'
+                $strUserInfoFQCN
+                . ' phải kế thừa '
+                . BaseUserInfo::class
+                . '.'
             );
         }
 
-        $intNow = time();
+        self::$strUserInfoFQCN = $strUserInfoFQCN;
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    public static function create(array $arrUserInfo): array
+    {
+        $strUserInfoFQCN = self::userInfoFQCN();
+
+        if (!$strUserInfoFQCN::isValid($arrUserInfo)) {
+            throw new InvalidArgumentException(
+                'arrUserInfo không đúng contract '
+                . $strUserInfoFQCN
+                . '.'
+            );
+        }
+
+        $iNow = time();
 
         return array_merge(
             $arrUserInfo,
             [
-                self::FIELD_CREATED_AT    => $intNow,
-                self::FIELD_LAST_ACTIVITY => $intNow
+                self::FIELD_CREATED_AT    => $iNow,
+                self::FIELD_LAST_ACTIVITY => $iNow
             ]
         );
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
-    public static function isValid(mixed $arrData): bool
+    public static function isValid(mixed $mixData): bool
     {
-        if (!is_array($arrData)) {
+        if (!is_array($mixData)) {
             return false;
         }
-        //valid riêng 2 field FIELD_CREATED_AT và FIELD_LAST_ACTIVITY
+
         foreach (
             [
                 self::FIELD_CREATED_AT,
@@ -45,33 +74,38 @@ class SessionInfo
             as $strField
         ) {
             if (
-                !array_key_exists($strField, $arrData)
-                || !is_int($arrData[$strField])
-                || $arrData[$strField] <= 0
+                !array_key_exists($strField, $mixData)
+                || !is_int($mixData[$strField])
+                || $mixData[$strField] <= 0
             ) {
                 return false;
             }
         }
 
         if (
-            $arrData[self::FIELD_LAST_ACTIVITY]
-            < $arrData[self::FIELD_CREATED_AT]
+            $mixData[self::FIELD_LAST_ACTIVITY]
+            < $mixData[self::FIELD_CREATED_AT]
         ) {
             return false;
         }
 
         /*
+         * SessionInfo = UserInfo + session metadata.
+         *
          * Bỏ session metadata để phần còn lại
-         * bắt buộc phải đúng chính xác contract UserInfo.
+         * bắt buộc phải đúng chính xác contract
+         * của UserInfo thực sự tại runtime.
          */
-        $arrUserInfo = $arrData;
+        $arrUserInfo = $mixData;
 
         unset(
             $arrUserInfo[self::FIELD_CREATED_AT],
             $arrUserInfo[self::FIELD_LAST_ACTIVITY]
         );
 
-        return UserInfo::isValid($arrUserInfo);
+        $strUserInfoFQCN = self::userInfoFQCN();
+
+        return $strUserInfoFQCN::isValid($arrUserInfo);
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/
@@ -89,6 +123,18 @@ class SessionInfo
         );
 
         return $arrSessionInfo;
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    protected static function userInfoFQCN(): string
+    {
+        if (self::$strUserInfoFQCN === null) {
+            throw new LogicException(
+                'SessionInfo chưa được cấu hình UserInfoFQCN .'
+            );
+        }
+
+        return self::$strUserInfoFQCN;
     }
 
     /*---------------------------------------------------------------------------------------------------------------*/

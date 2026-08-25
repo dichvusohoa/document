@@ -6,17 +6,15 @@ use Core\User\UserService;
 class AuthService{
     protected RequestAuthContext $requestAuthContext;
     protected UserService $userService;
-    protected AuthTokenService    $tokenService;
+    
     
     function __construct(
         RequestAuthContext $requestAuthContext,
-        UserService $userService,
-        AuthTokenService $tokenService
+        UserService $userService
         
     ){
         $this->requestAuthContext = $requestAuthContext;
         $this->userService    = $userService;
-        $this->tokenService = $tokenService;
     }
     
     public function verifyCredentials(string $strUser, string $strPassword): array {

@@ -1,18 +1,37 @@
 <?php
+
 namespace Core\User;
+
 use UnexpectedValueException;
 use JsonException;
 use InvalidArgumentException;
 use LogicException;
 use Core\Database\DbService;
+
 class UserService
 {
+    private const DB_FIELD_PASSWORD = 'password';
+
     protected DbService $dbService;
+
+    /*
+     * Concrete UserInfo class của application.
+     *
+     * Ví dụ:
+     * App\User\UserInfo
+     */
+    protected string $strUserInfoFQCN;
+
     /*---------------------------------------------------------------------------------------------------------------*/
-    public function __construct(DbService $dbService)
-    {
+    public function __construct(
+        DbService $dbService,
+        BaseUserInfo $userInfo
+    ) {
         $this->dbService = $dbService;
+
+        $this->strUserInfoFQCN = $userInfo::class;
     }
+
     /*---------------------------------------------------------------------------------------------------------------*/
     public function getUserByToken(
         string $strLeftToken,
@@ -95,15 +114,20 @@ class UserService
         );
 
         /*
-         * Từ đây data phải đúng contract UserInfo.
+         * Từ đây data phải đúng contract UserInfo
+         * thực sự của application.
          */
-        $arrResp['data'] = UserInfo::normalizeDbData(
-            'lib_spGetUserByToken',
-            $arrResp['data']
-        );
+        $strUserInfoFQCN = $this->strUserInfoFQCN;
+
+        $arrResp['data'] =
+            $strUserInfoFQCN::normalizeDbData(
+                'lib_spGetUserByToken',
+                $arrResp['data']
+            );
 
         return $arrResp;
     }
+
     /*---------------------------------------------------------------------------------------------------------------*/
     public function getUserByNameAndRoles(
         string $strUser,
@@ -143,29 +167,46 @@ class UserService
 
         /*
          * password là field riêng của dữ liệu xác thực,
-         * không thuộc UserInfo cơ bản.
+         * không thuộc BaseUserInfo/UserInfo.
          */
-        if (!isset($arrResp['data']['password'])) {
+        if (
+            !isset(
+                $arrResp['data'][self::DB_FIELD_PASSWORD]
+            )
+        ) {
             throw new LogicException(
                 'lib_spGetUserByNameAndRoles trả về thiếu field password '
                 . 'hoặc password bằng null.'
             );
         }
 
-        $strPassword = $arrResp['data']['password'];
+        $strPassword =
+            $arrResp['data'][self::DB_FIELD_PASSWORD];
 
-        if (!is_string($strPassword) || $strPassword === '') {
+        if (
+            !is_string($strPassword)
+            || $strPassword === ''
+        ) {
             throw new LogicException(
-                'lib_spGetUserByNameAndRoles trả về password không đúng format.'
+                'lib_spGetUserByNameAndRoles trả về password '
+                . 'không đúng format.'
             );
         }
 
-        unset($arrResp['data']['password']);
-
-        $arrResp['data'] = UserInfo::normalizeDbData(
-            'lib_spGetUserByNameAndRoles',
-            $arrResp['data']
+        unset(
+            $arrResp['data'][self::DB_FIELD_PASSWORD]
         );
+
+        /*
+         * Normalize bằng UserInfo thực sự của application.
+         */
+        $strUserInfoFQCN = $this->strUserInfoFQCN;
+
+        $arrResp['data'] =
+            $strUserInfoFQCN::normalizeDbData(
+                'lib_spGetUserByNameAndRoles',
+                $arrResp['data']
+            );
 
         $arrResp['extra'] = $strPassword;
 
