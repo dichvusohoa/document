@@ -8,12 +8,9 @@ git push
 
 
 
-git add .
-git commit -m "2026-08-25-09-30"
-git push
 
 git add .
-git commit -m "2026-08-25-19-10"
+git commit -m "2026-09-07-20-29"
 git push
 
 2. Đẩy một vài  file lên 
