@@ -12,6 +12,10 @@ git add .
 git commit -m "2026-08-25-09-30"
 git push
 
+git add .
+git commit -m "2026-08-25-19-10"
+git push
+
 2. Đẩy một vài  file lên 
 git add file1 file2
 git commit -m "router"
