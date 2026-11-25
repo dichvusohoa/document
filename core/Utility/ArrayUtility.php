@@ -3,7 +3,8 @@
 namespace Core\Utility;
 
 use InvalidArgumentException;
-
+use ReflectionReference;
+use Core\Validator\ArrayShape;
 final class ArrayUtility
 {
     /*---------------------------------------------------------------------------------------------------------------*/
@@ -35,7 +36,7 @@ final class ArrayUtility
         mixed $default = null
     ): mixed {
 
-        $arrPath = self::normalizePath(
+        $arrPath = self::normalizeStringList(
             $mixPath,
             true
         );
@@ -87,7 +88,7 @@ final class ArrayUtility
         mixed $mixValue
     ): void {
 
-        $arrPath = self::normalizePath(
+        $arrPath = self::normalizeStringList(
             $mixPath,
             false
         );
@@ -154,7 +155,7 @@ final class ArrayUtility
         array $arrOption = []
     ): bool {
 
-        $arrPath = self::normalizePath(
+        $arrPath = self::normalizeStringList(
             $mixPath,
             false
         );
@@ -260,7 +261,12 @@ final class ArrayUtility
         }
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    public static function normalizePath(
+    /**
+     * Chuyển string thành list một phần tử hoặc kiểm tra list string có sẵn.
+     * Các phần tử phải là string không rỗng; không ép kiểu, trim hay tách chuỗi.
+     * $isAllowEmpty chỉ cho phép list rỗng [], không cho phép phần tử rỗng.
+     */
+    public static function normalizeStringList(
         array|string $mixPath,
         bool $isAllowEmpty = false
     ): array {
@@ -276,12 +282,187 @@ final class ArrayUtility
             $arrOption['non_empty'] = true;
         }
 
-        if (!ValidUtility::isStringList($arrPath, $arrOption)) {
+        if (!ArrayShape::isStringList($arrPath, $arrOption)) {
             throw new InvalidArgumentException(
-                'Array path không đúng format.'
+                'String list không đúng format.'
             );
         }
 
         return $arrPath;
+    }
+    /*---------------------------------------------------------------------------------------------------------------*/
+    /**
+     * Chuẩn hóa từng segment của path theo quy tắc key của PHP array.
+     * Ví dụ: ['users', '1', '01', '+1'] thành ['users', 1, '01', '+1'].
+     * Không ép mọi chuỗi số sang int: '01' và số vượt miền int vẫn là string.
+     * Giữ nguyên index, thứ tự và số phần tử của path; không sửa array đầu vào.
+     *
+     * @param array<int|string, int|string> $arrPath
+     * @return array<int|string, int|string>
+     */
+    public static function normalizePathKeys(array $arrPath): array
+    {
+        $arrNormalizedPath = [];
+
+        foreach ($arrPath as $index => $segment) {
+            // Dùng segment làm key để PHP áp dụng đúng quy tắc chuyển kiểu key.
+            $arrSingleKey = [$segment => true];
+            $arrNormalizedPath[$index] = array_key_first($arrSingleKey);
+        }
+
+        return $arrNormalizedPath;
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    /**
+     * Kiểm tra dữ liệu lồng nhau theo các kiểu và điều kiện được phép.
+     *
+     * Options:
+     * - allowed_types: list tên kiểu được phép; mặc định
+     *   ['array', 'int', 'float', 'string', 'bool', 'null'].
+     *   Có thể thêm 'object', 'resource'; áp dụng cho value, không kiểm tra key.
+     * - allow_references: cho phép phần tử array chứa reference; mặc định false.
+     * - allow_non_finite_floats: cho phép NaN/INF/-INF; mặc định false.
+     *
+     * Object/resource được coi là leaf, không duyệt property object.
+     * Array có vòng tham chiếu luôn bị từ chối, kể cả khi cho phép reference.
+     * Không sửa dữ liệu đầu vào, không kiểm tra nội dung/encoding của string.
+     *
+     * $iMaxDepth:
+     * - null: không đặt giới hạn.
+     * - 0: chỉ cho phép giá trị đầu vào, không có phần tử con.
+     * - Mỗi lần xuống một phần tử, kể cả scalar/null, tăng độ sâu thêm 1.
+     *
+     * @throws InvalidArgumentException Khi option hoặc dữ liệu không hợp lệ.
+     */
+    public static function validateNestedArray(
+        mixed $value,
+        array $arrOption = [],
+        ?int $iMaxDepth = null
+    ): void {
+        $arrDefault = [
+            'allowed_types' => ['array', 'int', 'float', 'string', 'bool', 'null'],
+            'allow_references' => false,
+            'allow_non_finite_floats' => false,
+        ];
+
+        // Không bỏ qua option viết sai tên.
+        foreach ($arrOption as $name => $_) {
+            if (!array_key_exists($name, $arrDefault)) {
+                throw new InvalidArgumentException('Unknown option: ' . $name);
+            }
+        }
+        //chuyển các phần tử default trong $arrDefault sang $arrOption nếu như $arrOption không khai báo không
+        $arrOption = array_replace($arrDefault, $arrOption);
+
+        if (!ArrayShape::isStringList($arrOption['allowed_types'])) {
+            throw new InvalidArgumentException('allowed_types must be a list of strings.');
+        }
+        //begin: validate các type trong $arrOption['allowed_types'] phải nằm trong danh sách cho phép
+        $arrSupportedTypes = ['array', 'int', 'float', 'string', 'bool', 'null', 'object', 'resource'];
+        foreach ($arrOption['allowed_types'] as $type) {
+            if (!in_array($type, $arrSupportedTypes, true)) {
+                throw new InvalidArgumentException('Unsupported type: ' . $type);
+            }
+        }
+        //end: validate các type trong $arrOption['allowed_types'] phải nằm trong danh sách cho phép
+        foreach (['allow_references', 'allow_non_finite_floats'] as $name) {
+            if (!is_bool($arrOption[$name])) {
+                throw new InvalidArgumentException($name . ' must be bool.');
+            }
+        }
+
+        if ($iMaxDepth !== null && $iMaxDepth < 0) {
+            throw new InvalidArgumentException('iMaxDepth must not be negative.');
+        }
+
+        // Chỉ theo dõi reference trên nhánh đệ quy đang chạy.
+        $arrActiveReferences = [];
+        self::innerValidateNestedArray($value, $arrOption, $iMaxDepth, $arrActiveReferences);
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    private static function innerValidateNestedArray(
+        mixed $value,
+        array $arrOption,
+        ?int $iRemainingDepth,
+        array &$arrActiveReferences
+    ): void {
+        if ($iRemainingDepth !== null && $iRemainingDepth < 0) {
+            throw new InvalidArgumentException('Data exceeds maximum depth.');
+        }
+
+        // Đổi tên kiểu của gettype() sang tên dùng trong allowed_types.
+        $type = match (gettype($value)) {
+            'integer' => 'int',
+            'double' => 'float',
+            'boolean' => 'bool',
+            'NULL' => 'null',
+            default => gettype($value),
+        };
+
+        if (!in_array($type, $arrOption['allowed_types'], true)) {
+            throw new InvalidArgumentException('Disallowed type: ' . $type);
+        }
+
+        if ($type === 'float' && !is_finite($value) && !$arrOption['allow_non_finite_floats']) {
+            throw new InvalidArgumentException('Non-finite floats are not allowed.');
+        }
+
+        if ($type !== 'array') {
+            return;
+        }
+
+        foreach ($value as $key => $child) {
+            $reference = ReflectionReference::fromArrayElement($value, $key);
+            $referenceId = null;
+
+            if ($reference !== null) {//$child là 1 tham chiếu
+                if (!$arrOption['allow_references']) {
+                    throw new InvalidArgumentException('References are not allowed.');
+                }
+                //chống tham chiếu vòng "circular reference", ở đây điều kiện is_array($child)
+                //là chỉ chống cho phần tử dạng array, nếu muốn chống toàn bộ kiểu khác có thể bỏ if (is_array($child)) đi
+                if (is_array($child)) { 
+                    $referenceId = $reference->getId();
+                    if (isset($arrActiveReferences[$referenceId])) {
+                        throw new InvalidArgumentException('Cyclic arrays are not allowed.');
+                    }
+                    $arrActiveReferences[$referenceId] = true;
+                }
+            }
+
+            try {
+                self::innerValidateNestedArray(
+                    $child,
+                    $arrOption,
+                    $iRemainingDepth === null ? null : $iRemainingDepth - 1,
+                    $arrActiveReferences
+                );
+            } finally {
+                if ($referenceId !== null) {
+                    /*Minh họa Đang đi sâu: A → B → C
+                    Map đang giữ: A, B, C
+
+                    Xử lý xong C, quay về B:
+                    Xóa dấu C, vẫn giữ A và B.
+
+                    Chuyển sang nhánh D của B:
+                    Map đang giữ A, B, D.*/
+                    unset($arrActiveReferences[$referenceId]);
+                }
+            }
+        }
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    /** Tác dụng: Trả về 1 array đã được ngắt các tham chiếu lồng nhau*/
+    public static function detachReferences(array $arrInput): array
+    {
+        $arrOutput = [];
+        foreach ($arrInput as $mixKey => $mixValue) {
+            $arrOutput[$mixKey] = is_array($mixValue) ? self::detachReferences($mixValue) : $mixValue;
+        }
+        return $arrOutput;
     }
 }

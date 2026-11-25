@@ -2,7 +2,7 @@
 
 namespace Core\HierarchicalPolicy\Schema;
 
-use Core\Utility\ValidUtility;
+use Core\Validator\DataFields;
 use InvalidArgumentException;
 
 final class HPResourceSchema
@@ -221,7 +221,7 @@ final class HPResourceSchema
             );
 
         if (
-            !ValidUtility::hasExactFields(
+            !DataFields::hasExactFields(
                 $arrHPSchema,
                 array_keys($arrExpected)
             )
@@ -505,7 +505,7 @@ final class HPResourceSchema
          * HPResourceSchema có chính xác 3 option.
          */
         if (
-            !ValidUtility::hasExactFields(
+            !DataFields::hasExactFields(
                 $arrOption,
                 [
                     self::OPTION_RESOURCE_NODE_ONE_TO_MANY,

@@ -7,6 +7,7 @@ use Core\View\HtmlSchema\LoginPageSchema;
 use Core\User\BaseUserInfo;
 use Core\Http\HttpException;
 use Core\Routing\RoleRegistry;
+use Core\Normalization\RequestNormalizer;
 
 class LoginPageController extends BaseHtmlPageController{
     protected LoginController $apiController;
@@ -14,9 +15,11 @@ class LoginPageController extends BaseHtmlPageController{
     
     public function __construct(
             LoginPageSchema $schema, 
+            RequestNormalizer $requestNormalizer,
+            LoginRequestSchema $requestSchema,
             LoginController $apiController,
             RoleRegistry $roleRegistry){
-        parent::__construct($schema);
+        parent::__construct($schema, $requestNormalizer, $requestSchema);
         $this->apiController = $apiController;
         $this->roleRegistry = $roleRegistry;
     }

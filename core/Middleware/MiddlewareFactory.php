@@ -2,7 +2,7 @@
 namespace Core\Middleware;
 use UnexpectedValueException;
 use Psr\Container\ContainerInterface;
-use Core\Utility\ValidUtility;
+use Core\Validator\ArrayShape;
 class MiddlewareFactory {
     protected ContainerInterface $container;
     /*---------------------------------------------------------------------------------------------------------------*/
@@ -20,7 +20,7 @@ class MiddlewareFactory {
     }
     /*---------------------------------------------------------------------------------------------------------------*/
     public function createList(array $arrFQCN): array {
-        if(!ValidUtility::isStringList($arrFQCN)){
+        if(!ArrayShape::isStringList($arrFQCN)){
             throw new UnexpectedValueException('Phải là một mảng string'); 
         }
         if(count($arrFQCN) === 0){

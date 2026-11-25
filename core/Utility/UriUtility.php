@@ -59,4 +59,21 @@ class UriUtility{
                ($fragment ? "#{$fragment}" : '');
     }
     
+    /**
+     * Kiểm tra absolute URI path dạng:
+     *
+     * /
+     * /xxx
+     * /xxx/yyy
+     *
+     * Không chấp nhận network-path reference
+     * bắt đầu bằng "//".
+     */
+    public static function isAbsolutePath(
+        mixed $value
+    ): bool {
+        return StringUtility::isNonEmptyString($value)
+            && $value[0] === '/'
+            && !str_starts_with($value, '//');
+    }
 }

@@ -1,6 +1,6 @@
 <?php
 namespace Core\Routing;
-use Core\Utility\ValidUtility;
+use Core\Validator\ArrayShape;
 class MCARMeInfo {
     public const FIELD_MODULE                 = 'module';
     public const FIELD_CONTROLLER             = 'controller';
@@ -43,7 +43,7 @@ class MCARMeInfo {
             && (
                 $arrData[self::FIELD_ROLE] === null
                 || is_string($arrData[self::FIELD_ROLE])
-                || ValidUtility::isStringList($arrData[self::FIELD_ROLE])
+                || ArrayShape::isStringList($arrData[self::FIELD_ROLE])
             )
 
             && array_key_exists(self::FIELD_METHOD, $arrData)

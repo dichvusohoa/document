@@ -1,8 +1,8 @@
 <?php
 namespace Core\Routing;
 use UnexpectedValueException;
-use Core\Utility\ValidUtility;
 use Core\Utility\StringUtility;
+use Core\Validator\ArrayShape;
 class StaticRouter {
     //Đầu vào - load từ file
     protected array $arrM; //M = module name. load từ file /config/config.mc.php
@@ -106,8 +106,8 @@ class StaticRouter {
         $arTmp = require CONFIG_PATH .'/'. $strFileName;
         $isValid = is_array($arTmp)
             && isset($arTmp['module-controllers'], $arTmp['standalone-controllers'])
-            && ValidUtility::isStringListMap($arTmp['module-controllers'])
-            && ValidUtility::isStringList($arTmp['standalone-controllers']);
+            && ArrayShape::isStringListMap($arTmp['module-controllers'])
+            && ArrayShape::isStringList($arTmp['standalone-controllers']);
 
         if (!$isValid) {
             throw new UnexpectedValueException("File {$strFileName} có format không đúng");
@@ -173,7 +173,7 @@ class StaticRouter {
                 if (!is_string($strActionName)) {
                     throw new UnexpectedValueException("File {$strFileName}: action '$strActionName' tại key '$strClass' phải là string");
                 }
-                if(!ValidUtility::isStringPairMap($arrActionDetail)){
+                if(!ArrayShape::isStringPairMap($arrActionDetail)){
                     throw new UnexpectedValueException("File {$strFileName}: value tại key '$strClass, $strActionName' phải là một mảng string"); 
                 }
             }

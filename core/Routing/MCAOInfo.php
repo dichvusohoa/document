@@ -1,6 +1,5 @@
 <?php
 namespace Core\Routing;
-use Core\Utility\ValidUtility;
 class MCAOInfo {
     public const FIELD_MODULE                 = 'module';
     public const FIELD_CONTROLLER             = 'controller';

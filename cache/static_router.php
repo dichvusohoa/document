@@ -8,7 +8,7 @@ return array (
   ),
   'arrStC' => 
   array (
-    0 => 'category',
+    0 => 'cat',
     1 => 'document',
     2 => 'client-info',
     3 => 'login',
@@ -133,7 +133,7 @@ return array (
   ),
   'arrMC2FQCN' => 
   array (
-    'category' => 'App\\Controller\\Category\\CategoryPageController',
+    'cat' => 'App\\Controller\\Category\\CategoryPageController',
     'document' => 'App\\Controller\\Document\\DocumentPageController',
     'login' => 'Core\\Controller\\Login\\LoginPageController',
     'cacquak' => 'Core\\Controller\\Login\\LoginPageController',
@@ -205,7 +205,7 @@ return array (
   ),
   'arrMCAR' => 
   array (
-    'category' => 
+    'cat' => 
     array (
       'index' => 
       array (
@@ -363,12 +363,12 @@ return array (
     'default_entry' => 
     array (
       'type' => 'controller',
-      'value' => 'category',
+      'value' => 'cat',
     ),
     'routes' => 
     array (
       'document' => 'index',
-      'category' => 'index',
+      'cat' => 'index',
       'login' => 'index',
       'client-info' => 'index',
     ),

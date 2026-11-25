@@ -1,484 +1,1337 @@
-<?php    
-/*ExtArray là một cấu trúc dữ liệu keys/value, trong đó key là một dãy. Kiểu như  obj[key1][key2]....[keyn] = value
-key1,key2... thì  dạng dữ liệu dạng đơn giản như string. Như vậy có thể hình dung ExtArray như một dạng hierarchy tree với các
-branch node là dạng đơn giản chỉ chứa key, còn leaf node chứa data. Nó khác với các dạng hierarchy tree đầy đủ thì các
-branch node cũng chứa các thông tin tổ hợp. Chú ý rằng mục tiêu của ExtArray không phải là tạo dựng một cấu trúc tree data phức tạp và 
-đầy đủ, đó là loại tree có node cấu trúc phức tạp, có schema đầy đủ. Về schema thì ExtArray hoặc là không cần
-hoặc chỉ cần schema tại data thôi (suy nghĩ thêm sau)
+<?php
 
-Về định dạng dữ liệu, 
-- các dữ liệu tại nút BRANCH chỉ có dạng string
-- các dữ liệu tại nút LEAF có thể có bất kỳ dạng nào
+/*
+ * ExtArray là một cấu trúc dữ liệu key/value, trong đó key là một dãy:
+ *
+ *     obj[key1][key2]....[keyn] = value
+ *
+ * Có thể hình dung ExtArray như một hierarchy tree đơn giản:
+ * - BRANCH node chỉ tổ chức đường dẫn.
+ * - LEAF node chứa data.
+ * - PETIOLE giữ leaf riêng của một branch; hợp lệ cả khi không còn sub-branch.
+ * - Segment petiole chỉ được xuất hiện một lần và phải ở cuối path.
+ *
+ * ExtArray cho phép bổ sung các callback:
+ *
+ *     fnDefineLeaf
+ *         -> xác định semantic definition của node hiện tại.
+ *         -> có thể trả EXCLUDED, BRANCH_OR_PETIOLE, COMPOSITE_LEAF,
+ *            DISCARDED_LEAF hoặc một array atomic definition.
+ *
+ *     fnNormalizeLeaf
+ *         -> normalize VALUE trước khi ghi; trả ['err_number' => int >= 0, 'value' => mixed].
+ *
+ *     fnProcessLeaf
+ *         -> xử lý/thay đổi LEAF khi traverse.
+ *
+ *     fnStartBranch / fnEndBranch
+ *         -> xử lý tùy chọn tại đầu/cuối branch.
+ *
+ * Update 2025-07-25:
+ * - Bổ sung PETIOLE để biểu diễn trường hợp một branch vừa có leaf, vừa có sub-branch.
+ *
+ * Update 2026-09-18:
+ * - Cho phép key của branch là string | int.
+ *
+ * Update 2026-09-29:
+ * - Khôi phục EXCLUDED.
+ * - Bổ sung COMPOSITE_LEAF, BRANCH_OR_PETIOLE.
+ * - fnDefineLeaf và fnNormalizeLeaf (tên tại thời điểm này) hỗ trợ hai prototype:
+ *
+ *       fn(mixed $obj)
+ *
+ *   hoặc
+ *
+ *       fn(array $arrChain, mixed $obj)
+ *
+ * Update 2026-10-13:
+ * - Chuẩn hóa các definition/type constant về int.
+ * - fnDefineLeaf chỉ trả int|array.
+ * - Bỏ classifyNode().
+ * - UDA không còn phải phân biệt BRANCH và PETIOLE.
+ * - ExtArray chỉ tự phân biệt BRANCH/PETIOLE tại nơi thực sự cần.
+ * - Bổ sung DISCARDED_LEAF để dành cho cơ chế "cắt lá"; chưa triển khai ở phiên bản này.
+ *
+ * Update 2026-10-18:
+ * - Traversal hỗ trợ DISCARDED_LEAF; giữ empty branch và numeric keys.
+ * - Collapse petiole đơn độc sau fnEndBranch, không process leaf lần nữa.
+ * - EXCLUDED bỏ qua subtree nhưng cho phép bỏ một lớp petiole đơn độc tại node.
+ * - Root collapse giữ kiểu array; setValue() từ chối DISCARDED_LEAF.
+ *
+ * Update 2026-11-15:
+ * - Thay validLeafFn bằng fnNormalizeLeaf; err_number = 0 là thành công.
+ * - MERGE_VALUE normalize candidate sau merge đúng một lần, trước khi ghi.
+ * - Result sai contract ném UnexpectedValueException; mã lỗi khác 0 ném
+ *   LogicException kèm path và exception code. Exception từ callback truyền nguyên ra.
+ *
+ * Update 2026-11-21:
+ * - Getter/setter chấp nhận petiole đơn độc, vẫn giữ quy tắc petiole kết thúc path.
+ * - Traversal giữ nguyên petiole đơn độc; không tự collapse, kể cả EXCLUDED.
+ */
 
-Chính vì thế nên ExtArray cho phép bổ sung $sFuncFilter($arrChain,$value) để định nghĩa thế nào là 
-EXCLUDED (cấm không truy cập), BRANCH, LEAF
-
- ExtArray cho phép xử lý linh hoạt bằng cách bổ sung thêm 4 call_user_func
-    $sFuncFilter($arrChain,$value): căn cứ vào vị trí đang duyệt định nghĩa thế nào là  EXCLUDED,BRANCH,LEAF       
-    $sFuncProcessLeaf($arrChain,$value): nếu $sFuncFilter trả về giá trị LEAF thì gọi hàm này
-    $sFuncStartBranch($arrChain): tùy chọn xử lý đầu nhánh
-    $sFuncEndBranch($arrChain):   tùy chọn xử lý cuối nhánh
- * Update 2025-07-25
-    ExtArray bổ sung thêm phần tử thứ ba ngoài branch, leaf, là petiole (cuống lá). đây
-    là phần tử trung gian nhằm giải quyết tình huống tại 1 branch thì vừa có sub-branch vừa có leaf
- *  lúc đó buộc phải dùng petiole để đưa leaf vào branch đó:   
- *  branch - petiole - leaf
- *         - subbranch
- *         - subbranch
- *  Về mặt quan hệ
- * branch -  branch ( 1- nhiều)
- * branch -  leaf   ( 1- 1)
- * petiole - leaf ( 1- 1)
- * 
-*/
 namespace Core\Foundation;
-use \Closure;
-use \Throwable;
-use \InvalidArgumentException;
-use \LogicException;
-/*Khi sử dụng ExtArray bắt buộc phải set closure validLeafFn. Có validLeafFn thì
- ExtArray mới hiểu đâu là nút lá, nó mới phân định ra được trong 1 dãy nút, thì tới 
-đâu là LEAF */
-class ExtArray { 
-    const EXCLUDED = 0 ; /*Dùng cho hàm filter value 0 mean loại trừ không xử lý*/
-    const BRANCH = 1; /*Dùng cho hàm filter value 1 mean nhánh*/
-    const LEAF = 2; /*Dùng cho hàm filter value 2 mean lá*/
-    const PETIOLE = 3; /*Dùng cho hàm filter value 2 mean cuống*/
-    const BRANCH_PROCESSING  = 1; /*Hành động xử lý nhánh*/
-    const LEAF_PROCESSING  = 2; /*Hành động xử lý lá*/
-    /*đặt tên dặt biệt cho cuống lá để khỏi lẫn với tên các branch khác */
-    const  PETIOLE_DEFAULT_NAME = '__petiole__';
 
-    // Các mode cho setValue
-    const MODE_REPLACE          = 'replace';
-    const MODE_KEEP_OLD_VALUE   = 'keep_old_value';
-    const MODE_MERGE_VALUE      = 'merge_value';
-    
-    //Begin các Closure dùng khi duyệt cây
-    protected Closure $validLeafFn;
-    protected Closure $filterFn;
-    protected ?Closure $leafFn = null;
-    protected ?Closure $startBranchFn = null;
-    protected ?Closure $endBranchFn = null;
-    //End các Closure dùng khi duyệt cây
-    
+use Closure;
+use Core\Utility\ArrayUtility;
+use InvalidArgumentException;
+use LogicException;
+use ReflectionFunction;
+use UnexpectedValueException;
+
+class ExtArray
+{
+    /*---------------------------------------------------------------------------------------------------------------
+     * Semantic definition do fnDefineLeaf trả về.
+     *--------------------------------------------------------------------------------------------------------------*/
+    public const EXCLUDED = 0;
+    public const BRANCH_OR_PETIOLE = 13;
+    public const COMPOSITE_LEAF = 20;
+
+    /*
+     * Traversal xóa entry mang leaf này; setValue() không chấp nhận definition này.
+     */
+    public const DISCARDED_LEAF = 21;
+
+    /*---------------------------------------------------------------------------------------------------------------
+     * Structural node type nội bộ của ExtArray.
+     *--------------------------------------------------------------------------------------------------------------*/
+    public const BRANCH = 1;
+    public const LEAF = 2;
+    public const PETIOLE = 3;
+
+    /*---------------------------------------------------------------------------------------------------------------
+     * Loại hành động traverse trước đó.
+     *--------------------------------------------------------------------------------------------------------------*/
+    public const BRANCH_PROCESSING = 1;
+    public const LEAF_PROCESSING = 2;
+
+    /*---------------------------------------------------------------------------------------------------------------
+     * Tên đặc biệt cho petiole để không lẫn với tên các branch khác.
+     *--------------------------------------------------------------------------------------------------------------*/
+    public const PETIOLE_DEFAULT_NAME = '__petiole__';
+
+    /*---------------------------------------------------------------------------------------------------------------
+     * Mode cho setValue().
+     *--------------------------------------------------------------------------------------------------------------*/
+    public const MODE_REPLACE = 'replace';
+    public const MODE_KEEP_OLD_VALUE = 'keep_old_value';
+    public const MODE_MERGE_VALUE = 'merge_value';
+
+    /*---------------------------------------------------------------------------------------------------------------
+     * Prototype mode của fnDefineLeaf / fnNormalizeLeaf.
+     *--------------------------------------------------------------------------------------------------------------*/
+    protected const CALLBACK_VALUE_ONLY = 1;
+    protected const CALLBACK_PATH_VALUE = 2;
+
+    /*---------------------------------------------------------------------------------------------------------------
+     * Closure dùng khi duyệt cây.
+     *--------------------------------------------------------------------------------------------------------------*/
+    protected Closure $fnDefineLeaf;
+    protected Closure $fnNormalizeLeaf;
+    protected ?Closure $fnProcessLeaf = null;
+    protected ?Closure $fnStartBranch = null;
+    protected ?Closure $fnEndBranch = null;
+    /*---------------------------------------------------------------------------------------------------------------
+     * Prototype mode đã được nhận dạng ngay khi set callback.
+     *--------------------------------------------------------------------------------------------------------------*/
+    protected int $iDefineLeafFnArgMode;
+    protected int $iNormalizeLeafFnArgMode;
+
     static protected string $strPetiole = self::PETIOLE_DEFAULT_NAME;
-    public array $arrData;
-    protected bool $isExternalRef;
-    protected bool $isValidLeafFn; // đánh dấu xem đã chạy kiểm tra valid hàm leafFn chưa
 
-    protected ?int $iPrevAction; /*Bổ sung 2024-03-12 Lưu giữ loại xử lý trước đó*/
-    protected ?int $iLengthPrev; /*Bổ sung 2024-03-12. Lưu giữ độ sâu xử lý trước đó. Sử dụng $iLengthPrev để dùng
-    cho một số trường  hợp xử lý nút leaf mà cấn biết trạng thái của previous leaf ví dụ như trường hợp dùng ExtArray để
-    print các cấu trúc như <UL><LI>*/
+    protected array $arrData;
+
+    protected bool $isExternalRef;
+
+    /*
+     * Lưu giữ loại xử lý và độ sâu xử lý trước đó.
+     * Dùng cho các trường hợp process leaf cần biết trạng thái của previous leaf,
+     * ví dụ khi ExtArray được dùng để sinh cấu trúc như <UL><LI>.
+     */
+    protected ?int $iPrevAction;
+    protected ?int $iLengthPrev;
+
     /*---------------------------------------------------------------------------------------------------------------*/
-    /*Truyền vào $arrData dạng reference để không tạo bản sao dữ liệu và các hàm trong ExtData sẽ làm thay đổi
-    khối dữ liệu bên ngoài */
-    function __construct(&$arrData = null){
+    /*
+     * Truyền $arrData dạng reference để không tạo bản sao dữ liệu và để ExtArray có thể thay đổi
+     * trực tiếp khối dữ liệu bên ngoài.
+     */
+    public function __construct(&$arrData = null)
+    {
         if ($arrData === null) {
-            $this->arrData = []; // Chế độ "bảo vệ nội bộ"
+            $this->arrData = [];
             $this->isExternalRef = false;
-        } else if(is_array($arrData)){
-            $this->arrData = &$arrData; // Chế độ "tham chiếu bên ngoài"
+        } elseif (is_array($arrData)) {
+            $this->arrData = &$arrData;
             $this->isExternalRef = true;
+        } else {
+            throw new InvalidArgumentException(
+                'Constructor expects null or array reference.'
+            );
         }
-        else{
-            throw new InvalidArgumentException("Constructor expects null or array reference");
-        }
-        $this->validLeafFn = function($obj) {
-            //làm thế này để khi sử dụng ExtArray buộc phải đặt giá trị cho validLeafFn
-            throw new InvalidArgumentException("Validation function for leaf nodes must be set before use.");
+
+        /*
+         * Buộc caller phải set fnDefineLeaf trước khi sử dụng các API cần xác định semantic của node.
+         * Default callback dùng prototype PATH_VALUE.
+         */
+        $this->fnDefineLeaf = function (
+            array $arrChain,
+            mixed $obj
+        ): array|int {
+            throw new LogicException(
+                'Leaf definition function must be set before use.'
+            );
         };
-        $this->filterFn = Closure::fromCallable([$this, 'defaultFilterFn']);
-        $this->isValidLeafFn = false;
+        $this->iDefineLeafFnArgMode = self::CALLBACK_PATH_VALUE;
+
+        /*
+         * Buộc caller phải set fnNormalizeLeaf trước khi sử dụng setValue().
+         * Default callback dùng prototype VALUE_ONLY.
+         */
+        $this->fnNormalizeLeaf = function (mixed $obj): array {
+            throw new InvalidArgumentException(
+                'Normalization function for leaf nodes must be set before use.'
+            );
+        };
+        $this->iNormalizeLeafFnArgMode = self::CALLBACK_VALUE_ONLY;
+
         $this->iPrevAction = null;
         $this->iLengthPrev = null;
-       
     }
+
     /*---------------------------------------------------------------------------------------------------------------*/
-    public function setValidLeafFn(Closure $fn): void {
-        $this->validLeafFn = $fn->bindTo($this, static::class);
+    // Callback setters preserve the caller's object binding and class scope.
+    // Callers that need ExtArray scope must bind their Closure explicitly.
+    public function setDefineLeafFn(Closure $fn): void
+    {
+        $iArgMode = self::detectLeafCallbackArgMode(
+            $fn,
+            'fnDefineLeaf'
+        );
+
+        self::validateDefineLeafFnReturnType($fn);
+
+        $this->fnDefineLeaf = $fn;
+        $this->iDefineLeafFnArgMode = $iArgMode;
     }
+
     /*---------------------------------------------------------------------------------------------------------------*/
-    public function setFilterFn(Closure $fn): void {
-        $this->filterFn = $fn->bindTo($this, static::class);
+    public function setNormalizeLeafFn(Closure $fn): void
+    {
+        $iArgMode = self::detectLeafCallbackArgMode(
+            $fn,
+            'fnNormalizeLeaf'
+        );
+
+        self::validateNormalizeLeafFnReturnType($fn);
+
+        $this->fnNormalizeLeaf = $fn;
+        $this->iNormalizeLeafFnArgMode = $iArgMode;
     }
+
     /*---------------------------------------------------------------------------------------------------------------*/
-    public function setStartBranchFn(Closure $fn): void {
-        $this->startBranchFn = $fn->bindTo($this, static::class);
+    public function setProcessLeafFn(Closure $fn): void
+    {
+        self::validateProcessLeafFnSignature($fn);
+
+        $this->fnProcessLeaf = $fn;
     }
+
     /*---------------------------------------------------------------------------------------------------------------*/
-    public function setEndBranchFn(Closure $fn): void {
-        $this->endBranchFn = $fn->bindTo($this, static::class);
+    public function setStartBranchFn(Closure $fn): void
+    {
+        $this->fnStartBranch = $fn;
     }
+
     /*---------------------------------------------------------------------------------------------------------------*/
-    public static function setPetioleName(string $strPetioleName): void{
+    public function setEndBranchFn(Closure $fn): void
+    {
+        $this->fnEndBranch = $fn;
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    public static function setPetioleName(string $strPetioleName): void
+    {
         self::$strPetiole = $strPetioleName;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    /*Return true nếu $arrElement là một nhánh hoặc một phần nhánh của array và false nếu ngược lại
-     * Update 2025-05-24
-     */
-    public function existElement(string|array $arrElement): bool{
-        $result = $this->getExistInfoAndValue($arrElement);
-        return $result["exists"]; 
+    public static function getPetioleName(): string
+    {
+        return self::$strPetiole;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    public function setValue(array|string $arrPath,$value,$sOption = self::MODE_REPLACE):void{
-        if(!($this->validLeafFn)($value)){
-            throw new LogicException('Invalid value: this leaf value does not pass the defined validation rule.');
-        }
-        if(!is_array($arrPath)){
+    public function existElement(string|int|array $arrElement): bool
+    {
+        $arrResult = $this->getExistInfoAndValue($arrElement);
+
+        return $arrResult['exists'];
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    public function setValue(
+        string|int|array $arrPath,
+        mixed $value,
+        string $sOption = self::MODE_REPLACE
+    ): void {
+        /*
+         * Chuẩn hóa path trước khi gọi fnNormalizeLeaf vì fnNormalizeLeaf có thể dùng prototype PATH_VALUE.
+         * [] có nghĩa là root.
+         */
+        if (!is_array($arrPath)) {
             $arrPath = [$arrPath];
         }
+
+        if ($sOption !== self::MODE_MERGE_VALUE) {
+            $value = $this->normalizeValueForSet($arrPath, $value);
+        }
+
         $iLength = count($arrPath);
-        //__construct check là type array trước nên tới đây chắc chắn $ref là array
+
+        // __construct() đã bảo đảm arrData là array.
         $ref = &$this->arrData;
+
         $isNewBranch = false;
-        $petioleExists  =  false;
+        $petioleExists = false;
         $arrTmp = [];
-        for($i=0; $i < $iLength; $i++){
-            $node = $arrPath[$i];
-            self::validateBranchNode($node, $petioleExists);
-            if($node === self::$strPetiole){
-                $petioleExists = true;
+        $arrUndo = [];
+        $isCommitted = false;
+
+        try {
+            for ($i = 0; $i < $iLength; $i++) {
+                $node = $arrPath[$i];
+
+                self::validateBranchNode(
+                    $node,
+                    $petioleExists
+                );
+
+                if ($node === self::$strPetiole) {
+                    $petioleExists = true;
+                }
+
+                $mixLeafDefinition = $this->callDefineLeafFn(
+                    $arrTmp,
+                    $ref
+                );
+
+                if ($mixLeafDefinition === self::DISCARDED_LEAF) {
+                    throw new LogicException('setValue() does not accept DISCARDED_LEAF.');
+                }
+
+                if ($mixLeafDefinition === self::EXCLUDED) {
+                    return;
+                }
+
+                if (self::isLeafDefinition($mixLeafDefinition)) {
+                    $arrUndo[] = [
+                        'kind' => 'replace',
+                        'ref' => &$ref,
+                        'old' => $ref,
+                    ];
+
+                    /*
+                     * Node hiện tại đang là LEAF nhưng path còn đi tiếp.
+                     * Cho mọc thêm một PETIOLE để giữ leaf hiện tại bên cạnh sub-branch mới.
+                     */
+                    $ref = [
+                        self::$strPetiole => $ref,
+                    ];
+                } else {
+                    /*
+                     * callDefineLeafFn() đã loại các definition không hợp lệ,
+                     * nên trường hợp còn lại chỉ có thể là BRANCH_OR_PETIOLE.
+                     */
+                    self::validateBranchOrPetioleNode(
+                        $arrTmp,
+                        $ref
+                    );
+                }
+
+                if (!array_key_exists($node, $ref)) {
+                    $arrUndo[] = [
+                        'kind' => 'insert',
+                        'ref' => &$ref,
+                        'key' => $node,
+                    ];
+
+                    $ref[$node] = [];
+                    $isNewBranch = true;
+                }
+
+                // Tiến sâu thêm một mức, phải dùng reference.
+                $ref = &$ref[$node];
+                $arrTmp[] = $node;
             }
-            $strPosType = ($this->filterFn)($arrTmp,$ref);
-            if($strPosType === self::EXCLUDED){
+
+            $mixLeafDefinition = $this->callDefineLeafFn(
+                $arrPath,
+                $ref
+            );
+
+            if ($mixLeafDefinition === self::DISCARDED_LEAF) {
+                throw new LogicException('setValue() does not accept DISCARDED_LEAF.');
+            }
+
+            if ($mixLeafDefinition === self::EXCLUDED) {
                 return;
             }
-            if($strPosType === self::LEAF){
-                $ref = [self::$strPetiole => $ref];//cho mọc thêm một cuống lá
+
+            if ($mixLeafDefinition === self::BRANCH_OR_PETIOLE) {
+                self::validateBranchOrPetioleNode(
+                    $arrPath,
+                    $ref
+                );
             }
-            if(!isset($ref[$node])){
-                $ref[$node] = [];
-                $isNewBranch = true;
+
+            $this->setValueAtEndPath(
+                $mixLeafDefinition,
+                $ref,
+                $value,
+                $sOption,
+                $isNewBranch,
+                $arrPath
+            );
+
+            $isCommitted = true;
+        } finally {
+            /*
+             * Không để lại branch rỗng / petiole tạm khi gặp EXCLUDED hoặc lỗi.
+             */
+            if (!$isCommitted) {
+                for (
+                    $iUndo = count($arrUndo) - 1;
+                    $iUndo >= 0;
+                    $iUndo--
+                ) {
+                    if ($arrUndo[$iUndo]['kind'] === 'insert') {
+                        unset(
+                            $arrUndo[$iUndo]['ref'][
+                                $arrUndo[$iUndo]['key']
+                            ]
+                        );
+                    } else {
+                        $arrUndo[$iUndo]['ref'] =
+                            $arrUndo[$iUndo]['old'];
+                    }
+                }
             }
-            //tiến sâu thêm một mức, chú ý phải dùng reference.
-            $ref = &$ref[$node];
-            array_push($arrTmp,$node);
+
+            unset($ref, $arrUndo);
         }
-        $strPosType = ($this->filterFn)($arrPath,$ref);
-        if($strPosType !== self::EXCLUDED){
-            self::setValueAtEndPath($strPosType,$ref,$value,$sOption,$isNewBranch);
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    /** Return the complete physical tree by value, including petiole slots. */
+    public function getData(): array
+    {
+        return $this->arrData;
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    public function getValue(string|int|array $arrElement): mixed
+    {
+        $arrResult = $this->getExistInfoAndValue($arrElement);
+
+        return $arrResult['value'];
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    public function &getReferenceAt(string|int|array $arrElement)
+    {
+        $arrResult = $this->getExistInfoAndValue(
+            $arrElement,
+            true
+        );
+
+        if (!$arrResult['exists']) {
+            throw new InvalidArgumentException(
+                'Cannot get reference: the specified path does not exist.'
+            );
         }
-        unset($ref);
+
+        $ref = &$arrResult['value'];
+
+        return $ref;
     }
-    /*---------------------------------------------------------------------------------------------------------------*/   
-    public function getValue(string|array $arrElement):mixed{
-        $result = $this->getExistInfoAndValue($arrElement);
-        return $result['value']; 
-    }
-    /*---------------------------------------------------------------------------------------------------------------*/   
-    public function &getReferenceAt(string|array $arrElement){
-        $result = $this->getExistInfoAndValue($arrElement, true);
-        return $result['value'] ;
-    }
-    /*---------------------------------------------------------------------------------------------------------------*/   
-    /*Return value nếu $arrElement là một nhánh hoặc một phần nhánh của array và NULL nếu không phải
-     * Update 2024-03-24
-     * Update 2025-05-24
-     * Update 2025-07-25
-     * Update 2025-09-07, bổ sung $isGetByReference
-     */
-    public function getExistInfoAndValue(string|array $arrElement, $isGetByReference = false): array {
-        $arrChunk = &$this->arrData; //dùng reference để tránh copy array. tăng hiệu suất
-         // Nếu là một giá trị đơn (string), chuyển thành mảng
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    public function getExistInfoAndValue(
+        string|int|array $arrElement,
+        bool $isGetByReference = false
+    ): array {
+        // Dùng reference để tránh copy array và để hỗ trợ getReferenceAt().
+        $arrChunk = &$this->arrData;
+
         if (!is_array($arrElement)) {
             $arrElement = [$arrElement];
         }
+
         $iLength = count($arrElement);
         $element = '';
-        $petioleExists  =  false;
-        for($i=0; $i < $iLength; $i++){
+        $petioleExists = false;
+
+        for ($i = 0; $i < $iLength; $i++) {
             $element = $arrElement[$i];
-            /*Bỏ đi vì self::validateBranchNode($element,$petioleExists); sẽ phát hiện lỗi ở bước tiếp theo
-            if($element === self::$strPetiole && $i < $iLength-1){
-                throw new LogicException('"__petiole__" must be the last element in the path');
-            }*/
-            self::validateBranchNode($element,$petioleExists);
-            if($element === self::$strPetiole){
-                $petioleExists =  true;
+
+            self::validateBranchNode(
+                $element,
+                $petioleExists
+            );
+
+            if ($element === self::$strPetiole) {
+                $petioleExists = true;
             }
-            if(is_array($arrChunk)&& array_key_exists($element, $arrChunk)){
-                //dùng reference để tránh copy array. tăng hiệu suất. Tiến sâu vào trong
+
+            if (
+                is_array($arrChunk)
+                && array_key_exists($element, $arrChunk)
+            ) {
                 $arrChunk = &$arrChunk[$element];
-            }
-            else if($element === $arrChunk && $i === $iLength-1){
-                //trường hợp này xảy ra khi $arrElement có độ sâu đúng bằng độ sâu một nhánh nào đó của  $this->arrData 
-                //khi đi đến nhánh này thì $arrChunk chỉ còn là một value đơn giản string
-                //ví dụ của nhánh này:
-                // $arr = ["a"=>["b"=>["c"=>"d"]]]
-                //$obj = new ExtArray($arr);
-                //$res = $obj->getValue(["a","b","c","d"]);
-                return ['exists' => true, 'value' => null]; 
-            }
-            else{
-                return ['exists' => false, 'value' => null];
+            } else {
+                return [
+                    'exists' => false,
+                    'value' => null,
+                ];
             }
         }
-        //nếu $arrElement ngắn hơn độ sâu của $this->arrData thì chạy đến đây
-        $hasPetiole = isset($arrChunk[self::$strPetiole]);
-        if($hasPetiole){
-            $hasSubBranches = self::hasSubBranches($arrChunk);
-            if(!$hasSubBranches){
-                //cuống lá chỉ là giải pháp khi có các nhánh phụ mọc cùng. không có nhánh phụ thì không cần cuống lá
-                //throw new LogicException('Khi không có nhánh phụ thì không cần mọc cuống lá');
-                throw new LogicException("A petiole should not be created when there are no sub-branches.");
+
+        $hasPetiole = is_array($arrChunk)
+            && array_key_exists(
+                self::$strPetiole,
+                $arrChunk
+            );
+
+        if ($hasPetiole) {
+            if ($element === self::$strPetiole) {
+                throw new LogicException(
+                    'A "__petiole__" node cannot be followed by another key — it must be the leaf holder.'
+                );
             }
-            if($element === self::$strPetiole){
-                //tình huống vô lý vì có 2 cái cuống lá nối tiếp
-                throw new LogicException('A "__petiole__" node cannot be followed by another key — it must be the leaf holder');
+
+            if ($isGetByReference) {
+                return [
+                    'exists' => true,
+                    'value' => &$arrChunk[self::$strPetiole],
+                ];
             }
-            //tới vị trí cuống lá, lấy dữ liệu sâu hơn một mức 
-            
-            if($isGetByReference){
-                return ['exists' => true, 'value' => &$arrChunk[self::$strPetiole]];
-            }
-            else{
-                return ['exists' => true, 'value' => $arrChunk[self::$strPetiole]];
-            }
-            
+
+            return [
+                'exists' => true,
+                'value' => $arrChunk[self::$strPetiole],
+            ];
         }
-        if($isGetByReference){
-            return ['exists' => true, 'value' => &$arrChunk];
+
+        if ($isGetByReference) {
+            return [
+                'exists' => true,
+                'value' => &$arrChunk,
+            ];
         }
-        else{
-            return ['exists' => true, 'value' => $arrChunk];
-        }
+
+        return [
+            'exists' => true,
+            'value' => $arrChunk,
+        ];
     }
+
     /*---------------------------------------------------------------------------------------------------------------*/
-    /*Đây là một trường hợp cá biệt được thiết kế riêng của filterFn. Mục đích là để phục vụ
-    cho hàm isValid sau này sẽ valid cả khối dữ liệu 
-     Các hàm FilterFn khác có thể tham khảo hàm này để làm khuôn mẫu. 
-     * defaultFilterFn này không có trường hợp return EXCLUDED. Cái đó do từng trường hợp sẽ custom lại
+    public function isEmpty(): bool
+    {
+        return $this->arrData === [];
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    /**
+     * Xuất leaf theo thứ tự duyệt, key = serialize(logical path), bỏ segment petiole cuối.
+     * fnMap(array $arrPath, mixed $mixValue, array|int $mixDefinition): mixed.
+     * Chỉ dùng fnDefineLeaf; không normalize, process, gọi branch callback hoặc sửa cây nguồn.
+     * EXCLUDED/DISCARDED_LEAF bỏ qua subtree; empty branch không tạo entry.
+     * Tách array reference để output/callback không ghi qua reference vào nguồn;
+     * object trong leaf vẫn được giữ nguyên, không clone.
      */
-    public function defaultFilterFn(array $chain,$obj) {
-        /* bỏ đi vì count($chain) === 0 giờ cũng cho phép để mỏ rộng tổng quát
-        if(count($chain) === 0){//tình huống phi lý, hàm Filter luôn hoạt động khi $chain có ít nhất 1 phần tử
-            throw new LogicException("Invalid path: empty or non-array chain encountered during tree traversal.");
-        }*/
-        //1. Đạt tới vị trí LEAF
-        if(($this->validLeafFn)($obj)){
-            return self::LEAF;
-        }
-        //2. Tính toán tiếp xem là nhánh hay cuống lá
-        if(!is_array($obj)){
-            //throw new LogicException('muốn phân nhánh hoặc có cuống lá tại đây thì dữ liệu tại đây phải là array');
-            throw new LogicException("To create branches or a petiole at this node, the data must be an array.");
-        }
-        if(end($chain) === self::$strPetiole){
-            // vô lý vì nếu đã chạm tới cuống lá mà $obj lại không phải là lá
-            throw new LogicException("Invalid '__petiole__' node: expected a valid leaf but found an invalid structure.");
-        }
-        $hasPetiole = isset($obj[self::$strPetiole]);
-        if($hasPetiole){
-            $hasSubBranches = self::hasSubBranches($obj);
-            if($hasSubBranches){
-                //3. Tồn tại cả cuống lá + nhánh phụ. Hợp lệ => là cuống lá
-                return self::PETIOLE;
-            }
-            //cuống lá chỉ là giải pháp khi có các nhánh phụ mọc cùng. không có nhánh phụ thì không cần cuống lá
-            //throw new LogicException('Khi không có nhánh phụ thì không cần mọc cuống lá');
-            throw new LogicException("Petiole creation is invalid when no child branches are present.");
-        }
-        //4. không có cuống lá vì $obj là array nên chắc chắn có các nhánh phụ
-        return self::BRANCH;
-        
+    public function toFlatArray(?Closure $fnMap = null): array
+    {
+        $arrFlat = [];
+        $arrData = ArrayUtility::detachReferences($this->arrData);
+        //toFlatArray dùng collectFlatLeaf để duyệt đệ qui $arrData chứ không dùng traverseTree() 
+        //có tác dụng phụ: gọi các callback xử lý, xóa DISCARDED_LEAF và cập nhật trạng thái traversal. Trong khi toFlatArray() chỉ cần đọc và xuất leaf
+        $this->collectFlatLeaf($arrData, [], $fnMap, $arrFlat);
+        return $arrFlat;
     }
-    /*---------------------------------------------------------------------------------------------------------------*/
-    /*chỉ cần định nghĩa lại chính xác lại $this->validLeafFn cho nút lá*/
-    public function isValid(): bool{
-        try{
-            $this->filterFn = Closure::fromCallable([$this, 'defaultFilterFn']);
-            $this->startBranchFn = null;
-            $this->endBranchFn = null;
-            $type = ($this->filterFn)([], $this->arrData);
-            if($type === self::LEAF){
-                //tình huống này ít nhưng cũng cho phép để đảm bảo tính tổng quát.
-                //đây là tình huống kiểu như 'no router', không có định tuyến.
-                //chỉ có một 1 khối thông tin duy nhất ở ngoài cùng
-                return ($this->validLeafFn)($this->arrData);
-            }
-            // From here là self::PETIOLE và self::BRANCH vì defaultFilterFn không
-            //có trả về self:: EXCLUDED
-            $this->traverseTree($this->arrData,[]); 
+
+    protected function collectFlatLeaf(
+        mixed $mixValue,
+        array $arrPath,
+        ?Closure $fnMap,
+        array &$arrFlat
+    ): void {
+        $mixDefinition = $this->callDefineLeafFn($arrPath, $mixValue);
+        if ($mixDefinition === self::EXCLUDED || $mixDefinition === self::DISCARDED_LEAF) {
+            return;
         }
-        catch (Throwable $e){
+        if (self::isLeafDefinition($mixDefinition)) {
+            if ($arrPath !== [] && end($arrPath) === self::$strPetiole) {
+                array_pop($arrPath);
+            }
+            $arrFlat[serialize($arrPath)] = $fnMap === null
+                ? $mixValue : $fnMap($arrPath, $mixValue, $mixDefinition);
+            return;
+        }
+        self::validateBranchOrPetioleNode($arrPath, $mixValue);
+        foreach ($mixValue as $mixKey => $mixChild) {
+            $this->collectFlatLeaf($mixChild, [...$arrPath, $mixKey], $fnMap, $arrFlat);
+        }
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    public function traverseTree(): void
+    {
+        /*
+         * Mỗi lần traverse là một traversal độc lập.
+         */
+        $this->iPrevAction = null;
+        $this->iLengthPrev = null;
+
+        $mixLeafDefinition = $this->callDefineLeafFn(
+            [],
+            $this->arrData
+        );
+
+        if ($mixLeafDefinition === self::DISCARDED_LEAF) {
+            $this->arrData = [];
+            return;
+        }
+
+        if ($mixLeafDefinition === self::EXCLUDED) {
+            return;
+        }
+
+        /*
+         * Toàn bộ ExtArray có thể được định nghĩa là một LEAF.
+         */
+        if (self::isLeafDefinition($mixLeafDefinition)) {
+            if ($this->fnProcessLeaf) {
+                ($this->fnProcessLeaf)(
+                    [],
+                    $this->arrData,
+                    $mixLeafDefinition
+                );
+            }
+
+            $this->iPrevAction = self::LEAF_PROCESSING;
+            $this->iLengthPrev = 0;
+
+            return;
+        }
+
+        /*
+         * Trường hợp còn lại là BRANCH_OR_PETIOLE.
+         */
+        self::validateBranchOrPetioleNode(
+            [],
+            $this->arrData
+        );
+
+        $this->traverseBranch(
+            $this->arrData,
+            []
+        );
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    // true yêu cầu parent xóa entry; false giữ node. Không phải processing state.
+    protected function traverseNode(
+        mixed &$value,
+        array $arrChain
+    ): bool {
+        $mixLeafDefinition = $this->callDefineLeafFn(
+            $arrChain,
+            $value
+        );
+
+        if ($mixLeafDefinition === self::DISCARDED_LEAF) {
+            return true;
+        }
+
+        if ($mixLeafDefinition === self::EXCLUDED) {
             return false;
         }
-        return true;
-    }
-    /*---------------------------------------------------------------------------------------------------------------*/
-    public function traverseTree(array &$data, array $chain = [], bool $isFirstTime = true): void {
-        if($isFirstTime){
-            //reset lại $this->isValidLeafFn để bắt buộc chạy lại $this->validateLeafFn
-            //khi tới nút lá đầu tiên
-            $this->isValidLeafFn = false;
-        }
-        if($this->startBranchFn){
-            ($this->startBranchFn)($chain);
-        }
-        $petioleExists  =  false;
-        foreach ($data as $key => &$val) {
-            self::validateBranchNode($key,$petioleExists);
-            if($key === self::$strPetiole){
-                $petioleExists =  true;
-            }
-            $newChain = array_merge($chain, [$key]);
-            $type = ($this->filterFn)($newChain, $val);
-            if ($type === self::BRANCH || $type === self::PETIOLE) {
-                $this->traverseTree($val, $newChain, false);
-                $this->iPrevAction = self::BRANCH_PROCESSING;
-                $this->iLengthPrev  = count($newChain);
-            } elseif ($type === self::LEAF) {
-                if($this->leafFn){
-                    if(!$this->isValidLeafFn){
-                        //khi valid $this->leafFn thành công thì $this->validateLeafFn sẽ
-                        //đặt lại $this->isValidLeafFn = true để sau này tắt không chạy lại
-                        //hàm this->validateLeafFn lần thứ 2 nữa
-                        $this->validateLeafFn();
-                    }
-                    // Bây giờ $val là tham chiếu -> leafFn có thể thay đổi trực tiếp
-                    ($this->leafFn)($newChain,$val);
-                }
-                $this->iPrevAction = self::LEAF_PROCESSING;
-                $this->iLengthPrev  = count($newChain);
-            }
-        }
-        if($this->endBranchFn){
-            ($this->endBranchFn)($chain);
-        }
-    }
-    /*---------------------------------------------------------------------------------------------------------------*/
-    public function __sleep(): array {
-        $props = get_object_vars($this);
-        $serializeKeys = [];
-        foreach ($props as $name => $value) {
-            // Bỏ qua Closure
-            if ($value instanceof \Closure) {
-                continue;
-            }
-            $serializeKeys[] = $name;
-        }
-        return $serializeKeys;
-    }
-    /*---------------------------------------------------------------------------------------------------------------*/
-    // Gán lại closure mặc định sau khi unserialize. Các class thừa kế từ ExtArray phải viết lại
-    //hàm này cho phù hợp
-    public function __wakeup(): void {
-        
-        $this->validLeafFn = function($obj) {
-            //throw new InvalidArgumentException('Hàm valid dữ liệu tại nút lá chưa được set');
-            throw new InvalidArgumentException("Validation function for leaf nodes must be set before use.");
-        };
-        $this->filterFn    = Closure::fromCallable([static::class, 'defaultFilterFn']);
-        $this->leafFn      = null;
-        $this->startBranchFn = null;
-        $this->endBranchFn   = null;
-    }
-    /*---------------------------------------------------------------------------------------------------------------*/
-    protected function validateLeafFn(): void {
-        if(!$this->leafFn){
-            return;//không có $this->leafFn thì không valid
-        }
-        
-        if (is_array($this->leafFn) && count($this->leafFn) === 2 && is_string($this->leafFn[1])) {
-            $ref = new \ReflectionMethod($this->leafFn[0], $this->leafFn[1]);
-        } elseif ($this->leafFn instanceof \Closure || is_string($this->leafFn)) {
-            $ref = new \ReflectionFunction($this->leafFn);
-        } else {
-            throw new \InvalidArgumentException("Invalid callable provided");
-        }    
-        
-        $params = $ref->getParameters();
 
-        // phải có ít nhất 2 tham số
-        if (count($params) < 2) {
-            throw new \InvalidArgumentException(
-                "LeafFn phải có ít nhất 2 tham số (array \$path, mixed &\$leafInfo)"
-            );
-        }
-        // kiểm tra tham số 1: phải là array
-        $type1 = $params[0]->getType();
-        if ($type1 && $type1->getName() !== 'array') {
-            throw new \InvalidArgumentException(
-                "Tham số đầu tiên phải là array \$path."
-            );
-        }
-        // kiểm tra tham số thứ 2 có phải passed by reference không
-        if (!$params[1]->isPassedByReference()) {
-            throw new \InvalidArgumentException(
-                "Tham số thứ 2 (\$leafInfo) phải được truyền by-reference (&)."
-            );
-        }
-        
-        $this->isValidLeafFn = true;
-    }
-    /*---------------------------------------------------------------------------------------------------------------*/
-    protected static function validateBranchNode($key, ?bool $petioleExists  = null): void {
-        if (!is_string($key)) {
-            throw new InvalidArgumentException('Path key must be of type string');
-        }
-        if($petioleExists  === null){
-            return;
-        }
-        if($petioleExists  === true){
-            if($key === self::$strPetiole){
-                // không thể có nhiều hơn 1 cuống trên 1 nhánh
-                throw new LogicException("Invalid path: multiple '__petiole__' keys in the same branch.");
+        if (self::isLeafDefinition($mixLeafDefinition)) {
+            if ($this->fnProcessLeaf) {
+                ($this->fnProcessLeaf)(
+                    $arrChain,
+                    $value,
+                    $mixLeafDefinition
+                );
             }
-            else{
-                //vô lý vì đã có cuống lá rồi mà nhánh lại nối dài ra chưa kết thúc
-                throw new LogicException("Invalid path: '__petiole__' must be the terminal key in a branch.");
-            }
+
+            $this->iPrevAction = self::LEAF_PROCESSING;
+            $this->iLengthPrev = count($arrChain);
+
+            return false;
         }
-    }
-    /*---------------------------------------------------------------------------------------------------------------*/  
-    protected static function hasSubBranches(array $ref): bool {
-        foreach ($ref as $key => $_) {
-            if ($key !== self::$strPetiole) return true;
-        }
+
+        /*
+         * Trường hợp còn lại là BRANCH_OR_PETIOLE.
+         * BRANCH và PETIOLE đều tiếp tục traverse xuống dưới theo cùng một cách.
+         */
+        self::validateBranchOrPetioleNode(
+            $arrChain,
+            $value
+        );
+
+        $this->traverseBranch(
+            $value,
+            $arrChain
+        );
+
+        $this->iPrevAction = self::BRANCH_PROCESSING;
+        $this->iLengthPrev = count($arrChain);
+
         return false;
     }
-    /*---------------------------------------------------------------------------------------------------------------*/  
-    protected static function setValueMVModeAtEndPath($strPosType, &$ref, $value): void {
-        if($strPosType === self::LEAF){
-            if(is_array($ref) && is_array($value)){
-                $ref =  array_merge($ref, $value);
-            }
-            else{
-                $ref = $value;
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    protected function traverseBranch(
+        array &$arrData,
+        array $arrChain
+    ): void {
+        if ($this->fnStartBranch) {
+            ($this->fnStartBranch)(
+                $arrChain
+            );
+        }
+
+        foreach ($arrData as $key => &$value) {
+            $arrNewChain = array_merge(
+                $arrChain,
+                [$key]
+            );
+
+            if ($this->traverseNode( //tình huống cắt lá DISCARDED_LEAF
+                $value,
+                $arrNewChain
+            )) {
+                // Xóa entry tại parent, giữ nguyên numeric keys.
+                unset($arrData[$key]);
             }
         }
-        else if($strPosType === self::PETIOLE){
-            if(is_array($ref[self::PETIOLE]) && is_array($value)){
-                $ref[self::PETIOLE] =  array_merge($ref[self::PETIOLE], $value);
-            }
-            else{
-                $ref[self::PETIOLE] = $value;
-            }
-        }
-        else if($strPosType === self::PETIOLE){
-            $ref[self::PETIOLE] = $value;
+
+        /*
+         * foreach by-reference: bỏ reference tới phần tử cuối.
+         */
+        unset($value);
+
+        if ($this->fnEndBranch) {
+            ($this->fnEndBranch)(
+                $arrChain
+            );
         }
     }
+
     /*---------------------------------------------------------------------------------------------------------------*/
-    protected static function setValueAtEndPath($strPosType, &$ref, $value, $mode, $isNewBranch): void {
-        if ($mode === self::MODE_REPLACE || $isNewBranch) {
-            $ref = $value;
+    /*
+     * Gọi fnDefineLeaf đúng theo prototype mode đã nhận dạng tại setDefineLeafFn().
+     *
+     * Runtime contract hiện tại:
+     *
+     *     EXCLUDED
+     *     BRANCH_OR_PETIOLE
+     *     COMPOSITE_LEAF
+     *     array atomic definition
+     *
+     *     DISCARDED_LEAF (chỉ traversal thực hiện xóa; setValue reject)
+     */
+    protected function callDefineLeafFn(
+        array $arrChain,
+        mixed $obj
+    ): array|int {
+        if (
+            $this->iDefineLeafFnArgMode
+            === self::CALLBACK_VALUE_ONLY
+        ) {
+            $mixLeafDefinition = ($this->fnDefineLeaf)(
+                $obj
+            );
+        } else {
+            $mixLeafDefinition = ($this->fnDefineLeaf)(
+                $arrChain,
+                $obj
+            );
+        }
+
+        if (is_array($mixLeafDefinition)) {
+            return $mixLeafDefinition;
+        }
+
+        if (!is_int($mixLeafDefinition)) {
+            throw new InvalidArgumentException(
+                'fnDefineLeaf must return int|array.'
+            );
+        }
+
+        if (
+            $mixLeafDefinition !== self::EXCLUDED
+            && $mixLeafDefinition !== self::BRANCH_OR_PETIOLE
+            && $mixLeafDefinition !== self::COMPOSITE_LEAF
+            && $mixLeafDefinition !== self::DISCARDED_LEAF
+        ) {
+            throw new InvalidArgumentException(
+                'fnDefineLeaf must return EXCLUDED, BRANCH_OR_PETIOLE, COMPOSITE_LEAF, DISCARDED_LEAF, or an array definition.'
+            );
+        }
+
+        return $mixLeafDefinition;
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    protected static function isLeafDefinition(
+        array|int $mixLeafDefinition
+    ): bool {
+        return is_array($mixLeafDefinition)
+            || $mixLeafDefinition === self::COMPOSITE_LEAF;
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    /*
+     * BRANCH_OR_PETIOLE là semantic definition do UDA cung cấp.
+     * Petiole đơn độc hợp lệ; node tại segment petiole vẫn phải là leaf.
+     */
+    protected static function validateBranchOrPetioleNode(
+        array $arrChain,
+        mixed $obj
+    ): void {
+        if (!is_array($obj)) {
+            throw new LogicException(
+                'BRANCH_OR_PETIOLE node must contain array data.'
+            );
+        }
+
+        /*
+         * __petiole__ là vị trí chứa leaf của một PETIOLE,
+         * vì vậy chính node __petiole__ không được tiếp tục là BRANCH_OR_PETIOLE.
+         */
+        if (
+            $arrChain !== []
+            && end($arrChain) === self::$strPetiole
+        ) {
+            throw new LogicException(
+                "Invalid '__petiole__' node: '__petiole__' must be a leaf, but fnDefineLeaf returned BRANCH_OR_PETIOLE."
+            );
+        }
+
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    /*
+     * Helper cũ, ngừng sử dụng: traversal giữ nguyên petiole đơn độc.
+     * Bỏ đúng một lớp petiole đơn độc, không descend vào value lấy ra.
+     * Root phải luôn là array, kể cả khi petiole value là scalar/null.
+     * Ví dụ ['__petiole__' => ['a', 'b']] thành ['a', 'b'].
+    protected static function collapseSolitaryPetiole(
+        mixed &$value,
+        bool $isRoot = false
+    ): void {
+        if (
+            !is_array($value)
+            || count($value) !== 1
+            || !array_key_exists(self::$strPetiole, $value)
+        ) {
             return;
         }
-        switch ($mode) {
-            case self::MODE_MERGE_VALUE:
-                self::setValueMVModeAtEndPath($strPosType,$ref, $value);
-                break;
-            case self::MODE_KEEP_OLD_VALUE:
-                // do nothing
-                break;
-            default:
-                throw new InvalidArgumentException("Unknown mode: $mode");
+
+        $leaf = $value[self::$strPetiole];
+        $value = $isRoot && !is_array($leaf) ? [$leaf] : $leaf;
+    }
+    */
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    /*
+     * Chỉ dùng khi node đã được biết là BRANCH_OR_PETIOLE.
+     * Hàm này không classify semantic của node; nó chỉ nhận diện representation vật lý.
+     */
+    protected static function detectBranchOrPetiole(
+        mixed $value
+    ): int {
+        if (!is_array($value)) {
+            throw new LogicException(
+                'BRANCH_OR_PETIOLE node must contain array data.'
+            );
+        }
+
+        return array_key_exists(
+            self::$strPetiole,
+            $value
+        )
+            ? self::PETIOLE
+            : self::BRANCH;
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    /*
+     * Gọi fnNormalizeLeaf đúng theo prototype mode đã nhận dạng tại setNormalizeLeafFn().
+     */
+    protected function callNormalizeLeafFn(
+        array $arrChain,
+        mixed $obj
+    ): array {
+        if (
+            $this->iNormalizeLeafFnArgMode
+            === self::CALLBACK_VALUE_ONLY
+        ) {
+            $result = ($this->fnNormalizeLeaf)(
+                $obj
+            );
+        } else {
+            $result = ($this->fnNormalizeLeaf)(
+                $arrChain,
+                $obj
+            );
+        }
+
+        /*
+         * Nếu UDA không khai báo return type thì vẫn bắt buộc runtime result phải có err_number và value.
+         */
+        if (
+            !is_array($result)
+            || !array_key_exists('err_number', $result)
+            || !is_int($result['err_number'])
+            || $result['err_number'] < 0
+            || !array_key_exists('value', $result)
+        ) {
+            throw new UnexpectedValueException(
+                'fnNormalizeLeaf must return an array containing err_number (non-negative int) and value.'
+            );
+        }
+
+        return $result;
+    }
+
+    /* Normalize candidate before commit; no reference to the target is passed. */
+    protected function normalizeValueForSet(array $arrPath, mixed $value): mixed
+    {
+        $definition = $this->callDefineLeafFn($arrPath, $value);
+        if (!self::isLeafDefinition($definition)) {
+            throw new LogicException(
+                'Cannot set value at path '
+                . json_encode($arrPath, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE)
+                . ': the candidate must be a leaf.'
+            );
+        }
+
+        $result = $this->callNormalizeLeafFn($arrPath, $value);
+        if ($result['err_number'] !== 0) {
+            throw new LogicException(
+                'Cannot normalize leaf at path '
+                . json_encode($arrPath, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE)
+                . '; error code: ' . $result['err_number'] . '.',
+                $result['err_number']
+            );
+        }
+        return $result['value'];
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    /*
+     * Hai prototype hợp lệ cho fnDefineLeaf / fnNormalizeLeaf:
+     *
+     *     fn(mixed $obj)
+     *
+     * hoặc
+     *
+     *     fn(array $arrChain, mixed $obj)
+     *
+     * $obj có thể untyped hoặc mixed.
+     * Nếu có $arrChain thì parameter này phải được khai báo type array.
+     * Không parameter nào được truyền by-reference hoặc variadic.
+     */
+    protected static function detectLeafCallbackArgMode(
+        Closure $fn,
+        string $strCallbackName
+    ): int {
+        $ref = new ReflectionFunction($fn);
+        $arrParam = $ref->getParameters();
+        $iParamCount = count($arrParam);
+
+        if ($iParamCount !== 1 && $iParamCount !== 2) {
+            throw new InvalidArgumentException(
+                $strCallbackName
+                . ' must use one of these prototypes: '
+                . 'fn(mixed $obj) or '
+                . 'fn(array $arrChain, mixed $obj).'
+            );
+        }
+
+        foreach ($arrParam as $param) {
+            if ($param->isVariadic()) {
+                throw new InvalidArgumentException(
+                    $strCallbackName
+                    . ' parameters must not be variadic.'
+                );
+            }
+
+            if ($param->isPassedByReference()) {
+                throw new InvalidArgumentException(
+                    $strCallbackName
+                    . ' parameters must not be passed by reference.'
+                );
+            }
+        }
+
+        if ($iParamCount === 1) {
+            if (!self::isUntypedOrMixedParameter($arrParam[0])) {
+                throw new InvalidArgumentException(
+                    $strCallbackName
+                    . ' value parameter must be untyped or mixed.'
+                );
+            }
+
+            return self::CALLBACK_VALUE_ONLY;
+        }
+
+        if (!self::isArrayParameter($arrParam[0])) {
+            throw new InvalidArgumentException(
+                $strCallbackName
+                . ' first parameter must be declared as array $arrChain.'
+            );
+        }
+
+        if (!self::isUntypedOrMixedParameter($arrParam[1])) {
+            throw new InvalidArgumentException(
+                $strCallbackName
+                . ' value parameter must be untyped or mixed.'
+            );
+        }
+
+        return self::CALLBACK_PATH_VALUE;
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    protected static function validateDefineLeafFnReturnType(
+        Closure $fn
+    ): void {
+        $ref = new ReflectionFunction($fn);
+
+        if ($ref->returnsReference()) {
+            throw new InvalidArgumentException(
+                'fnDefineLeaf must not return by reference.'
+            );
+        }
+
+        $returnType = $ref->getReturnType();
+
+        /*
+         * Cho phép callback không khai báo return type để tương thích và thuận tiện cho UDA.
+         * Runtime result vẫn được callDefineLeafFn() kiểm tra.
+         */
+        if ($returnType === null) {
+            return;
+        }
+
+        if ($returnType instanceof \ReflectionNamedType) {
+            if (
+                $returnType->allowsNull()
+                || !in_array(
+                    $returnType->getName(),
+                    ['array', 'int'],
+                    true
+                )
+            ) {
+                throw new InvalidArgumentException(
+                    'fnDefineLeaf return type must be array|int or a subset of these types.'
+                );
+            }
+
+            return;
+        }
+
+        if ($returnType instanceof \ReflectionUnionType) {
+            foreach ($returnType->getTypes() as $type) {
+                if (
+                    !($type instanceof \ReflectionNamedType)
+                    || $type->allowsNull()
+                    || !in_array(
+                        $type->getName(),
+                        ['array', 'int'],
+                        true
+                    )
+                ) {
+                    throw new InvalidArgumentException(
+                        'fnDefineLeaf return type must be array|int or a subset of these types.'
+                    );
+                }
+            }
+
+            return;
+        }
+
+        throw new InvalidArgumentException(
+            'fnDefineLeaf return type must be array|int or a subset of these types.'
+        );
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    protected static function validateNormalizeLeafFnReturnType(
+        Closure $fn
+    ): void {
+        $ref = new ReflectionFunction($fn);
+
+        if ($ref->returnsReference()) {
+            throw new InvalidArgumentException(
+                'fnNormalizeLeaf must not return by reference.'
+            );
+        }
+
+        $returnType = $ref->getReturnType();
+
+        /*
+         * Cho phép không khai báo return type; callNormalizeLeafFn() sẽ kiểm tra runtime result phải có err_number và value.
+         */
+        if ($returnType === null) {
+            return;
+        }
+
+        if (
+            !($returnType instanceof \ReflectionNamedType)
+            || $returnType->allowsNull()
+            || $returnType->getName() !== 'array'
+        ) {
+            throw new InvalidArgumentException(
+                'fnNormalizeLeaf return type must be array.'
+            );
         }
     }
-} 
-       
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    protected static function isArrayParameter(
+        \ReflectionParameter $param
+    ): bool {
+        $type = $param->getType();
+
+        return $type instanceof \ReflectionNamedType
+            && !$type->allowsNull()
+            && $type->getName() === 'array';
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    protected static function isUntypedOrMixedParameter(
+        \ReflectionParameter $param
+    ): bool {
+        $type = $param->getType();
+
+        if ($type === null) {
+            return true;
+        }
+
+        return $type instanceof \ReflectionNamedType
+            && $type->getName() === 'mixed';
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    /**
+     * Contract:
+     *
+     *     fn(
+     *         array $arrChain,
+     *         mixed &$value,
+     *         array|int $leafDefinition
+     *     )
+     *
+     * Trong đó int hiện tại chỉ có COMPOSITE_LEAF khi fnProcessLeaf được gọi.
+     * Untyped/mixed parameters được chấp nhận theo logic cũ.
+     * Validation diễn ra tại setProcessLeafFn(), không phải lúc traverse.
+     */
+    protected static function validateProcessLeafFnSignature(
+        Closure $fn
+    ): void {
+        $ref = new ReflectionFunction($fn);
+        $arrParam = $ref->getParameters();
+
+        if (
+            count($arrParam) < 3
+            || $ref->getNumberOfRequiredParameters() > 3
+        ) {
+            throw new InvalidArgumentException(
+                'fnProcessLeaf must declare three parameters and require no additional arguments.'
+            );
+        }
+
+        for ($i = 0; $i < 3; $i++) {
+            if ($arrParam[$i]->isVariadic()) {
+                throw new InvalidArgumentException(
+                    'The first three parameters of fnProcessLeaf must not be variadic.'
+                );
+            }
+        }
+
+        if (
+            $arrParam[0]->isPassedByReference()
+            || !$arrParam[1]->isPassedByReference()
+            || $arrParam[2]->isPassedByReference()
+        ) {
+            throw new InvalidArgumentException(
+                'Only the second parameter of fnProcessLeaf must be passed by reference.'
+            );
+        }
+
+        $acceptsType = function (
+            ?\ReflectionType $type,
+            string $strType
+        ) use (&$acceptsType): bool {
+            if ($type === null) {
+                return true;
+            }
+
+            if ($type instanceof \ReflectionNamedType) {
+                $strName = $type->getName();
+
+                return $strName === 'mixed'
+                    || $strName === $strType
+                    || (
+                        $strType === 'array'
+                        && $strName === 'iterable'
+                    );
+            }
+
+            if ($type instanceof \ReflectionUnionType) {
+                foreach ($type->getTypes() as $part) {
+                    if ($acceptsType($part, $strType)) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        };
+
+        if (!$acceptsType($arrParam[0]->getType(), 'array')) {
+            throw new InvalidArgumentException(
+                'The first parameter of fnProcessLeaf must accept array paths.'
+            );
+        }
+
+        $valueType = $arrParam[1]->getType();
+
+        if (
+            $valueType !== null
+            && !(
+                $valueType instanceof \ReflectionNamedType
+                && $valueType->getName() === 'mixed'
+            )
+        ) {
+            throw new InvalidArgumentException(
+                'The second parameter of fnProcessLeaf must be untyped or mixed.'
+            );
+        }
+
+        $definitionType = $arrParam[2]->getType();
+
+        if (
+            !$acceptsType($definitionType, 'array')
+            || !$acceptsType($definitionType, 'int')
+        ) {
+            throw new InvalidArgumentException(
+                'The third parameter of fnProcessLeaf must accept both array and int.'
+            );
+        }
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    protected static function validateBranchNode(
+        string|int $key,
+        ?bool $petioleExists = null
+    ): void {
+        if ($petioleExists === null) {
+            return;
+        }
+
+        if ($petioleExists === true) {
+            if ($key === self::$strPetiole) {
+                throw new LogicException(
+                    'Invalid path: multiple "__petiole__" keys in the same branch.'
+                );
+            }
+
+            throw new LogicException(
+                'Invalid path: "__petiole__" must be the terminal key in a branch.'
+            );
+        }
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    /* Hiện chưa sử dụng: petiole đơn độc đã là cấu trúc hợp lệ.
+    protected static function hasSubBranches(array $ref): bool
+    {
+        foreach ($ref as $key => $_) {
+            if ($key !== self::$strPetiole) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+    */
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    /*
+     * MODE_MERGE_VALUE là nơi thực sự cần phân biệt representation BRANCH và PETIOLE.
+     * fnDefineLeaf chỉ cung cấp BRANCH_OR_PETIOLE; ExtArray tự nhận diện khi cần.
+     */
+    protected function setValueMVModeAtEndPath(
+        array|int $mixLeafDefinition,
+        mixed &$ref,
+        mixed $value,
+        array $arrPath
+    ): void {
+        if (self::isLeafDefinition($mixLeafDefinition)) {
+            $candidate = is_array($ref) && is_array($value)
+                ? array_merge($ref, $value) : $value;
+            $ref = $this->normalizeValueForSet($arrPath, $candidate);
+            return;
+        }
+
+        if ($mixLeafDefinition !== self::BRANCH_OR_PETIOLE) {
+            throw new LogicException('Invalid leaf definition at setValueMVModeAtEndPath().');
+        }
+
+        $candidate = $value;
+        if (self::detectBranchOrPetiole($ref) === self::PETIOLE) {
+            $old = $ref[self::$strPetiole];
+            if (is_array($old) && is_array($value)) {
+                $candidate = array_merge($old, $value);
+            }
+        }
+
+        // Normalize the logical value, never the container's children.
+        $normalized = $this->normalizeValueForSet($arrPath, $candidate);
+        $ref[self::$strPetiole] = $normalized;
+    }
+
+    /*---------------------------------------------------------------------------------------------------------------*/
+    protected function setValueAtEndPath(
+        array|int $mixLeafDefinition,
+        mixed &$ref,
+        mixed $value,
+        string $mode,
+        bool $isNewBranch,
+        array $arrPath
+    ): void {
+        if ($mode === self::MODE_REPLACE || $isNewBranch) {
+            // A new target has no old value to merge, but still normalizes once.
+            $ref = $mode === self::MODE_MERGE_VALUE
+                ? $this->normalizeValueForSet($arrPath, $value) : $value;
+            return;
+        }
+
+        switch ($mode) {
+            case self::MODE_MERGE_VALUE:
+                $this->setValueMVModeAtEndPath($mixLeafDefinition, $ref, $value, $arrPath);
+                break;
+            case self::MODE_KEEP_OLD_VALUE:
+                break;
+            default:
+                throw new InvalidArgumentException('Unknown mode: ' . $mode);
+        }
+    }
+}

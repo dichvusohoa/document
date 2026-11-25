@@ -1,7 +1,9 @@
 <?php
 
 namespace Core\Routing;
-use Core\Utility\ValidUtility;
+use Core\Validator\DataFields;
+use Core\Utility\UriUtility;
+use Core\Utility\StringUtility;
 use UnexpectedValueException;
 final class RoleRegistry
 {
@@ -42,7 +44,7 @@ final class RoleRegistry
         }
 
         foreach ($arrTmp as $strRole => $arrRoleInfo) {
-            if (!ValidUtility::isNonEmptyString($strRole)) {
+            if (!StringUtility::isNonEmptyString($strRole)) {
                 throw new UnexpectedValueException(
                     "Tên role trong {$strFileName} phải là chuỗi không rỗng "
                     . "và không có khoảng trắng ở đầu hoặc cuối."
@@ -56,7 +58,7 @@ final class RoleRegistry
 
             $strContext = "Role '{$strRole}'";
 
-            ValidUtility::validateNoUnexpectedFields(
+            DataFields::validateNoUnexpectedFields(
                 $arrRoleInfo,
                 [
                     self::FIELD_DISPLAY_NAME,
@@ -66,7 +68,7 @@ final class RoleRegistry
                 $strContext
             );
 
-            ValidUtility::validateRequiredField(
+            DataFields::validateRequiredField(
                 $arrRoleInfo,
                 self::FIELD_DISPLAY_NAME,
                 $strContext,
@@ -77,7 +79,7 @@ final class RoleRegistry
                 ]
             );
             
-            ValidUtility::validateRequiredField(
+            DataFields::validateRequiredField(
                 $arrRoleInfo,
                 self::FIELD_DEFAULT_BUSINESS_URL,
                 $strContext,
@@ -88,7 +90,7 @@ final class RoleRegistry
                 ]
             );
             
-            ValidUtility::validateRequiredField(
+            DataFields::validateRequiredField(
                 $arrRoleInfo,
                 self::FIELD_WEIGHT,
                 $strContext,
@@ -101,7 +103,7 @@ final class RoleRegistry
             $arrRoleInfo[self::FIELD_DEFAULT_BUSINESS_URL];
             if (
                 $strDefaultBusinessUrl !== null &&    
-                !ValidUtility::isInternalAbsolutePath(
+                !UriUtility::isAbsolutePath(
                     $arrRoleInfo[self::FIELD_DEFAULT_BUSINESS_URL]
                 )
             ) {

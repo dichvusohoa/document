@@ -3,6 +3,8 @@ namespace Core\Controller;
 use Core\Auth\AuthResponse;
 use Core\Database\DataAccessException;
 use Core\Http\Response;
+use Core\Normalization\BaseRequestSchema;
+use Core\Normalization\RequestNormalizer;
 use Core\View\FragmentRenderer;
 use Core\View\HtmlSchema\BaseHtmlPageSchema;
 use Core\View\HtmlSchema\HtmlFragmentSchemaData;
@@ -15,8 +17,12 @@ abstract class BaseHtmlPageController extends BaseController{
     protected BaseHtmlPageSchema $htmlSchema;
     protected array  $arrDefaultUiContext;
     
-    public function __construct(BaseHtmlPageSchema $htmlSchema){
-        parent::__construct($htmlSchema->getRequestAuthContext());
+    public function __construct(
+        BaseHtmlPageSchema $htmlSchema,
+        ?RequestNormalizer $requestNormalizer = null,
+        ?BaseRequestSchema $requestSchema = null
+    ) {
+        parent::__construct($htmlSchema->getRequestAuthContext(), $requestNormalizer, $requestSchema);
         $this->htmlSchema = $htmlSchema;
     }        
     protected  function buildFragmentData(): array{

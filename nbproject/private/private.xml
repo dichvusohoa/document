@@ -3,13 +3,27 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/Projects/PHP/document/core/HierarchicalPolicy/HPSchema.php</file>
-            <file>file:/D:/Projects/PHP/document/lib_spHPGetResourcePolicies.sql</file>
-            <file>file:/D:/Projects/PHP/document/lib_spHPBuildPolicyInput.sql</file>
-            <file>file:/D:/Projects/PHP/document/lib_spHPBuildEffectiveResourcePolicyBindings.sql</file>
-            <file>file:/D:/Projects/PHP/document/core/HierarchicalPolicy/Service/HPNodeService.php</file>
-            <file>file:/D:/Projects/PHP/document/core/HierarchicalPolicy/Service/BaseHPService.php</file>
-            <file>file:/D:/Projects/PHP/document/core/HierarchicalPolicy/Service/HPResourceService.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Validator/DataFields.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Http/Request.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Controller/BaseHtmlPageController.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Utility/ArrayUtility.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Normalization/RequestNormalizer.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Normalization/RowNormalizer.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Http/Session.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Normalization/JsonNormalizer.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Foundation/ExtArray.php</file>
+            <file>file:/D:/Projects/PHP/document/core/resources/views/login/login.phtml</file>
+            <file>file:/D:/Projects/PHP/document/core/Validator/BaseValidator.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Normalization/RowFieldSchema.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Controller/Login/LoginRequestSchema.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Controller/Login/LoginPageController.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Normalization/TableDAUNormalizer.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Utility/StringUtility.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Controller/Login/LoginController.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Validator/ArrayShape.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Normalization/AtomicSchema.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Normalization/BaseRequestSchema.php</file>
+            <file>file:/D:/Projects/PHP/document/core/Http/Cookie.php</file>
         </group>
     </open-files>
 </project-private>

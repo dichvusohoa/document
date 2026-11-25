@@ -9,6 +9,7 @@
         }
     ],
     "require": {
+        "php": "^8.3",
         "mobiledetect/mobiledetectlib": "^4.8",
         "psr/container": "^2.0"
     },
@@ -17,5 +18,11 @@
             "Core\\": "core/",
             "App\\": "app/"
         }
+    },
+    "config": {
+        "platform": {
+            "php": "8.3.0"
+        },
+        "platform-check": true
     }
 }

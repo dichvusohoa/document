@@ -128,7 +128,7 @@ class UrlToMCAOParser{
         ) {
             return $this->buildDefaultMCAOWithM(
                 $strModule,
-                array_slice($arrSegment, 1)
+                array_slice($arrSegment, 1, null, true)
             );
         }
 
@@ -188,7 +188,7 @@ class UrlToMCAOParser{
             return $this->buildDefaultMCAOWithMC(
                 $strModule,
                 $strController,
-                array_slice($arrSegment, $intActionPos)
+                array_slice($arrSegment, $intActionPos, null, true)
             );
         }
 
@@ -200,7 +200,7 @@ class UrlToMCAOParser{
             $strModule,
             $strController,
             $strActionCandidate,
-            array_slice($arrSegment, $intActionPos + 1)
+            array_slice($arrSegment, $intActionPos + 1, null, true)
         );
     }
 
@@ -238,7 +238,7 @@ class UrlToMCAOParser{
             MCAOInfo::FIELD_MODULE       => $strModule,
             MCAOInfo::FIELD_CONTROLLER   => $strController,
             MCAOInfo::FIELD_ACTION       => $strAction,
-            MCAOInfo::FIELD_OTHER_PARAMS => array_values($arrOtherParam)
+            MCAOInfo::FIELD_OTHER_PARAMS => $arrOtherParam
         ];
     }
 }

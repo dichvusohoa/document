@@ -1,7 +1,7 @@
 <?php
 namespace Core\Routing;
 use UnexpectedValueException;
-use Core\Utility\ValidUtility;
+use Core\Validator\ArrayShape;
 use Core\Utility\StringUtility;
 /*DefaultRouteBuilder sử dụng như 1 class trung gian trong quá trình tạo StaticRoute. Sau này không
 dùng để tạo object độc lập */
@@ -135,7 +135,7 @@ class DefaultRouteBuilder {
             );
         }
 
-        if (!ValidUtility::isStringPairMap($routeValue) || count($routeValue) !== 1) {
+        if (!ArrayShape::isStringPairMap($routeValue) || count($routeValue) !== 1) {
             throw new UnexpectedValueException(
                 "File {$strFileName}: default route của module '{$module}' phải có format ['controller' => 'action']"
             );

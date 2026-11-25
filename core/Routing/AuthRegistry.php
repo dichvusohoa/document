@@ -2,7 +2,7 @@
 
 namespace Core\Routing;
 use Core\Utility\StringUtility;
-use Core\Utility\ValidUtility;
+use Core\Validator\DataFields;
 use UnexpectedValueException;
 use Core\Utility\MathUtility;
 final class AuthRegistry
@@ -208,7 +208,7 @@ final class AuthRegistry
         /*
         * Chỉ cho phép các field được định nghĩa trong config.login.php.
         */
-        ValidUtility::validateNoUnexpectedFields(
+        DataFields::validateNoUnexpectedFields(
             $mixAuthConfig,
             self::CONFIG_FIELDS,
             $strContext
@@ -224,7 +224,7 @@ final class AuthRegistry
             $strContext
         );
         //validateRequiredPositiveIntField
-        ValidUtility::validateRequiredField(
+        DataFields::validateRequiredField(
             $mixAuthConfig,
             self::FIELD_MAX_FAIL_COUNT,
             $strContext,
@@ -271,7 +271,7 @@ final class AuthRegistry
         string $strContext
     ): array {
         //validateRequiredNonEmptyStringField
-        ValidUtility::validateRequiredField(
+        DataFields::validateRequiredField(
             $arrRegistryEntry,
             self::FIELD_ACCEPTED_ROLES_PATTERN,
             $strContext,
@@ -347,7 +347,7 @@ final class AuthRegistry
         array $arrRegistryEntry,
         string $strContext
     ): void {
-        ValidUtility::validateRequiredField(
+        DataFields::validateRequiredField(
             $arrRegistryEntry,
             self::FIELD_TURNSTILE,
             $strContext
@@ -386,7 +386,7 @@ final class AuthRegistry
         string $strContext
     ): array {
         //validateRequiredBoolField
-        ValidUtility::validateRequiredField(
+        DataFields::validateRequiredField(
             $arrRegistryEntry,
             self::FIELD_REMEMBER_COOKIE,
             $strContext,
@@ -423,8 +423,7 @@ final class AuthRegistry
 
             return $arrRegistryEntry;
         }
-        //ValidUtility::validateRequiredPositiveIntField
-        ValidUtility::validateRequiredField(
+        DataFields::validateRequiredField(
             $arrRegistryEntry,
             self::FIELD_REMEMBER_EXPIRE,
             $strContext,
@@ -465,8 +464,7 @@ final class AuthRegistry
         array $arrRegistryEntry,
         string $strContext
     ): void {
-        //ValidUtility::validateRequiredNonEmptyStringListField(
-        ValidUtility::validateRequiredField(
+        DataFields::validateRequiredField(
             $arrRegistryEntry,
             self::FIELD_INPUT_ACTIONS,
             $strContext,
@@ -476,8 +474,7 @@ final class AuthRegistry
                 'item_non_empty' => true
             ]    
         );
-        //ValidUtility::validateUniqueListField
-        ValidUtility::validateRequiredField(
+        DataFields::validateRequiredField(
             $arrRegistryEntry,
             self::FIELD_INPUT_ACTIONS,
             $strContext,
@@ -486,8 +483,7 @@ final class AuthRegistry
                 'unique' => true
             ]    
         );
-        //ValidUtility::validateRequiredEnumField(
-        ValidUtility::validateRequiredField(
+        DataFields::validateRequiredField(
             $arrRegistryEntry,
             self::FIELD_DEFAULT_INPUT_ACTION,
             //$arrRegistryEntry[self::FIELD_INPUT_ACTIONS],

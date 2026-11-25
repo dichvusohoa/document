@@ -1,97 +1,109 @@
 <?php
 namespace Core\Http;
-/**
- * Description of Request
- *
- * @author admin
- */
-namespace Core\Http;
+
+use Core\Foundation\ExtArray;
+use InvalidArgumentException;
+use LogicException;
+use RuntimeException;
+use UnexpectedValueException;
 
 class Request {
     protected array $getData;
     protected array $postData;
-    protected array $jsonData; // ví dụ do hàm fetch tạo ra 
+    // null: nguồn chưa được chuẩn bị; []: nguồn đã được chuẩn bị nhưng rỗng.
+    protected ?array $jsonData = null;
     protected array $serverData;
     protected array $filesData;
-    protected ?string $rawInput = null;
-
+    protected ?array $arrMCAO = null; //bổ sung 2026-11-05
     public function __construct() {
         $this->getData    = $_GET;
         $this->postData   = $_POST;
         $this->serverData = $_SERVER;
         $this->filesData  = $_FILES;
         $this->initJson();
+        $this->prepareFileData();
     }
     // ----------------------------------------------------------------
-    /* hiện nay initJson được gọi và tạo ra dữ liệu nội bộ $this->json phổ biến 
-    thông qua hàm fetch
-    fetch('somethingURL', {
-        method: 'POST', //hoặc PUT hoặc PATCH, hoặc DELETE
-        headers: { 'Content-Type': 'application/json' //dòng này quan trọng nhất
-            'Accept': 'application/json'    //viết thêm cho cẩn thận
-        }, 
-        body: JSON.stringify({ name: 'Tuấn' })
-    });
-    */
-    protected function initJson(): void {
-        $contentType = $this->serverData['CONTENT_TYPE'] ?? '';
-        if (stripos($contentType, 'application/json') !== false) {
-            $this->rawInput = file_get_contents('php://input');
-            $decoded = json_decode($this->rawInput, true);
-            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                $this->jsonData = $decoded;
-            } else {
-                $this->jsonData = [];
-            }
-        } else {
-            $this->jsonData = [];
+    public function setMCAO(array $arrMCAO):void{
+        $this->arrMCAO = $arrMCAO;
+    }
+    // ----------------------------------------------------------------
+    public function mcao(): ?array{
+        return $this->arrMCAO;
+    }
+    // ----------------- Getter theo nguồn -----------------
+    // Key null: lấy toàn nguồn, không áp dụng filter.
+    // Key có mặt với giá trị null vẫn giữ null; default chỉ dùng khi thiếu key.
+    public function query(string|int|null $key = null, $default = null, $filter = null) {
+        return $this->readSource($this->getData, $key, $default, $filter);
+    }
+
+    /** Alias tương thích của query(). */
+    public function get(string|int|null $key = null, $default = null, $filter = null) {
+        return $this->query($key, $default, $filter);
+    }
+
+    public function post(string|int|null $key = null, $default = null, $filter = null) {
+        return $this->readSource($this->postData, $key, $default, $filter);
+    }
+
+    /** Lấy toàn nguồn có thể trả null; đọc một key yêu cầu nguồn đã sẵn sàng. */
+    public function json(string|int|null $key = null, $default = null, $filter = null) {
+        if ($key === null) {
+            return $this->jsonData;
         }
+        if ($this->jsonData === null) {
+            throw new LogicException('Cannot access a JSON field before JSON data is prepared.');
+        }
+        return $this->readSource($this->jsonData, $key, $default, $filter);
     }
 
-    // ----------------- Getter với filter -----------------
-    public function get(string $key, $default = null, $filter = null) {
-        return $this->filterValue($this->getData[$key] ?? $default, $filter);
-    }
-
-    public function post(string $key, $default = null, $filter = null) {
-        return $this->filterValue($this->postData[$key] ?? $default, $filter);
-    }
-
-    public function json(string $key, $default = null, $filter = null) {
-        return $this->filterValue($this->jsonData[$key] ?? $default, $filter);
-    }
-
-    public function input(string $key, $default = null, $filter = null) {
-        $value = $this->jsonData[$key]
-            ?? $this->postData[$key]
-            ?? $this->getData[$key]
-            ?? $default;
-        return $this->filterValue($value, $filter);
+    /** Chỉ lấy other_params; giữ index gốc trong danh sách URI segments. */
+    public function pathParam(?int $key = null, $default = null) {
+        if ($this->arrMCAO === null) {
+            throw new LogicException('Cannot access path_params before MCAO is set.');
+        }
+        return $this->readSource($this->arrMCAO['other_params'], $key, $default);
     }
     /**
-     * Thêm hoặc ghi đè parameter
+     * Thay thế toàn bộ một nguồn, không merge hoặc đánh lại key.
+     * query/get là hai tên của cùng nguồn. JSON có thể được khởi tạo từ null
+     * hoặc thay thế khi đã sẵn sàng; [] là nguồn đã chuẩn bị nhưng rỗng.
+     * path_params chỉ thay other_params, yêu cầu MCAO đã được gán.
+     * Không normalize dữ liệu, không cập nhật các biến superglobal.
      */
-    public function set(string $key, $value, string $source = 'json'): void {
+    public function set(string $source, array $data): void {
         switch ($source) {
-            case 'get':  $this->getData[$key]  = $value; break;
-            case 'post': $this->postData[$key] = $value; break;
+            case 'query':
+            case 'get':
+                $this->getData = $data;
+                break;
+            case 'post':
+                $this->postData = $data;
+                break;
             case 'json':
-            default:     $this->jsonData[$key] = $value; break;
+                $this->jsonData = $data;
+                break;
+            case 'files':
+                // Caller phải cung cấp cấu trúc files đã chuẩn bị, không phải cấu trúc thô $_FILES.
+                $this->filesData = $data;
+                break;
+            case 'path_params':
+                if ($this->arrMCAO === null) {
+                    throw new LogicException('Cannot update path_params before MCAO is set.');
+                }
+                $this->arrMCAO['other_params'] = $data;
+                break;
+            default:
+                throw new InvalidArgumentException('Unknown request source: ' . $source);
         }
     }
 
-    public function all(): array {
-        // Ưu tiên: JSON → POST → GET
-        return array_merge($this->getData, 
-                $this->postData, 
-                $this->jsonData // jsonData ưu tiên cao hơn
-                );
-    }
     // -----------------  File -----------------
     
 
-    public function file(string $key) {
-        return $this->filesData[$key] ?? null;
+    public function file(string|int|null $key = null, $default = null) {
+        return $this->readSource($this->filesData, $key, $default);
     }
 
     // ----------------- Header & Method -----------------
@@ -118,48 +130,40 @@ class Request {
         $queryString = http_build_query($this->getData);
         return $queryString ? $uri . '?' . $queryString : $uri;
     }
-    // ----------------- Check Method -----------------
-    public function isGet(): bool { return $this->method() === 'GET'; }
-    public function isPost(): bool { return $this->method() === 'POST'; }
-    public function isAjax(): bool {
-        return ($this->serverData['HTTP_X_REQUESTED_WITH'] ?? '') === 'XMLHttpRequest';
-    }
-    public function isJsonRequest(): bool {
-        $accept = $this->serverData['HTTP_ACCEPT'] ?? '';
-        return str_contains($accept, 'application/json') 
-            || stripos($this->serverData['CONTENT_TYPE'] ?? '', 'application/json') !== false;
-    }
-    public function isSecure(): bool {
-        return (!empty($this->serverData['HTTPS']) && $this->serverData['HTTPS'] !== 'off')
-            || ($this->serverData['SERVER_PORT'] ?? 80) == 443;
-    }
+    
+    
     
     // ----------------- Tiện ích -----------------
-    public function rawInput(): ?string {
-        return $this->rawInput;
-    }
-
-    public function segmentUri(): ?array {
-        //dùng array_filter với điều kiện lọc strlen để lọc bỏ các chuỗi rỗng ''
-        //sau đó dùng array_values để đánh lại chỉ số mảng liên tiếp từ 0
-        $segments = array_values(array_filter(explode('/', trim($this->uri(), '/')), 'strlen'));
-        return $segments ?? null;
-    }
-
-    public function has(string $key): bool {
-        return array_key_exists($key, $this->jsonData)
-            || array_key_exists($key, $this->postData)
-            || array_key_exists($key, $this->getData);
-    }
-
-    public function only(array $keys): array {
-        $data = $this->all();
-        return array_intersect_key($data, array_flip($keys));
-    }
-
-    public function except(array $keys): array {
-        $data = $this->all();
-        return array_diff_key($data, array_flip($keys));
+    /**
+     * Kiểm tra key trực tiếp trong một nguồn, kể cả khi value=null.
+     * Array keys: tất cả phải tồn tại; array rỗng trả true.
+     * Không diễn giải key thành nested path.
+     * Nguồn JSON/path_params chưa sẵn sàng gây LogicException, kể cả keys rỗng.
+     */
+    public function has(string $source, string|int|array $keys): bool {
+        $data = match ($source) {
+            'query' => $this->query(),
+            'post' => $this->post(),
+            'json' => $this->json(),
+            'files' => $this->file(),
+            'path_params' => $this->pathParam(),
+            default => throw new InvalidArgumentException('Unknown request source: ' . $source),
+        };
+        if ($data === null) {
+            throw new LogicException('Cannot check JSON fields before JSON data is prepared.');
+        }
+        $keys = is_array($keys) ? $keys : [$keys];
+        foreach ($keys as $key) {
+            if (!is_string($key) && !is_int($key)) {
+                throw new InvalidArgumentException('Request keys must be strings or integers.');
+            }
+        }
+        foreach ($keys as $key) {
+            if (!array_key_exists($key, $data)) {
+                return false;
+            }
+        }
+        return true;
     }
     public static function getResponseType() {
         return strtolower(trim($_GET['response_type'] ?? Response::RESPONSE_HTML_TYPE));
@@ -167,11 +171,67 @@ class Request {
     public static function isHtmlResponse(){
         return self::getResponseType() === Response::RESPONSE_HTML_TYPE;
     }
-    public function queryParams(){
-        return $this->getData;
-    }
     
+    
+    /**
+     * Chuyển [field, attribute, ...indices] thành [field, ...indices, attribute].
+     * Giữ nguyên giá trị/index; chưa validate upload và không di chuyển file.
+     * Chạy một lần trong constructor; chỉ ghi nguồn sau khi thành công.
+     */
+    protected function prepareFileData(): void
+    {
+        $arrFiles = $this->filesData;
+        $arrOut = [];
+        if ($arrFiles !== []) {
+            $extArrFiles = new ExtArray($arrFiles);
+            $extArrOut = new ExtArray($arrOut);
+            // Đọc tên petiole qua public API, giữ nguyên scope của callback.
+            $defineLeaf = function (mixed $value): array|int {
+                if (is_array($value)) {
+                    if (array_key_exists(ExtArray::getPetioleName(), $value)) {
+                        throw new UnexpectedValueException('Upload field/group conflicts with the ExtArray petiole name.');
+                    }
+                    return ExtArray::BRANCH_OR_PETIOLE;
+                }
+                if (!is_string($value) && !is_int($value)) {
+                    throw new UnexpectedValueException('Upload leaves must be strings or integers.');
+                }
+                return []; // Atomic leaf; không cần metadata cho bước chuyển cấu trúc.
+            };
+            $extArrFiles->setDefineLeafFn($defineLeaf);
+            $extArrOut->setDefineLeafFn($defineLeaf);
+            $extArrOut->setNormalizeLeafFn(function (mixed $value): array {
+                if (!is_string($value) && !is_int($value)) {
+                    throw new \LogicException('Upload leaves must be strings or integers.');
+                }
+                return ['err_number' => 0, 'value' => $value];
+            });
+            $extArrFiles->setProcessLeafFn(function (array $path, mixed &$value, array|int $definition) use ($extArrOut): void {
+                if (count($path) < 2 || !in_array($path[1], ['name', 'full_path', 'type', 'tmp_name', 'error', 'size'], true)) {
+                    throw new UnexpectedValueException('Invalid upload attribute path.');
+                }
+                $attribute = $path[1];
+                $target = [$path[0]];
+                foreach (array_slice($path, 2) as $key) {
+                    $target[] = $key;
+                }
+                $target[] = $attribute;
+                $extArrOut->setValue($target, $value);
+            });
+            $extArrFiles->traverseTree();
+        }
+        $this->filesData = $arrOut;
+    }
+
     // ----------------- Helper nội bộ -----------------
+    protected function readSource(array $data, string|int|null $key, $default = null, $filter = null) {
+        if ($key === null) {
+            return $data;
+        }
+        $value = array_key_exists($key, $data) ? $data[$key] : $default;
+        return $this->filterValue($value, $filter);
+    }
+
     protected function filterValue($value, $filter) {
         if ($filter === null) {
             return $value;
@@ -184,6 +244,26 @@ class Request {
         }
         return $value;
     }
-    
+    /**
+     * Chỉ decode body application/json; Accept không quyết định định dạng body.
+     * JSON sai cú pháp gây JsonException; root scalar/null gây UnexpectedValueException.
+     * Không dùng null để biểu diễn decode thất bại, không lưu raw body vào property.
+     */
+    protected function initJson(): void {
+        $contentType = $this->serverData['CONTENT_TYPE'] ?? '';
+        $mediaType = strtolower(trim(explode(';', $contentType, 2)[0]));
+        if ($mediaType !== 'application/json') {
+            return;
+        }
+        $rawInput = file_get_contents('php://input');
+        if ($rawInput === false) {
+            throw new RuntimeException('Cannot read JSON request body.');
+        }
+        $decoded = json_decode($rawInput, true, 512, JSON_THROW_ON_ERROR);
+        if (!is_array($decoded)) {
+            throw new UnexpectedValueException('JSON request body must have an object or array root.');
+        }
+        $this->jsonData = $decoded;
+    }
     
 }

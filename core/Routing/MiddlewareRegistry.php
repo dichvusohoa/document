@@ -1,6 +1,6 @@
 <?php
 namespace Core\Routing;
-use Core\Utility\ValidUtility;
+use Core\Validator\ArrayShape;
 class MiddlewareRegistry {
     protected array $arrMiddleware;
     public function __construct(RouteSegmentPatternParser $parser)
@@ -13,7 +13,7 @@ class MiddlewareRegistry {
         $this->arrMiddleware = [];
         $strFileName = 'config.middleware.php';
         $arrTmp = require CONFIG_PATH.'/'.$strFileName;
-        if(!ValidUtility::isStringListMap($arrTmp, ['allow_string_value' => true])){
+        if(!ArrayShape::isStringListMap($arrTmp, ['allow_string_value' => true])){
             throw new UnexpectedValueException("File {$strFileName} có format không phù hợp"); 
         }
         foreach ($arrTmp as $routePath => $fqcn) {

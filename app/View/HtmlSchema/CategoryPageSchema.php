@@ -10,7 +10,7 @@ class CategoryPageSchema extends BaseHtmlPageSchema{
                     'data_source' => 'controller',
                     'render_mode' =>  'server',
                     'render_detail' => ['tag' => 'title'],
-                    'failure' => 'fail_page'
+                    'failure' => 'fallback'
                 ],
             'css'   => 
                 [   'fragment_type' => 'css_link', 
@@ -52,14 +52,10 @@ class CategoryPageSchema extends BaseHtmlPageSchema{
     }
 
     protected function definePositionToFragmentMap(): array {
-        return['title' => 'title', 'css' => 'css', 'script' => 'script', 'left_main'=>'category_tree'];
+        return['title' => 'title', 'css' => 'css', 'script' => 'script', 
+            'left_main'=>'category_tree', 
+            'right_main'=>'category_detail'];
     }
 
-    /*trả về array của các element có cấu trúc như sau
-    type: css, script,embed_fragment_layout, link_fragment_layout
-    path_fragment( chỉ có giá trị khi type = link_fragment_layout)
-    fqcn:function => controller + function phụ trách render dữ liệu cho fragment đó
-    */
-    //abstract public function dependencyFragments(string $masterFragment, string $strAction):array;
-    //trả về mảng các dependency fragments. Chưa có cách nào mô tả tham sổ
+   
 }

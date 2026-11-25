@@ -2,7 +2,7 @@
 
 namespace Core\HierarchicalPolicy\Schema;
 
-use Core\Utility\ValidUtility;
+use Core\Validator\DataFields;
 use InvalidArgumentException;
 
 final class HPNodeSchema
@@ -147,7 +147,7 @@ final class HPNodeSchema
             );
 
         if (
-            !ValidUtility::hasExactFields(
+            !DataFields::hasExactFields(
                 $arrHPSchema,
                 array_keys($arrExpected)
             )

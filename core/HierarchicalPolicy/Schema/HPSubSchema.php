@@ -1,7 +1,7 @@
 <?php
 namespace Core\HierarchicalPolicy\Schema;
-
-use Core\Utility\ValidUtility;
+use Core\Validator\DataFields;
+use Core\Utility\StringUtility;
 use InvalidArgumentException;
 
 final class HPSubSchema
@@ -317,7 +317,7 @@ final class HPSubSchema
         }
 
         if (
-            !ValidUtility::hasExactFields(
+            !DataFields::hasExactFields(
                 $mixSection,
                 $arrField
             )
@@ -353,7 +353,7 @@ final class HPSubSchema
         mixed $mixValue
     ): bool {
         return
-            ValidUtility::isNonEmptyString($mixValue)
+            StringUtility::isNonEmptyString($mixValue)
             && preg_match(
                 '/^[A-Za-z_][A-Za-z0-9_]*$/',
                 $mixValue
@@ -398,7 +398,7 @@ final class HPSubSchema
          */
         if ($isDirect) {
             if (
-                !ValidUtility::hasExactFields(
+                !DataFields::hasExactFields(
                     $arrOption,
                     [
                         self::FIELD_IS_DIRECT,
@@ -433,7 +433,7 @@ final class HPSubSchema
          * ]
          */
         if (
-            !ValidUtility::hasExactFields(
+            !DataFields::hasExactFields(
                 $arrOption,
                 [
                     self::FIELD_IS_DIRECT,

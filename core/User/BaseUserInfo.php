@@ -6,7 +6,9 @@ use LogicException;
 use JsonException;
 use UnexpectedValueException;
 use InvalidArgumentException;
-use Core\Utility\ValidUtility;
+use Core\Validator\DataFields;
+use Core\Validator\ArrayShape;
+use Core\Utility\StringUtility;
 use Core\Utility\MathUtility;
 /*3 function isExtensionValid, extendGuest, normalizeExtensionDbData nên được override lại ở các lớp thừa kế
  * thêm EXTENSION_FIELDS nữa
@@ -55,7 +57,7 @@ abstract class BaseUserInfo
      */
     public static function isValid(mixed $arrData): bool
     {
-        if (!ValidUtility::hasExactFields(
+        if (!DataFields::hasExactFields(
             $arrData,
             array_merge(
                 self::BASE_FIELDS,
@@ -165,7 +167,7 @@ abstract class BaseUserInfo
          */
         if (
             $arrRoles === []
-            || !ValidUtility::isStringPairMap(
+            || !ArrayShape::isStringPairMap(
                 $arrRoles,
                 [
                     'non_empty_key'   => true,
@@ -195,7 +197,7 @@ abstract class BaseUserInfo
 
         if (
             $arrRegisteredModules !== null
-            && !ValidUtility::isIntStringMap(
+            && !ArrayShape::isIntStringMap(
                 $arrRegisteredModules,
                 [
                     'min_key'         => 1,
@@ -225,7 +227,7 @@ abstract class BaseUserInfo
             return false;
         }
 
-        if (!ValidUtility::isNonEmptyString($mixName)) {
+        if (!StringUtility::isNonEmptyString($mixName)) {
             return false;
         }
 

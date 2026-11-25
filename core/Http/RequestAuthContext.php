@@ -15,7 +15,7 @@ class RequestAuthContext
      * Các property dưới đây chỉ có giá trị
      * sau khi ContextRouter hoàn thành việc match request.
      */
-    protected ?array $arrMCAO = null;
+    //protected ?array $arrMCAO = null;
     protected ?array $arrRouteInfo = null;
     protected ?array $arrContextAcceptedRole = null;//
     protected ?bool $isProhibitedModule = null;
@@ -48,10 +48,10 @@ class RequestAuthContext
         return $this->arrAuthResponse;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    public function mcao(): ?array
+   /* public function mcao(): ?array
     {
         return $this->arrMCAO;
-    }
+    }*/
     /*---------------------------------------------------------------------------------------------------------------*/
     public function routeInfo(): ?array
     {
@@ -84,7 +84,8 @@ class RequestAuthContext
         bool $isProhibitedModule,
         bool $isProhibitedRole
     ): void {
-        $this->arrMCAO = $arrMCAO;
+        //$this->arrMCAO = $arrMCAO;
+        $this->request()->setMCAO($arrMCAO);
         $this->arrRouteInfo = $arrRouteInfo;
         $this->arrContextAcceptedRole = $arrContextAcceptedRole;
         $this->isProhibitedModule = $isProhibitedModule;
@@ -94,6 +95,7 @@ class RequestAuthContext
     /*---------------------------------------------------------------------------------------------------------------*/
     public function hasRouteMatchResult(): bool
     {
-        return $this->arrRouteInfo !== null;
+        return ($this->arrRouteInfo !== null && 
+                $this->request()->mcao()!==null);
     }
 }

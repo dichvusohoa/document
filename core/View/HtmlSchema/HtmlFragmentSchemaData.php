@@ -3,7 +3,7 @@
 namespace Core\View\HtmlSchema;
 
 use UnexpectedValueException;
-use Core\Utility\ValidUtility;
+use Core\Validator\DataFields;
 
 class HtmlFragmentSchemaData
 {
@@ -125,7 +125,7 @@ class HtmlFragmentSchemaData
             );
         }
 
-        ValidUtility::validateNoUnexpectedFields(
+        DataFields::validateNoUnexpectedFields(
             $arrData,
             self::ALLOWED_FIELDS,
             $strContext
@@ -154,7 +154,7 @@ class HtmlFragmentSchemaData
         array $arrData,
         string $strContext
     ): void {
-        ValidUtility::validateRequiredField(
+        DataFields::validateRequiredField(
             $arrData,
             'fragment_type',
             $strContext,
@@ -170,7 +170,7 @@ class HtmlFragmentSchemaData
         array $arrData,
         string $strContext
     ): void {
-        ValidUtility::validateRequiredField(
+        DataFields::validateRequiredField(
             $arrData,
             'data_source',
             $strContext,
@@ -186,7 +186,7 @@ class HtmlFragmentSchemaData
         array $arrData,
         string $strContext
     ): void {
-        ValidUtility::validateRequiredField(
+        DataFields::validateRequiredField(
             $arrData,
             'render_mode',
             $strContext,
@@ -208,7 +208,7 @@ class HtmlFragmentSchemaData
         $strFragmentType = $arrData['fragment_type'];
 
         if ($strFragmentType === self::FRAGMENT_TYPE_VIEW) {
-            ValidUtility::validateRequiredField(
+            DataFields::validateRequiredField(
                 $arrData,
                 'render_detail',
                 $strContext,
@@ -224,7 +224,7 @@ class HtmlFragmentSchemaData
         }
 
         if ($strFragmentType === self::FRAGMENT_TYPE_ELEMENT) {
-            ValidUtility::validateRequiredField(
+            DataFields::validateRequiredField(
                 $arrData,
                 'render_detail',
                 $strContext,
@@ -255,7 +255,7 @@ class HtmlFragmentSchemaData
                 return;
             }
 
-            ValidUtility::validateRequiredField(
+            DataFields::validateRequiredField(
                 $arrData,
                 'render_detail',
                 $strContext,
@@ -294,14 +294,14 @@ class HtmlFragmentSchemaData
         array $arrRenderDetail,
         string $strContext
     ): void {
-        ValidUtility::validateNoUnexpectedFields(
+        DataFields::validateNoUnexpectedFields(
             $arrRenderDetail,
             self::VIEW_DETAIL_FIELDS,
             $strContext,
             'render_detail'
         );
 
-        ValidUtility::validateRequiredField(
+        DataFields::validateRequiredField(
             $arrRenderDetail,
             'file',
             $strContext,
@@ -324,7 +324,7 @@ class HtmlFragmentSchemaData
         array $arrRenderDetail,
         string $strContext
     ): void {
-        ValidUtility::validateNoUnexpectedFields(
+        DataFields::validateNoUnexpectedFields(
             $arrRenderDetail,
             self::ELEMENT_DETAIL_FIELDS,
             $strContext,
@@ -334,7 +334,7 @@ class HtmlFragmentSchemaData
         /*
          * Kiểu dữ liệu, non-empty và trimmed là validation generic.
          */
-        ValidUtility::validateRequiredField(
+        DataFields::validateRequiredField(
             $arrRenderDetail,
             'tag',
             $strContext,
@@ -365,7 +365,7 @@ class HtmlFragmentSchemaData
             array_key_exists('attributes', $arrRenderDetail)
             && $arrRenderDetail['attributes'] !== null
         ) {
-            ValidUtility::validateRequiredField(
+            DataFields::validateRequiredField(
                 $arrRenderDetail,
                 'attributes',
                 $strContext,
@@ -390,7 +390,7 @@ class HtmlFragmentSchemaData
         array $arrRenderDetail,
         string $strContext
     ): void {
-        ValidUtility::validateNoUnexpectedFields(
+        DataFields::validateNoUnexpectedFields(
             $arrRenderDetail,
             self::TEXT_DETAIL_FIELDS,
             $strContext,
@@ -415,7 +415,7 @@ class HtmlFragmentSchemaData
             return;
         }
 
-        ValidUtility::validateRequiredField(
+        DataFields::validateRequiredField(
             $arrRenderDetail,
             'escape_html',
             $strContext,
@@ -440,7 +440,7 @@ class HtmlFragmentSchemaData
             return;
         }
 
-        ValidUtility::validateRequiredField(
+        DataFields::validateRequiredField(
             $arrRenderDetail,
             'ui_context',
             $strContext,
@@ -487,7 +487,7 @@ class HtmlFragmentSchemaData
         /*
          * Với data_source = controller thì failure là bắt buộc.
          */
-        ValidUtility::validateRequiredField(
+        DataFields::validateRequiredField(
             $arrData,
             'failure',
             $strContext,
@@ -506,7 +506,7 @@ class HtmlFragmentSchemaData
         $strPath = 'render_detail.tag';
 
         /*
-         * non_empty và trimmed đã được ValidUtility kiểm tra trước.
+         * non_empty và trimmed đã được DataFields kiểm tra trước.
          */
         if ($strTagName !== strtolower($strTagName)) {
             throw new UnexpectedValueException(

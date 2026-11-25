@@ -49,8 +49,6 @@ thì hoàn toàn có thể để 1 class kiểu như CommonPageSchema.php phục
   
  * 
 */
-
-
 abstract class BaseHtmlPageSchema {
     protected RequestAuthContext $requestAuthContext;
     protected string    $strLayoutFilePath;

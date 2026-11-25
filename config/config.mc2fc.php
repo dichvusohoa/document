@@ -27,7 +27,7 @@
 return [
     //'[module:*]/category' =>  \App\Controller\CategoryController::class,
     //'[module:*]/document' =>  \App\Controller\DocumentController::class,
-    'category'      => \App\Controller\Category\CategoryPageController::class,
+    'cat'      => \App\Controller\Category\CategoryPageController::class,
     'document'      => \App\Controller\Document\DocumentPageController::class,
     'login'         => \Core\Controller\Login\LoginPageController::class,
     'cacquak'   => \Core\Controller\Login\LoginPageController::class,

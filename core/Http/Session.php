@@ -34,7 +34,7 @@ class Session
     ): mixed {
         self::ensureStarted();
 
-        $arrElement = ArrayUtility::normalizePath(
+        $arrElement = ArrayUtility::normalizeStringList(
             $mixElement,
             true
         );
@@ -53,7 +53,7 @@ class Session
     ): void {
         self::ensureStarted();
 
-        $arrElement = ArrayUtility::normalizePath(
+        $arrElement = ArrayUtility::normalizeStringList(
             $mixElement,
             false
         );
@@ -71,7 +71,7 @@ class Session
     ): void {
         self::ensureStarted();
 
-        $arrElement = ArrayUtility::normalizePath(
+        $arrElement = ArrayUtility::normalizeStringList(
             $mixElement,
             false
         );

@@ -24,7 +24,7 @@ final class Cookie
         mixed $default = null
     ): mixed {
 
-        $arrElement = ArrayUtility::normalizePath(
+        $arrElement = ArrayUtility::normalizeStringList(
             $arrElement,
             true
         );
@@ -109,7 +109,7 @@ final class Cookie
             );
         }
 
-        $arrElement = ArrayUtility::normalizePath(
+        $arrElement = ArrayUtility::normalizeStringList(
             $arrElement,
             false
         );
@@ -199,7 +199,7 @@ final class Cookie
             );
         }
 
-        $arrElement = ArrayUtility::normalizePath(
+        $arrElement = ArrayUtility::normalizeStringList(
             $arrElement,
             false
         );

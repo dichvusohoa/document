@@ -37,7 +37,7 @@ class HttpKernel  {
         $arrRouteInfo =    $match[ContextRouteInfo::FIELD_ROUTE_INFO];
         $strFQCN    = $arrRouteInfo[RouteInfo::FIELD_FQCN];
         $strFunction = $arrRouteInfo[RouteInfo::FIELD_FUNCTION];
-        $controller = $this->controllerResolver->create($strFQCN, $this->requestAuthContext);
+        $controller = $this->controllerResolver->create($strFQCN);
         $handler = function() use ($controller, $strFunction){
             $controller->doFunction($strFunction);
         };
@@ -56,6 +56,8 @@ class HttpKernel  {
         $arrRouteInfo = [
             RouteInfo::FIELD_ROLES =>
                 $arrFullRouteInfo[RouteInfo::FIELD_ROLES],
+            RouteInfo::FIELD_FUNCTION =>
+                $arrFullRouteInfo[RouteInfo::FIELD_FUNCTION],//bổ sung thêm 2026-03-11
             RouteInfo::FIELD_ROUTE_TYPE =>
                 $arrFullRouteInfo[RouteInfo::FIELD_ROUTE_TYPE]
         ];

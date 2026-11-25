@@ -1,6 +1,7 @@
 <?php
 namespace Core\Controller\Login;
 use UnexpectedValueException;
+use LogicException;
 use Core\Http\Response;
 use Core\Http\Session;
 use Core\Http\Cookie;
@@ -28,7 +29,12 @@ class LoginController extends BaseController{
             AuthTokenService $authTokenService,
             LoginAttemptService $loginAttemptService){
         parent::__construct($requestAuthContext);
-        $arrMCAO = $requestAuthContext->mcao();
+        if (!$requestAuthContext->hasRouteMatchResult()) {
+            throw new LogicException(
+                'Phải có kết quả định tuyến trước khi tạo LoginController.'
+            );
+        }
+        $arrMCAO = $requestAuthContext->request()->mcao();
         $strControllerName = $arrMCAO[MCAOInfo::FIELD_CONTROLLER];
         $arrAuthPolicy = $authRegistry->getAuthPolicy($strControllerName);
         if($arrAuthPolicy === null){

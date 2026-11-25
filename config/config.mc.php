@@ -16,7 +16,7 @@ return [
 return [
     'module-controllers' => [],    
     'standalone-controllers' => [
-        'category',
+        'cat',
         'document',
         'client-info',
         'login',

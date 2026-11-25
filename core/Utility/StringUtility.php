@@ -1,6 +1,7 @@
 <?php
 namespace Core\Utility;
-use \InvalidArgumentException;
+use Core\Normalization\AtomicSchema;
+use Core\Normalization\AtomicNormalizer;
 class StringUtility{
     
     /**
@@ -20,6 +21,26 @@ class StringUtility{
         return $str;
     }
     /*---------------------------------------------------------------------------------------------------------------*/
-    
+    /**
+     * Kiểm tra value là string không rỗng
+     * và đã ở dạng trim canonical.
+     */
+    public static function isNonEmptyString(
+        mixed $value
+    ): bool {
+        return AtomicNormalizer::isValid(
+            $value,
+            [
+                AtomicSchema::FIELD_TYPE
+                    => AtomicSchema::TYPE_STRING,
+
+                AtomicSchema::FIELD_TRIM
+                    => true,
+
+                AtomicSchema::FIELD_MIN_LENGTH
+                    => 1
+            ]
+        );
+    }
     
 }
